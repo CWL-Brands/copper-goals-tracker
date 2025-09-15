@@ -3,9 +3,7 @@ import {
     collections, 
     serverTimestamp, 
     Timestamp,
-    createConverter 
-  } from './client';
-  import {
+    createConverter,
     collection,
     doc,
     setDoc,
@@ -21,7 +19,8 @@ import {
     Unsubscribe,
     startAt,
     endAt
-  } from 'firebase/firestore';
+  } from './db';
+
   import { User, Goal, Metric, GoalPeriod, GoalType } from '@/types';
   import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
   

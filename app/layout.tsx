@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Kanva Sales Goals Tracker',
   description: 'Track and achieve your sales goals with real-time Copper CRM integration',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon.svg',
   },
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         {children}
         <Toaster
           position="top-right"
