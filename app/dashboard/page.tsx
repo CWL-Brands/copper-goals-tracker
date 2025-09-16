@@ -186,7 +186,25 @@ export default function DashboardPage() {
           <button
             onClick={async () => {
               try {
-                await signInWithGoogle();
+                // Detect iframe context
+                let inIframe = false;
+                try { inIframe = window.self !== window.top; } catch { inIframe = true; }
+
+                if (inIframe) {
+                  // Open top-level login flow in a separate window/tab
+                  const width = 520;
+                  const height = 640;
+                  const left = window.screen.width / 2 - width / 2;
+                  const top = window.screen.height / 2 - height / 2;
+                  window.open(
+                    `${window.location.origin}/login`,
+                    'KanvaAuth',
+                    `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+                  );
+                } else {
+                  // Not in iframe: navigate to login route which performs redirect flow
+                  window.location.href = '/login';
+                }
               } catch (e) {
                 console.error('Sign-in failed', e);
                 toast.error('Sign-in failed');
