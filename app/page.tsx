@@ -18,8 +18,9 @@ export default function HomePage() {
         console.log('Running in Copper iframe');
       }
       
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to dashboard (preserve Copper iframe query params, if any)
+      const qs = typeof window !== 'undefined' ? window.location.search : '';
+      router.push(`/dashboard${qs}`);
     };
 
     checkEnvironment();

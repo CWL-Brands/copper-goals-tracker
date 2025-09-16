@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { metricService } from '@/lib/firebase/services';
+import { db, doc, getDoc } from '@/lib/firebase/db';
+import { collections } from '@/lib/firebase/db';
 
 const COPPER_API_BASE = 'https://api.copper.com/developer_api/v1';
 const COPPER_API_KEY = process.env.COPPER_API_KEY!;
@@ -48,6 +50,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
+    // Optional SYNC_SECRET check for privileged calls (e.g., Cloud Scheduler)
+    const authHeader = request.headers.get('authorization') || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const secretOk = !!process.env.SYNC_SECRET && token === process.env.SYNC_SECRET;
+
+    // Load per-user settings (overrides)
+    let userSettings: any = {};
+    try {
+      const settingsSnap = await getDoc(doc(db, collections.settings, userId));
+      if (settingsSnap.exists()) userSettings = settingsSnap.data();
+    } catch {}
+
     const dateRange = getDateRange(period);
     const results = {
       emails: 0,
@@ -57,6 +71,9 @@ export async function POST(request: NextRequest) {
       sales: { wholesale: 0, distribution: 0, total: 0 },
       warnings: [] as string[],
     };
+
+    // Resolve activity type IDs from settings (fallback defaults)
+    const emailActivityId = Number(userSettings?.emailActivityId ?? ACTIVITY_TYPES.EMAIL.id);
 
     // 1) Emails
     try {
@@ -72,7 +89,7 @@ export async function POST(request: NextRequest) {
           page_size: 200,
           sort_by: 'activity_date',
           sort_direction: 'desc',
-          activity_types: [ACTIVITY_TYPES.EMAIL],
+          activity_types: [{ id: emailActivityId, category: 'user' }],
           minimum_activity_date: dateRange.startUnix,
           maximum_activity_date: dateRange.endUnix,
         }),
@@ -169,6 +186,18 @@ export async function POST(request: NextRequest) {
         let wholesale = 0;
         let distribution = 0;
 
+        // Keyword-based channel mapping from settings
+        const wholesaleKeywords: string[] = Array.isArray(userSettings?.wholesaleKeywords)
+          ? userSettings.wholesaleKeywords
+          : (typeof userSettings?.wholesaleKeywords === 'string'
+            ? String(userSettings.wholesaleKeywords).split(',').map((s) => s.trim()).filter(Boolean)
+            : ['Focus+Flow', 'Zoom']);
+        const distributionKeywords: string[] = Array.isArray(userSettings?.distributionKeywords)
+          ? userSettings.distributionKeywords
+          : (typeof userSettings?.distributionKeywords === 'string'
+            ? String(userSettings.distributionKeywords).split(',').map((s) => s.trim()).filter(Boolean)
+            : []);
+
         for (const opp of opps || []) {
           const stageName = opp?.stage_name as string | undefined;
           if (stageName && PIPELINE_CONFIG.STAGE_MAPPING[stageName]) {
@@ -182,11 +211,17 @@ export async function POST(request: NextRequest) {
             const productField = customFields.find((f: any) => f.custom_field_definition_id === 705070);
             if (value > 0) {
               if (productField?.value) {
-                const pv = String(productField.value);
-                if (pv.includes('Focus+Flow') || pv.includes('Zoom')) {
+                const pv = String(productField.value).toLowerCase();
+                const isWholesale = wholesaleKeywords.some((k) => pv.includes(String(k).toLowerCase()));
+                const isDistribution = distributionKeywords.some((k) => pv.includes(String(k).toLowerCase()));
+                if (isWholesale && !isDistribution) {
                   wholesale += value;
-                } else {
+                } else if (isDistribution && !isWholesale) {
                   distribution += value;
+                } else {
+                  // ambiguous or none matched: keep simple split
+                  wholesale += value * 0.6;
+                  distribution += value * 0.4;
                 }
               } else {
                 wholesale += value * 0.6;

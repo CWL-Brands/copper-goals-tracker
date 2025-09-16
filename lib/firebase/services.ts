@@ -90,6 +90,32 @@ import {
       );
     }
   };
+
+  // Settings Services (per-user app settings)
+  export const settingsService = {
+    async getSettings(userId: string): Promise<Record<string, any> | null> {
+      try {
+        const ref = doc(db, collections.settings, userId);
+        const snap = await getDoc(ref);
+        return snap.exists() ? (snap.data() as any) : null;
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+        return null;
+      }
+    },
+
+    async updateSettings(userId: string, data: Record<string, any>): Promise<void> {
+      try {
+        await setDoc(doc(db, collections.settings, userId), {
+          ...data,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error updating settings:', error);
+        throw error;
+      }
+    },
+  };
   
   // Goal Services
   export const goalService = {

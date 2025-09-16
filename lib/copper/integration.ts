@@ -19,7 +19,8 @@ class CopperIntegration {
       try {
         const isInIframe = window.self !== window.top;
         const params = new URLSearchParams(window.location.search);
-        const hasParams = !!(params.get('parentOrigin') && params.get('instanceId'));
+        const parentOrigin = params.get('parentOrigin') || params.get('origin');
+        const hasParams = !!(parentOrigin && params.get('instanceId'));
         if (isInIframe && hasParams) {
           this.init();
         } else {
@@ -53,7 +54,8 @@ class CopperIntegration {
       let isInIframe = false;
       try { isInIframe = window.self !== window.top; } catch { isInIframe = true; }
       const params = new URLSearchParams(window.location.search);
-      const hasParams = !!(params.get('parentOrigin') && params.get('instanceId'));
+      const parentOrigin = params.get('parentOrigin') || params.get('origin');
+      const hasParams = !!(parentOrigin && params.get('instanceId'));
 
       if (!isInIframe) {
         console.log('Not in Copper iframe, skipping SDK initialization');
@@ -61,7 +63,7 @@ class CopperIntegration {
         return;
       }
       if (!hasParams) {
-        console.warn('Copper SDK initialization skipped: missing parentOrigin/instanceId');
+        console.warn('Copper SDK initialization skipped: missing origin/instanceId');
         resolve();
         return;
       }
