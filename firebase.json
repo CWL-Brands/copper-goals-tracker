@@ -7,8 +7,11 @@
   "dataconnect": {
     "source": "dataconnect"
   },
-  "hosting": {
-    "site": "kanvaportal-goals",
-    "public": "public"
-  }
+  "hosting": [
+    {
+      "site": "kanvaportal-goals",
+      "source": ".",
+      "frameworksBackend": {}
+    }
+  ]
 }
