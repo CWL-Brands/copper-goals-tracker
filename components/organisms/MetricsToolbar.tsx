@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { RefreshCw, Settings, Users } from "lucide-react";
+import { RefreshCw, Users } from "lucide-react";
 import { GoalPeriod } from "@/types";
 
 interface MetricsToolbarProps {
@@ -51,11 +51,6 @@ export default function MetricsToolbar({
 
         <button onClick={onRefresh} className="p-2 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Refresh">
           <RefreshCw className="w-5 h-5" />
-        </button>
-
-        {/* Settings button is in the AppShell header now; keep a placeholder if needed */}
-        <button className="p-2 text-gray-400 cursor-default" aria-label="Settings" disabled>
-          <Settings className="w-5 h-5" />
         </button>
       </div>
     </div>

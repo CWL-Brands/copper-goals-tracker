@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Goal, Metric, GoalType, GoalPeriod } from '@/types';
 import { userService, goalService, metricService } from '@/lib/firebase/services';
@@ -10,6 +12,9 @@ import GoalSetter from '@/components/molecules/GoalSetter';
 import MetricsToolbar from '@/components/organisms/MetricsToolbar';
 import GoalGrid from '@/components/organisms/GoalGrid';
 import TeamPerformance from '@/components/organisms/TeamPerformance';
+import Link from 'next/link';
+import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { eachDayOfInterval, subDays, format } from 'date-fns';
 import { 
   BarChart3, 
   Users, 
@@ -41,6 +46,10 @@ export default function DashboardPage() {
   const [teamView, setTeamView] = useState(false);
   const goalsUnsubRef = useRef<null | (() => void)>(null);
   const metricsUnsubRef = useRef<null | (() => void)>(null);
+  const [email7d, setEmail7d] = useState<{ date: string; value: number }[]>([]);
+  const [email30d, setEmail30d] = useState<{ date: string; value: number }[]>([]);
+  const [talk7d, setTalk7d] = useState<{ date: string; value: number }[]>([]);
+  const [talk30d, setTalk30d] = useState<{ date: string; value: number }[]>([]);
 
   // Initialize data
   useEffect(() => {
@@ -72,6 +81,45 @@ export default function DashboardPage() {
       unsubscribeAuth();
     };
   }, [selectedPeriod]);
+
+  // Listen for auth success events from the login popup to avoid loops and refresh data
+  useEffect(() => {
+    const onAuthSuccess = () => {
+      if (user?.id) {
+        loadDashboardData(user.id);
+      } else {
+        // fallback: trigger a soft reload which re-checks auth
+        window.location.reload();
+      }
+    };
+
+    // BroadcastChannel for cross-context communication
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('auth');
+      bc.onmessage = (ev) => {
+        if (ev?.data?.type === 'auth-success') onAuthSuccess();
+      };
+    } catch {}
+
+    // window message from opener
+    const onMessage = (ev: MessageEvent) => {
+      if ((ev?.data as any)?.type === 'auth-success') onAuthSuccess();
+    };
+    window.addEventListener('message', onMessage);
+
+    // storage event (fires across tabs/frames)
+    const onStorage = (ev: StorageEvent) => {
+      if (ev.key === 'auth:status') onAuthSuccess();
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      try { if (bc) bc.close(); } catch {}
+      window.removeEventListener('message', onMessage);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [user?.id]);
 
   const loadDashboardData = async (uid?: string) => {
     setIsLoading(true);
@@ -109,6 +157,47 @@ export default function DashboardPage() {
       setIsLoading(false);
     }
   };
+
+  // Load series for sparklines (7d and 30d) for emails and talk time
+  useEffect(() => {
+    const loadSeries = async () => {
+      try {
+        const uid = user?.id;
+        if (!uid) return;
+        const today = new Date();
+        const start7 = subDays(today, 6); // include today -> 7 points
+        const start30 = subDays(today, 29);
+
+        const buildDailySeries = (metrics: any[], start: Date, end: Date) => {
+          const days = eachDayOfInterval({ start, end });
+          const map = new Map<string, number>();
+          for (const m of metrics) {
+            const key = format(m.date, 'yyyy-MM-dd');
+            map.set(key, (map.get(key) || 0) + (m.value || 0));
+          }
+          return days.map((d) => {
+            const key = format(d, 'yyyy-MM-dd');
+            return { date: key, value: map.get(key) || 0 };
+          });
+        };
+
+        // Emails
+        const emails7 = await metricService.getMetrics(uid, 'email_quantity', start7, today);
+        const emails30 = await metricService.getMetrics(uid, 'email_quantity', start30, today);
+        setEmail7d(buildDailySeries(emails7, start7, today));
+        setEmail30d(buildDailySeries(emails30, start30, today));
+
+        // Talk Time
+        const tt7 = await metricService.getMetrics(uid, 'talk_time', start7, today);
+        const tt30 = await metricService.getMetrics(uid, 'talk_time', start30, today);
+        setTalk7d(buildDailySeries(tt7, start7, today));
+        setTalk30d(buildDailySeries(tt30, start30, today));
+      } catch (e) {
+        console.warn('Failed loading sparkline data', e);
+      }
+    };
+    loadSeries();
+  }, [user?.id]);
 
   const initializeCopperIntegration = async () => {
     try {
@@ -278,6 +367,138 @@ export default function DashboardPage() {
                   : 0}%
               </p>
               <p className="text-xs text-gray-500">Avg Progress</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* At a glance */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">At a glance</h3>
+          <Link href={`/team-dashboard${typeof window !== 'undefined' ? window.location.search : ''}`} className="text-sm text-kanva-green hover:underline">View Team Dashboard →</Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {/* Total Sales */}
+          {(() => {
+            const ws = goals.find(g => g.type === 'new_sales_wholesale');
+            const ds = goals.find(g => g.type === 'new_sales_distribution');
+            const current = (ws?.current || 0) + (ds?.current || 0);
+            const target = (ws?.target || 0) + (ds?.target || 0);
+            const pct = target > 0 ? Math.min((current / target) * 100, 999) : 0;
+            return (
+              <div className="rounded-lg border border-gray-100 p-4">
+                <div className="text-sm text-gray-500">Total Sales ({selectedPeriod})</div>
+                <div className="mt-1 text-2xl font-semibold text-gray-900">
+                  ${current.toLocaleString()} <span className="text-sm text-gray-500 ml-2">of ${target.toLocaleString()}</span>
+                </div>
+                <div className="mt-3 h-2 bg-gray-100 rounded">
+                  <div className="h-2 bg-kanva-green rounded" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            );
+          })()}
+          {(['email_quantity','talk_time','new_sales_wholesale','new_sales_distribution'] as GoalType[]).map((t) => {
+            const g = goals.find(g => g.type === t);
+            const current = g?.current ?? 0;
+            const target = g?.target ?? 0;
+            const pct = target > 0 ? Math.min((current / target) * 100, 999) : 0;
+            const isMoney = t.startsWith('new_sales_');
+            const label = t.replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase());
+            return (
+              <div key={t} className="rounded-lg border border-gray-100 p-4">
+                <div className="text-sm text-gray-500">{label} ({selectedPeriod})</div>
+                <div className="mt-1 text-2xl font-semibold text-gray-900">
+                  {isMoney ? `$${current.toLocaleString()}` : current}
+                  <span className="text-sm text-gray-500 ml-2">of {isMoney ? `$${target.toLocaleString()}` : target}</span>
+                </div>
+                <div className="mt-3 h-2 bg-gray-100 rounded">
+                  <div className="h-2 bg-kanva-green rounded" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Insights: Sparklines */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Insights</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Emails – last 7 days</span>
+              <span className="text-sm text-gray-900 font-medium">{email7d.reduce((a,b)=>a+b.value,0)}</span>
+            </div>
+            <div className="h-20">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={email7d} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#16a34a" stopOpacity={0.5}/>
+                      <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Tooltip formatter={(v)=>[v as number,'Emails']} labelFormatter={(l)=>l} cursor={{ stroke: '#e5e7eb' }} />
+                  <Area type="monotone" dataKey="value" stroke="#16a34a" fillOpacity={1} fill="url(#g1)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex items-center justify-between mt-3 mb-2">
+              <span className="text-sm text-gray-600">Emails – last 30 days</span>
+              <span className="text-sm text-gray-900 font-medium">{email30d.reduce((a,b)=>a+b.value,0)}</span>
+            </div>
+            <div className="h-20">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={email30d} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.5}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Tooltip formatter={(v)=>[v as number,'Emails']} labelFormatter={(l)=>l} cursor={{ stroke: '#e5e7eb' }} />
+                  <Area type="monotone" dataKey="value" stroke="#2563eb" fillOpacity={1} fill="url(#g2)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-600">Talk Time – last 7 days</span>
+              <span className="text-sm text-gray-900 font-medium">{talk7d.reduce((a,b)=>a+b.value,0)}m</span>
+            </div>
+            <div className="h-20">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={talk7d} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ea580c" stopOpacity={0.5}/>
+                      <stop offset="95%" stopColor="#ea580c" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Tooltip formatter={(v)=>[v as number,'Minutes']} labelFormatter={(l)=>l} cursor={{ stroke: '#e5e7eb' }} />
+                  <Area type="monotone" dataKey="value" stroke="#ea580c" fillOpacity={1} fill="url(#g3)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex items-center justify-between mt-3 mb-2">
+              <span className="text-sm text-gray-600">Talk Time – last 30 days</span>
+              <span className="text-sm text-gray-900 font-medium">{talk30d.reduce((a,b)=>a+b.value,0)}m</span>
+            </div>
+            <div className="h-20">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={talk30d} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="g4" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.5}/>
+                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Tooltip formatter={(v)=>[v as number,'Minutes']} labelFormatter={(l)=>l} cursor={{ stroke: '#e5e7eb' }} />
+                  <Area type="monotone" dataKey="value" stroke="#7c3aed" fillOpacity={1} fill="url(#g4)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>

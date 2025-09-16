@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Target, Settings, Users, Home } from "lucide-react";
+import { Target, Settings, Users, Home, LayoutDashboard } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 interface AppShellProps {
@@ -52,6 +52,13 @@ export default function AppShell({ children }: AppShellProps) {
               </Link>
               <Link
                 href={`/dashboard${query}`}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100"
+                aria-label="Dashboard"
+              >
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
+              </Link>
+              <Link
+                href={`/team-dashboard${query}`}
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100"
                 aria-label="Team"
               >

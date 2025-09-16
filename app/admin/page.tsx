@@ -23,6 +23,38 @@ export default function AdminPage() {
   const [emailActivityId, setEmailActivityId] = useState<string>('1');
   const [wholesaleKeywords, setWholesaleKeywords] = useState<string>('Focus+Flow, Zoom');
   const [distributionKeywords, setDistributionKeywords] = useState<string>('');
+  const [teamGoals, setTeamGoals] = useState<Record<string, any>>({
+    daily: {
+      talk_time: 0,
+      email_quantity: 0,
+      lead_progression_a: 0,
+      lead_progression_b: 0,
+      lead_progression_c: 0,
+      new_sales_wholesale: 0,
+      new_sales_distribution: 0,
+    },
+    weekly: {
+      talk_time: 0,
+      email_quantity: 0,
+      lead_progression_a: 0,
+      lead_progression_b: 0,
+      lead_progression_c: 0,
+      new_sales_wholesale: 0,
+      new_sales_distribution: 0,
+    },
+    monthly: {
+      talk_time: 0,
+      email_quantity: 0,
+      lead_progression_a: 0,
+      lead_progression_b: 0,
+      lead_progression_c: 0,
+      new_sales_wholesale: 0,
+      new_sales_distribution: 0,
+    },
+  });
+  const [showPwd, setShowPwd] = useState(false);
+  const [pwdInput, setPwdInput] = useState('');
+  const [pwdError, setPwdError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChange(async (u) => {
@@ -37,6 +69,8 @@ export default function AdminPage() {
             if (s.wholesaleKeywords) setWholesaleKeywords(Array.isArray(s.wholesaleKeywords) ? s.wholesaleKeywords.join(', ') : String(s.wholesaleKeywords));
             if (s.distributionKeywords) setDistributionKeywords(Array.isArray(s.distributionKeywords) ? s.distributionKeywords.join(', ') : String(s.distributionKeywords));
           }
+          const tg = await settingsService.getTeamGoals();
+          if (tg) setTeamGoals({ ...teamGoals, ...tg });
         } finally {
           setSettingsLoading(false);
         }
@@ -63,6 +97,47 @@ export default function AdminPage() {
       setError(e.message || String(e));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoalChange = (periodKey: 'daily'|'weekly'|'monthly', field: string, value: number) => {
+    setTeamGoals(prev => ({
+      ...prev,
+      [periodKey]: { ...prev[periodKey], [field]: value }
+    }));
+  };
+
+  const saveTeamGoals = async () => {
+    // Open password modal first (inline client-side guard)
+    setPwdInput('');
+    setPwdError(null);
+    setShowPwd(true);
+  };
+
+  const confirmTeamGoalsSave = async () => {
+    if (!pwdInput) {
+      setPwdError('Passcode required.');
+      return;
+    }
+    setShowPwd(false);
+    setSettingsLoading(true);
+    setSettingsMsg(null);
+    try {
+      const res = await fetch('/api/admin/team-goals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pass': pwdInput,
+        },
+        body: JSON.stringify(teamGoals),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to save team goals');
+      setSettingsMsg('Team goals saved');
+    } catch (e: any) {
+      setSettingsMsg(e.message || 'Failed to save team goals');
+    } finally {
+      setSettingsLoading(false);
     }
   };
 
@@ -93,6 +168,82 @@ export default function AdminPage() {
 
       {uid && (
         <div className="space-y-6">
+          {/* Team Goals */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-medium mb-2">Team Goals</h2>
+            <p className="text-sm text-gray-600 mb-4">Set organization-wide targets. Users will still have individual goals.</p>
+            {(['daily','weekly','monthly'] as const).map(periodKey => (
+              <div key={periodKey} className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-800 mb-2 capitalize">{periodKey}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Talk Time (min)</span>
+                    <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].talk_time}
+                      onChange={(e)=>handleGoalChange(periodKey,'talk_time',Number(e.target.value))} />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Emails</span>
+                    <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].email_quantity}
+                      onChange={(e)=>handleGoalChange(periodKey,'email_quantity',Number(e.target.value))} />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Fact Finding (A)</span>
+                    <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].lead_progression_a}
+                      onChange={(e)=>handleGoalChange(periodKey,'lead_progression_a',Number(e.target.value))} />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Contact Stage (B)</span>
+                    <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].lead_progression_b}
+                      onChange={(e)=>handleGoalChange(periodKey,'lead_progression_b',Number(e.target.value))} />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Closing Stage (C)</span>
+                    <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].lead_progression_c}
+                      onChange={(e)=>handleGoalChange(periodKey,'lead_progression_c',Number(e.target.value))} />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Wholesale Sales ($)</span>
+                    <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].new_sales_wholesale}
+                      onChange={(e)=>handleGoalChange(periodKey,'new_sales_wholesale',Number(e.target.value))} />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm text-gray-600">Distribution Sales ($)</span>
+                    <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].new_sales_distribution}
+                      onChange={(e)=>handleGoalChange(periodKey,'new_sales_distribution',Number(e.target.value))} />
+                  </label>
+                </div>
+              </div>
+            ))}
+            <div className="flex items-center gap-3">
+              <button onClick={saveTeamGoals} disabled={settingsLoading} className={`px-4 py-2 rounded-lg text-white ${settingsLoading ? 'bg-gray-400' : 'bg-kanva-green hover:bg-green-600'}`}>{settingsLoading ? 'Saving…' : 'Save Team Goals'}</button>
+              {settingsMsg && <span className="text-sm text-gray-600">{settingsMsg}</span>}
+            </div>
+          </section>
+          {/* Password Modal */}
+          {showPwd && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-lg bg-kanva-green text-white grid place-items-center shadow-kanva">🔒</div>
+                  <h3 className="text-lg font-semibold">Confirm Admin Action</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">Enter the admin passcode to save Team Goals.</p>
+                <input
+                  type="password"
+                  value={pwdInput}
+                  onChange={(e)=>{ setPwdInput(e.target.value); setPwdError(null);} }
+                  className="w-full border rounded-md px-3 py-2"
+                  placeholder="Admin passcode"
+                  autoFocus
+                />
+                {pwdError && <p className="mt-2 text-sm text-red-600">{pwdError}</p>}
+                <div className="mt-5 flex items-center justify-end gap-3">
+                  <button onClick={()=>setShowPwd(false)} className="px-4 py-2 rounded-lg bg-gray-100">Cancel</button>
+                  <button onClick={confirmTeamGoalsSave} className="px-4 py-2 rounded-lg text-white bg-kanva-green hover:bg-green-600">Confirm</button>
+                </div>
+              </div>
+            </div>
+          )}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-medium mb-2">My Sync Settings</h2>
             <p className="text-sm text-gray-600 mb-4">These settings control how your data is synced from Copper.</p>

@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from 'react';
 import { signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
@@ -25,7 +27,24 @@ export default function LoginPage() {
           } catch {}
 
           // Broadcast success event
-          try { window.dispatchEvent(new Event('authSuccess')); } catch {}
+          try {
+            // Same-window event (for direct navigations)
+            window.dispatchEvent(new Event('authSuccess'));
+          } catch {}
+          try {
+            // Cross-window broadcast for iframe/opener
+            const bc = new BroadcastChannel('auth');
+            bc.postMessage({ type: 'auth-success' });
+          } catch {}
+          try {
+            if (window.opener) {
+              window.opener.postMessage({ type: 'auth-success' }, '*');
+            }
+          } catch {}
+          try {
+            // Trigger storage event for other tabs/frames
+            localStorage.setItem('auth:status', JSON.stringify({ state: 'signed-in', ts: Date.now() }));
+          } catch {}
 
           setStatus('success');
 
@@ -42,6 +61,9 @@ export default function LoginPage() {
         if (auth.currentUser) {
           setStatus('already-signed-in');
           try { localStorage.setItem('authStatus', 'signed-in'); } catch {}
+          try { const bc = new BroadcastChannel('auth'); bc.postMessage({ type: 'auth-success' }); } catch {}
+          try { if (window.opener) window.opener.postMessage({ type: 'auth-success' }, '*'); } catch {}
+          try { localStorage.setItem('auth:status', JSON.stringify({ state: 'signed-in', ts: Date.now() })); } catch {}
           setTimeout(() => {
             window.close();
             window.location.href = '/auth-success';

@@ -115,6 +115,30 @@ import {
         throw error;
       }
     },
+
+    // Team goals live in a single shared document
+    async getTeamGoals(): Promise<Record<string, any> | null> {
+      try {
+        const ref = doc(db, collections.settings, 'team_goals');
+        const snap = await getDoc(ref);
+        return snap.exists() ? (snap.data() as any) : null;
+      } catch (error) {
+        console.error('Error fetching team goals:', error);
+        return null;
+      }
+    },
+
+    async updateTeamGoals(data: Record<string, any>): Promise<void> {
+      try {
+        await setDoc(doc(db, collections.settings, 'team_goals'), {
+          ...data,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error updating team goals:', error);
+        throw error;
+      }
+    },
   };
   
   // Goal Services
