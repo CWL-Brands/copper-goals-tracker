@@ -1,14 +1,14 @@
 {
   "/_not-found": "app/_not-found.js",
-  "/api/admin/team-goals/route": "app/api/admin/team-goals/route.js",
-  "/admin/page": "app/admin/page.js",
   "/api/copper/route": "app/api/copper/route.js",
   "/icon.svg/route": "app/icon.svg/route.js",
+  "/admin/page": "app/admin/page.js",
+  "/api/admin/team-goals/route": "app/api/admin/team-goals/route.js",
   "/api/sync-metrics/route": "app/api/sync-metrics/route.js",
-  "/auth-success/page": "app/auth-success/page.js",
   "/profile/page": "app/profile/page.js",
-  "/login/page": "app/login/page.js",
-  "/team-dashboard/page": "app/team-dashboard/page.js",
+  "/page": "app/page.js",
+  "/auth-success/page": "app/auth-success/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js"
+  "/login/page": "app/login/page.js",
+  "/team-dashboard/page": "app/team-dashboard/page.js"
 }
