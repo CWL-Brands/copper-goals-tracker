@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import { signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase/client';
+import { db, doc, getDoc, setDoc, serverTimestamp } from '@/lib/firebase/db';
 
 export default function LoginPage() {
   const [status, setStatus] = useState<'checking' | 'redirecting' | 'success' | 'already-signed-in' | 'error'>('checking');
@@ -17,6 +18,28 @@ export default function LoginPage() {
         const result = await getRedirectResult(auth);
         if (result && result.user) {
           // Successful sign-in
+          try {
+            // Ensure Firestore user profile exists (prevents dashboard from thinking user is unauthenticated)
+            const u = result.user;
+            const ref = doc(db, 'users', u.uid);
+            const snap = await getDoc(ref);
+            if (!snap.exists()) {
+              await setDoc(ref, {
+                id: u.uid,
+                email: u.email,
+                name: u.displayName,
+                photoUrl: u.photoURL,
+                role: 'sales',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+              });
+            } else {
+              // touch updatedAt so first read reflects freshness
+              await setDoc(ref, { updatedAt: serverTimestamp() }, { merge: true });
+            }
+          } catch (e) {
+            console.warn('Failed to ensure user profile:', e);
+          }
           try {
             localStorage.setItem('authStatus', 'signed-in');
             localStorage.setItem('authUser', JSON.stringify({
@@ -34,11 +57,19 @@ export default function LoginPage() {
           try {
             // Cross-window broadcast for iframe/opener
             const bc = new BroadcastChannel('auth');
+            const cred = GoogleAuthProvider.credentialFromResult(result);
             bc.postMessage({ type: 'auth-success' });
+            if (cred?.idToken || cred?.accessToken) {
+              bc.postMessage({ type: 'auth-google-credential', idToken: cred?.idToken, accessToken: cred?.accessToken });
+            }
           } catch {}
           try {
             if (window.opener) {
+              const cred = GoogleAuthProvider.credentialFromResult(result);
               window.opener.postMessage({ type: 'auth-success' }, '*');
+              if (cred?.idToken || cred?.accessToken) {
+                window.opener.postMessage({ type: 'auth-google-credential', idToken: cred?.idToken, accessToken: cred?.accessToken }, '*');
+              }
             }
           } catch {}
           try {

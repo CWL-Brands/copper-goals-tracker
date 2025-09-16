@@ -5,7 +5,8 @@ export const dynamic = 'force-dynamic';
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Goal, Metric, GoalType, GoalPeriod } from '@/types';
 import { userService, goalService, metricService } from '@/lib/firebase/services';
-import { signInWithGoogle, onAuthStateChange } from '@/lib/firebase/client';
+import { auth, onAuthStateChange } from '@/lib/firebase/client';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { copperIntegration } from '@/lib/copper/integration';
 import GoalCard from '@/components/molecules/GoalCard';
 import GoalSetter from '@/components/molecules/GoalSetter';
@@ -97,14 +98,42 @@ export default function DashboardPage() {
     let bc: BroadcastChannel | null = null;
     try {
       bc = new BroadcastChannel('auth');
-      bc.onmessage = (ev) => {
-        if (ev?.data?.type === 'auth-success') onAuthSuccess();
+      bc.onmessage = async (ev) => {
+        const data: any = ev?.data;
+        if (data?.type === 'auth-success') onAuthSuccess();
+        if (data?.type === 'auth-google-credential') {
+          try {
+            if (!auth.currentUser) {
+              const cred = GoogleAuthProvider.credential(data.idToken, data.accessToken);
+              if (cred) {
+                await signInWithCredential(auth, cred);
+              }
+            }
+            onAuthSuccess();
+          } catch (e) {
+            console.warn('BC credential sign-in failed:', e);
+          }
+        }
       };
     } catch {}
 
     // window message from opener
-    const onMessage = (ev: MessageEvent) => {
-      if ((ev?.data as any)?.type === 'auth-success') onAuthSuccess();
+    const onMessage = async (ev: MessageEvent) => {
+      const data: any = ev?.data;
+      if (data?.type === 'auth-success') onAuthSuccess();
+      if (data?.type === 'auth-google-credential') {
+        try {
+          if (!auth.currentUser) {
+            const cred = GoogleAuthProvider.credential(data.idToken, data.accessToken);
+            if (cred) {
+              await signInWithCredential(auth, cred);
+            }
+          }
+          onAuthSuccess();
+        } catch (e) {
+          console.warn('Credential sign-in failed:', e);
+        }
+      }
     };
     window.addEventListener('message', onMessage);
 
