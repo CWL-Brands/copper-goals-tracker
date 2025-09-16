@@ -1,5 +1,11 @@
 {
+  "/_not-found": "app/_not-found.js",
+  "/auth-success/page": "app/auth-success/page.js",
+  "/api/sync-metrics/route": "app/api/sync-metrics/route.js",
+  "/admin/page": "app/admin/page.js",
+  "/icon.svg/route": "app/icon.svg/route.js",
+  "/api/copper/route": "app/api/copper/route.js",
+  "/login/page": "app/login/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js",
-  "/icon.svg/route": "app/icon.svg/route.js"
+  "/page": "app/page.js"
 }

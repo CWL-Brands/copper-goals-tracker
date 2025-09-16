@@ -7,6 +7,9 @@ import { signInWithGoogle, onAuthStateChange } from '@/lib/firebase/client';
 import { copperIntegration } from '@/lib/copper/integration';
 import GoalCard from '@/components/molecules/GoalCard';
 import GoalSetter from '@/components/molecules/GoalSetter';
+import MetricsToolbar from '@/components/organisms/MetricsToolbar';
+import GoalGrid from '@/components/organisms/GoalGrid';
+import TeamPerformance from '@/components/organisms/TeamPerformance';
 import { 
   BarChart3, 
   Users, 
@@ -224,51 +227,13 @@ export default function DashboardPage() {
   return (
     <>
       {/* Controls */}
-      <div className="mb-6 flex items-center justify-between">
-        {/* Period Selector */}
-        <div className="flex bg-gray-100 rounded-lg p-1">
-          {(['daily', 'weekly', 'monthly'] as GoalPeriod[]).map(period => (
-            <button
-              key={period}
-              onClick={() => setSelectedPeriod(period)}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                selectedPeriod === period
-                  ? 'bg-white text-kanva-green shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {period.charAt(0).toUpperCase() + period.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setTeamView(!teamView)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
-              teamView
-                ? 'bg-kanva-green text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            Team View
-          </button>
-
-          <button
-            onClick={() => loadDashboardData()}
-            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-            aria-label="Refresh"
-          >
-            <RefreshCw className="w-5 h-5" />
-          </button>
-
-          <button className="p-2 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Settings">
-            <Settings className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
+      <MetricsToolbar
+        period={selectedPeriod}
+        onChangePeriod={setSelectedPeriod}
+        onRefresh={() => loadDashboardData()}
+        teamView={teamView}
+        onToggleTeamView={() => setTeamView(!teamView)}
+      />
 
       {/* User Summary */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -319,78 +284,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Goals Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {goalTypes.map(type => {
-          const goal = goals.find(g => g.type === type);
-          
-          if (goal) {
-            return (
-              <GoalCard
-                key={type}
-                goal={goal}
-                onEdit={() => handleAddGoal(type)}
-              />
-            );
-          }
-          
-          // Empty goal slot
-          return (
-            <button
-              key={type}
-              onClick={() => handleAddGoal(type)}
-              className="bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-kanva-green hover:bg-kanva-lightGreen p-6 transition-colors group"
-            >
-              <div className="text-center">
-                <Plus className="w-8 h-8 text-gray-400 group-hover:text-kanva-green mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-600 group-hover:text-gray-900">
-                  Set {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Goal
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {selectedPeriod} target
-                </p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      <GoalGrid
+        goalTypes={goalTypes}
+        goals={goals}
+        selectedPeriod={selectedPeriod}
+        onAddGoal={handleAddGoal}
+        onEditGoal={handleAddGoal}
+      />
 
       {/* Team Comparison (if enabled) */}
-      {teamView && (
-        <div className="mt-8 bg-white rounded-xl shadow-kanva p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-kanva-green" />
-            Team Performance
-          </h3>
-          <div className="divide-y divide-gray-100">
-            {goalTypes.map(type => {
-              const goal = goals.find(g => g.type === type);
-              if (!goal) return null;
-              
-              const rank = calculateTeamRank(type);
-              const top = rank <= 3;
-              const pct = Math.min((goal.current / goal.target) * 100, 999);
-              return (
-                <div key={type} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${top ? 'bg-kanva-lightGreen text-kanva-green' : 'bg-gray-200 text-gray-700'}`}>
-                      {rank}
-                    </span>
-                    <span className="text-sm text-gray-700">
-                      {toTitle(type)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${top ? 'text-kanva-green' : 'text-gray-900'}`}>
-                      {pct.toFixed(0)}%
-                    </span>
-                    {top && <TrendingUp className="w-4 h-4 text-kanva-green" />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {teamView && <TeamPerformance goals={goals.filter(g => goalTypes.includes(g.type))} />}
 
       {/* Goal Setter Modal */}
       {showGoalSetter && selectedGoalType && user && (
