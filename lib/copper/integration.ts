@@ -14,9 +14,22 @@ class CopperIntegration {
   private context: CopperContext | null = null;
 
   constructor() {
-    // Auto-initialize if in Copper environment
+    // Auto-initialize only when in iframe AND required params exist
     if (typeof window !== 'undefined') {
-      this.init();
+      try {
+        const isInIframe = window.self !== window.top;
+        const params = new URLSearchParams(window.location.search);
+        const hasParams = !!(params.get('parentOrigin') && params.get('instanceId'));
+        if (isInIframe && hasParams) {
+          this.init();
+        } else {
+          // Do not try to init without embed params; avoids SDK errors
+          // This will be initialized later if needed when correct params are present
+          // console.debug('Skipping Copper SDK auto-init: not embedded or missing params');
+        }
+      } catch {
+        // In cross-origin iframe checks, just skip
+      }
     }
   }
 
@@ -24,6 +37,7 @@ class CopperIntegration {
    * Initialize Copper SDK
    */
   async init(): Promise<void> {
+
     // Return existing promise if already initializing
     if (this.initPromise) {
       return this.initPromise;
@@ -35,20 +49,28 @@ class CopperIntegration {
     }
 
     this.initPromise = new Promise((resolve, reject) => {
-      // Check if we're in Copper iframe
-      const isInIframe = window.self !== window.top;
-      
+      // Check if we're in Copper iframe with required params
+      let isInIframe = false;
+      try { isInIframe = window.self !== window.top; } catch { isInIframe = true; }
+      const params = new URLSearchParams(window.location.search);
+      const hasParams = !!(params.get('parentOrigin') && params.get('instanceId'));
+
       if (!isInIframe) {
         console.log('Not in Copper iframe, skipping SDK initialization');
+        resolve();
+        return;
+      }
+      if (!hasParams) {
+        console.warn('Copper SDK initialization skipped: missing parentOrigin/instanceId');
         resolve();
         return;
       }
 
       // Load Copper SDK script
       const script = document.createElement('script');
-      script.src = process.env.NEXT_PUBLIC_COPPER_SDK_URL || 
+      script.src = process.env.NEXT_PUBLIC_COPPER_SDK_URL ||
                    'https://cdn.jsdelivr.net/npm/copper-sdk@latest/dist/copper-sdk.min.js';
-      
+
       script.onload = () => {
         this.initializeSdk()
           .then(() => resolve())

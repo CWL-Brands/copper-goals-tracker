@@ -3,12 +3,27 @@
 import React from "react";
 import Link from "next/link";
 import { Target, Settings, Users, Home } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
 export default function AppShell({ children }: AppShellProps) {
+  const searchParams = useSearchParams();
+  let query = '';
+  try {
+    // If embedded in Copper, preserve query params so SDK can initialize
+    const inIframe = typeof window !== 'undefined' && window.self !== window.top;
+    const hasParams = searchParams && Array.from(searchParams.keys()).length > 0;
+    if (inIframe && hasParams) {
+      const qs = searchParams.toString();
+      query = qs ? `?${qs}` : '';
+    }
+  } catch {
+    // ignore cross-origin checks
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Top Bar */}
@@ -16,7 +31,7 @@ export default function AppShell({ children }: AppShellProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-16 flex items-center justify-between">
             {/* Brand */}
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href={`/${query}`} className="flex items-center gap-3 group">
               <div className="w-9 h-9 rounded-lg bg-kanva-green text-white grid place-items-center group-hover:scale-105 transition-transform shadow-kanva">
                 <Target className="w-5 h-5" />
               </div>
@@ -29,14 +44,14 @@ export default function AppShell({ children }: AppShellProps) {
             {/* Actions */}
             <nav className="flex items-center gap-2">
               <Link
-                href="/"
+                href={`/${query}`}
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100"
                 aria-label="Home"
               >
                 <Home className="w-4 h-4" /> Home
               </Link>
               <Link
-                href="/dashboard"
+                href={`/dashboard${query}`}
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100"
                 aria-label="Team"
               >
