@@ -35,6 +35,19 @@ import {
         return userDoc.exists() ? userDoc.data() : null;
       } catch (error) {
         console.error('Error fetching user:', error);
+        // Dev fallback: allow dashboard to render without Firestore when developing locally
+        if (process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
+          console.warn('[DEV_MODE] Using mock user due to Firestore permissions.');
+          const mockUser: User = {
+            id: userId,
+            name: 'Sales Representative',
+            email: 'user@example.com',
+            role: 'rep',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          } as any;
+          return mockUser;
+        }
         return null;
       }
     },

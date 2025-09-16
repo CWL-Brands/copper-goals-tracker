@@ -71,6 +71,16 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 
 /***/ }),
 
+/***/ "(ssr)/./node_modules/lucide-react/dist/esm/icons/home.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/lucide-react/dist/esm/icons/home.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Home)\n/* harmony export */ });\n/* harmony import */ var _createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../createLucideIcon.js */ \"(ssr)/./node_modules/lucide-react/dist/esm/createLucideIcon.js\");\n/**\n * @license lucide-react v0.309.0 - ISC\n *\n * This source code is licensed under the ISC license.\n * See the LICENSE file in the root directory of this source tree.\n */ \nconst Home = (0,_createLucideIcon_js__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(\"Home\", [\n    [\n        \"path\",\n        {\n            d: \"m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\",\n            key: \"y5dka4\"\n        }\n    ],\n    [\n        \"polyline\",\n        {\n            points: \"9 22 9 12 15 12 15 22\",\n            key: \"e2us08\"\n        }\n    ]\n]);\n //# sourceMappingURL=home.js.map\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9ub2RlX21vZHVsZXMvbHVjaWRlLXJlYWN0L2Rpc3QvZXNtL2ljb25zL2hvbWUuanMiLCJtYXBwaW5ncyI6Ijs7Ozs7QUFBQTs7Ozs7Q0FLQyxHQUVxRDtBQUV0RCxNQUFNQyxPQUFPRCxnRUFBZ0JBLENBQUMsUUFBUTtJQUNwQztRQUFDO1FBQVE7WUFBRUUsR0FBRztZQUFrREMsS0FBSztRQUFTO0tBQUU7SUFDaEY7UUFBQztRQUFZO1lBQUVDLFFBQVE7WUFBeUJELEtBQUs7UUFBUztLQUFFO0NBQ2pFO0FBRTBCLENBQzNCLGdDQUFnQyIsInNvdXJjZXMiOlsid2VicGFjazovL2NvcHBlci1nb2Fscy10cmFja2VyLy4vbm9kZV9tb2R1bGVzL2x1Y2lkZS1yZWFjdC9kaXN0L2VzbS9pY29ucy9ob21lLmpzPzRlNDAiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBAbGljZW5zZSBsdWNpZGUtcmVhY3QgdjAuMzA5LjAgLSBJU0NcbiAqXG4gKiBUaGlzIHNvdXJjZSBjb2RlIGlzIGxpY2Vuc2VkIHVuZGVyIHRoZSBJU0MgbGljZW5zZS5cbiAqIFNlZSB0aGUgTElDRU5TRSBmaWxlIGluIHRoZSByb290IGRpcmVjdG9yeSBvZiB0aGlzIHNvdXJjZSB0cmVlLlxuICovXG5cbmltcG9ydCBjcmVhdGVMdWNpZGVJY29uIGZyb20gJy4uL2NyZWF0ZUx1Y2lkZUljb24uanMnO1xuXG5jb25zdCBIb21lID0gY3JlYXRlTHVjaWRlSWNvbihcIkhvbWVcIiwgW1xuICBbXCJwYXRoXCIsIHsgZDogXCJtMyA5IDktNyA5IDd2MTFhMiAyIDAgMCAxLTIgMkg1YTIgMiAwIDAgMS0yLTJ6XCIsIGtleTogXCJ5NWRrYTRcIiB9XSxcbiAgW1wicG9seWxpbmVcIiwgeyBwb2ludHM6IFwiOSAyMiA5IDEyIDE1IDEyIDE1IDIyXCIsIGtleTogXCJlMnVzMDhcIiB9XVxuXSk7XG5cbmV4cG9ydCB7IEhvbWUgYXMgZGVmYXVsdCB9O1xuLy8jIHNvdXJjZU1hcHBpbmdVUkw9aG9tZS5qcy5tYXBcbiJdLCJuYW1lcyI6WyJjcmVhdGVMdWNpZGVJY29uIiwiSG9tZSIsImQiLCJrZXkiLCJwb2ludHMiLCJkZWZhdWx0Il0sInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///(ssr)/./node_modules/lucide-react/dist/esm/icons/home.js\n");
+
+/***/ }),
+
 /***/ "(ssr)/./node_modules/lucide-react/dist/esm/icons/mail.js":
 /*!**********************************************************!*\
   !*** ./node_modules/lucide-react/dist/esm/icons/mail.js ***!

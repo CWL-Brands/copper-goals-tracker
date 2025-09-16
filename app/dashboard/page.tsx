@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Goal, Metric, GoalType, GoalPeriod } from '@/types';
 import { userService, goalService, metricService } from '@/lib/firebase/services';
+import { signInWithGoogle, onAuthStateChange } from '@/lib/firebase/client';
 import { copperIntegration } from '@/lib/copper/integration';
 import GoalCard from '@/components/molecules/GoalCard';
 import GoalSetter from '@/components/molecules/GoalSetter';
 import { 
   BarChart3, 
   Users, 
-  Target, 
   TrendingUp,
-  Calendar,
   Plus,
   RefreshCw,
   Settings
@@ -37,18 +36,49 @@ export default function DashboardPage() {
   const [showGoalSetter, setShowGoalSetter] = useState(false);
   const [selectedGoalType, setSelectedGoalType] = useState<GoalType | null>(null);
   const [teamView, setTeamView] = useState(false);
+  const goalsUnsubRef = useRef<null | (() => void)>(null);
+  const metricsUnsubRef = useRef<null | (() => void)>(null);
 
   // Initialize data
   useEffect(() => {
-    loadDashboardData();
-    initializeCopperIntegration();
+    // Subscribe to Firebase Auth state and load data for the signed-in user
+    const unsubscribeAuth = onAuthStateChange(async (firebaseUser) => {
+      if (!firebaseUser) {
+        setUser(null);
+        setGoals([]);
+        setMetrics([]);
+        setIsLoading(false);
+        // cleanup any existing listeners
+        if (goalsUnsubRef.current) { goalsUnsubRef.current(); goalsUnsubRef.current = null; }
+        if (metricsUnsubRef.current) { metricsUnsubRef.current(); metricsUnsubRef.current = null; }
+        return;
+      }
+
+      // Ensure a corresponding Firestore user doc exists and fetch it
+      const userData = await userService.getUser(firebaseUser.uid);
+      if (userData) {
+        setUser(userData);
+        await loadDashboardData(firebaseUser.uid);
+      } else {
+        // If no user doc (and not in DEV_MODE fallback), stop loading
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+    };
   }, [selectedPeriod]);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (uid?: string) => {
     setIsLoading(true);
     try {
-      // For demo, using a mock user ID - replace with actual auth
-      const userId = 'demo-user-1';
+      // Use provided uid (from Auth) or current state's user id
+      const userId = uid || user?.id;
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
       
       // Load user data
       const userData = await userService.getUser(userId);
@@ -59,18 +89,15 @@ export default function DashboardPage() {
         const userGoals = await goalService.getUserGoals(userId, selectedPeriod);
         setGoals(userGoals);
         
-        // Subscribe to real-time updates
-        const unsubscribeGoals = goalService.subscribeToGoals(userId, (updatedGoals) => {
+        // Cleanup previous listeners before attaching new ones
+        if (goalsUnsubRef.current) { goalsUnsubRef.current(); }
+        if (metricsUnsubRef.current) { metricsUnsubRef.current(); }
+
+        goalsUnsubRef.current = goalService.subscribeToGoals(userId, (updatedGoals) => {
           setGoals(updatedGoals.filter(g => g.period === selectedPeriod));
         });
-        
-        const unsubscribeMetrics = metricService.subscribeToMetrics(userId, setMetrics);
-        
-        // Cleanup on unmount
-        return () => {
-          unsubscribeGoals();
-          unsubscribeMetrics();
-        };
+
+        metricsUnsubRef.current = metricService.subscribeToMetrics(userId, setMetrics);
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -137,6 +164,8 @@ export default function DashboardPage() {
     return Math.floor(Math.random() * 10) + 1;
   };
 
+  const toTitle = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -148,188 +177,202 @@ export default function DashboardPage() {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-white shadow-sm rounded-xl p-8 max-w-md w-full text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Sign in to continue</h2>
+          <p className="text-sm text-gray-600 mb-6">Use your Kanva Botanicals Google account to access your goals.</p>
+          <button
+            onClick={async () => {
+              try {
+                await signInWithGoogle();
+              } catch (e) {
+                console.error('Sign-in failed', e);
+                toast.error('Sign-in failed');
+              }
+            }}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-kanva-green text-white hover:bg-green-600 transition-colors"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.7 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.2-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.4 16.2 18.8 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.7 29.6 4 24 4 16 4 9.2 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.4l-6.3-5.2C29 35.2 26.6 36 24 36c-5.2 0-9.6-3.6-11.3-8.3l-6.5 5C8.9 39.7 15.9 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.3 3.9-4.9 7.5-9.3 7.5-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.7 29.6 4 24 4c-7.1 0-13.1 3.8-17.7 9.9l-6 4.8z"/></svg>
+            Continue with Google
+          </button>
+          <p className="text-xs text-gray-500 mt-3">Make sure Google sign-in is enabled for the Firebase project and localhost is an authorized domain.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-kanva-green rounded-lg flex items-center justify-center">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-xl font-bold text-gray-900">Goals Tracker</h1>
-              </div>
-              
-              {/* Period Selector */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                {(['daily', 'weekly', 'monthly'] as GoalPeriod[]).map(period => (
-                  <button
-                    key={period}
-                    onClick={() => setSelectedPeriod(period)}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      selectedPeriod === period
-                        ? 'bg-white text-kanva-green shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    {period.charAt(0).toUpperCase() + period.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
+    <>
+      {/* Controls */}
+      <div className="mb-6 flex items-center justify-between">
+        {/* Period Selector */}
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          {(['daily', 'weekly', 'monthly'] as GoalPeriod[]).map(period => (
+            <button
+              key={period}
+              onClick={() => setSelectedPeriod(period)}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                selectedPeriod === period
+                  ? 'bg-white text-kanva-green shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {period.charAt(0).toUpperCase() + period.slice(1)}
+            </button>
+          ))}
+        </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setTeamView(!teamView)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
-                  teamView
-                    ? 'bg-kanva-green text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                Team View
-              </button>
-              
-              <button
-                onClick={loadDashboardData}
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <RefreshCw className="w-5 h-5" />
-              </button>
-              
-              <button className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
-                <Settings className="w-5 h-5" />
-              </button>
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setTeamView(!teamView)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
+              teamView
+                ? 'bg-kanva-green text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            Team View
+          </button>
+
+          <button
+            onClick={() => loadDashboardData()}
+            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            aria-label="Refresh"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
+
+          <button className="p-2 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Settings">
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* User Summary */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {user?.photoUrl ? (
+              <img 
+                src={user.photoUrl} 
+                alt={user.name}
+                className="w-12 h-12 rounded-full"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-kanva-green rounded-full flex items-center justify-center text-white font-bold">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+            )}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {user?.name || 'Sales Representative'}
+              </h2>
+              <p className="text-sm text-gray-500">{user?.email}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-kanva-green">
+                {goals.filter(g => g.current >= g.target).length}
+              </p>
+              <p className="text-xs text-gray-500">Goals Met</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">
+                {goals.length}
+              </p>
+              <p className="text-xs text-gray-500">Total Goals</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-gray-900">
+                {goals.length > 0 
+                  ? Math.round(goals.reduce((acc, g) => acc + (g.current / g.target * 100), 0) / goals.length)
+                  : 0}%
+              </p>
+              <p className="text-xs text-gray-500">Avg Progress</p>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* User Summary */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {user?.photoUrl ? (
-                <img 
-                  src={user.photoUrl} 
-                  alt={user.name}
-                  className="w-12 h-12 rounded-full"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-kanva-green rounded-full flex items-center justify-center text-white font-bold">
-                  {user?.name?.charAt(0) || 'U'}
-                </div>
-              )}
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {user?.name || 'Sales Representative'}
-                </h2>
-                <p className="text-sm text-gray-500">{user?.email}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-6">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-kanva-green">
-                  {goals.filter(g => g.current >= g.target).length}
-                </p>
-                <p className="text-xs text-gray-500">Goals Met</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">
-                  {goals.length}
-                </p>
-                <p className="text-xs text-gray-500">Total Goals</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">
-                  {goals.length > 0 
-                    ? Math.round(goals.reduce((acc, g) => acc + (g.current / g.target * 100), 0) / goals.length)
-                    : 0}%
-                </p>
-                <p className="text-xs text-gray-500">Avg Progress</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Goals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {goalTypes.map(type => {
-            const goal = goals.find(g => g.type === type);
-            
-            if (goal) {
-              return (
-                <GoalCard
-                  key={type}
-                  goal={goal}
-                  onEdit={() => handleAddGoal(type)}
-                />
-              );
-            }
-            
-            // Empty goal slot
+      {/* Goals Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {goalTypes.map(type => {
+          const goal = goals.find(g => g.type === type);
+          
+          if (goal) {
             return (
-              <button
+              <GoalCard
                 key={type}
-                onClick={() => handleAddGoal(type)}
-                className="bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-kanva-green p-6 transition-colors group"
-              >
-                <div className="text-center">
-                  <Plus className="w-8 h-8 text-gray-400 group-hover:text-kanva-green mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-600 group-hover:text-gray-900">
-                    Set {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Goal
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {selectedPeriod} target
-                  </p>
-                </div>
-              </button>
+                goal={goal}
+                onEdit={() => handleAddGoal(type)}
+              />
             );
-          })}
-        </div>
+          }
+          
+          // Empty goal slot
+          return (
+            <button
+              key={type}
+              onClick={() => handleAddGoal(type)}
+              className="bg-white rounded-xl border-2 border-dashed border-gray-300 hover:border-kanva-green hover:bg-kanva-lightGreen p-6 transition-colors group"
+            >
+              <div className="text-center">
+                <Plus className="w-8 h-8 text-gray-400 group-hover:text-kanva-green mx-auto mb-2" />
+                <p className="text-sm font-medium text-gray-600 group-hover:text-gray-900">
+                  Set {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Goal
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {selectedPeriod} target
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-        {/* Team Comparison (if enabled) */}
-        {teamView && (
-          <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-kanva-green" />
-              Team Performance
-            </h3>
-            <div className="space-y-3">
-              {goalTypes.map(type => {
-                const goal = goals.find(g => g.type === type);
-                if (!goal) return null;
-                
-                const rank = calculateTeamRank(type);
-                return (
-                  <div key={type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className={`text-sm font-bold ${rank <= 3 ? 'text-kanva-green' : 'text-gray-600'}`}>
-                        #{rank}
-                      </span>
-                      <span className="text-sm text-gray-700">
-                        {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {((goal.current / goal.target) * 100).toFixed(0)}%
-                      </span>
-                      {rank <= 3 && <TrendingUp className="w-4 h-4 text-kanva-green" />}
-                    </div>
+      {/* Team Comparison (if enabled) */}
+      {teamView && (
+        <div className="mt-8 bg-white rounded-xl shadow-kanva p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-kanva-green" />
+            Team Performance
+          </h3>
+          <div className="divide-y divide-gray-100">
+            {goalTypes.map(type => {
+              const goal = goals.find(g => g.type === type);
+              if (!goal) return null;
+              
+              const rank = calculateTeamRank(type);
+              const top = rank <= 3;
+              const pct = Math.min((goal.current / goal.target) * 100, 999);
+              return (
+                <div key={type} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${top ? 'bg-kanva-lightGreen text-kanva-green' : 'bg-gray-200 text-gray-700'}`}>
+                      {rank}
+                    </span>
+                    <span className="text-sm text-gray-700">
+                      {toTitle(type)}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${top ? 'text-kanva-green' : 'text-gray-900'}`}>
+                      {pct.toFixed(0)}%
+                    </span>
+                    {top && <TrendingUp className="w-4 h-4 text-kanva-green" />}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
-      </main>
+        </div>
+      )}
 
       {/* Goal Setter Modal */}
       {showGoalSetter && selectedGoalType && user && (
@@ -349,6 +392,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

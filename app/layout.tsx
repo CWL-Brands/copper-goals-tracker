@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
+import AppShell from '@/components/templates/AppShell';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
-        {children}
+        <AppShell>
+          {children}
+        </AppShell>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -29,7 +32,7 @@ export default function RootLayout({
             style: {
               background: '#fff',
               color: '#363636',
-              boxShadow: '0 4px 6px -1px rgba(147, 213, 0, 0.1), 0 2px 4px -1px rgba(147, 213, 0, 0.06)',
+              boxShadow: '0 4px 6px -1px rgba(147, 213, 0, 0.1), 0 2px 4px -1px rgba(147, 213, 0, 0.06)'
             },
             success: {
               iconTheme: {

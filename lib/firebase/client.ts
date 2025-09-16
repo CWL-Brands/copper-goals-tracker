@@ -1,30 +1,8 @@
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { 
-  getAuth, 
-  Auth, 
-  signInWithPopup, 
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  User as FirebaseUser 
-} from 'firebase/auth';
-import { 
-  getFirestore, 
-  Firestore,
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  limit,
-  onSnapshot,
-  Timestamp,
-  serverTimestamp,
-  DocumentData,
-  QueryDocumentSnapshot
-} from 'firebase/firestore';
+"use client";
+
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, type User as FirebaseUser, signOut as signOutFn } from 'firebase/auth';
+import { db, doc, getDoc, setDoc, serverTimestamp, Timestamp } from './db';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -36,19 +14,16 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
+// Initialize Firebase App (client-side safe)
 let app: FirebaseApp;
-let auth: Auth;
-let db: Firestore;
-
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
 } else {
-  app = getApps()[0];
+  app = getApp();
 }
 
-auth = getAuth(app);
-db = getFirestore(app);
+// Initialize Auth
+const auth = getAuth(app);
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
@@ -61,7 +36,7 @@ googleProvider.setCustomParameters({
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+    const user = result.user as FirebaseUser;
     
     // Check if user exists in Firestore
     const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -80,15 +55,28 @@ export const signInWithGoogle = async () => {
     }
     
     return user;
-  } catch (error) {
-    console.error('Error signing in with Google:', error);
+  } catch (error: any) {
+    // Fallback to redirect flow for popup/network issues
+    const code = error?.code || error?.message || String(error);
+    console.warn('Popup sign-in failed, attempting redirect. Reason:', code);
+    await signInWithRedirect(auth, googleProvider);
+    // Do not rethrow for known popup/network failures; redirect flow will continue
+    if (
+      typeof code === 'string' && (
+        code.includes('auth/network-request-failed') ||
+        code.includes('auth/popup-blocked') ||
+        code.includes('auth/popup-closed-by-user')
+      )
+    ) {
+      return null as any;
+    }
     throw error;
   }
 };
 
 export const signOut = async () => {
   try {
-    await auth.signOut();
+    await signOutFn(auth);
   } catch (error) {
     console.error('Error signing out:', error);
     throw error;
@@ -112,21 +100,4 @@ export const collections = {
 // Export instances
 export { auth, db, serverTimestamp, Timestamp };
 
-// Firestore Converters for Type Safety
-export const createConverter = <T>() => ({
-  toFirestore: (data: T): DocumentData => data as DocumentData,
-  fromFirestore: (snap: QueryDocumentSnapshot): T => {
-    const data = snap.data();
-    // Convert Timestamp fields to Date
-    const convertedData: any = { ...data, id: snap.id };
-    
-    // Convert common timestamp fields
-    if (data.createdAt?.toDate) convertedData.createdAt = data.createdAt.toDate();
-    if (data.updatedAt?.toDate) convertedData.updatedAt = data.updatedAt.toDate();
-    if (data.date?.toDate) convertedData.date = data.date.toDate();
-    if (data.startDate?.toDate) convertedData.startDate = data.startDate.toDate();
-    if (data.endDate?.toDate) convertedData.endDate = data.endDate.toDate();
-    
-    return convertedData as T;
-  }
-});
+// Note: Firestore converters are defined in lib/firebase/db.ts and reused in services.

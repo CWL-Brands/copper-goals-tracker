@@ -66,7 +66,7 @@ export default function GoalCard({ goal, onEdit, compact = false }: GoalCardProp
 
   if (compact) {
     return (
-      <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-kanva transition-shadow">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className="text-kanva-green">{goalIcons[goal.type]}</div>
@@ -86,7 +86,7 @@ export default function GoalCard({ goal, onEdit, compact = false }: GoalCardProp
             / {formatValue(goal.target, goal.type)}
           </span>
         </div>
-        <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="mt-2 h-3 bg-gray-200 rounded-full overflow-hidden">
           <div 
             className={`h-full ${progressColor} transition-all duration-300`}
             style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -97,7 +97,7 @@ export default function GoalCard({ goal, onEdit, compact = false }: GoalCardProp
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-kanva hover:shadow-kanva-lg transition-all p-6">
+    <div className="bg-white rounded-xl shadow-kanva hover:shadow-kanva-lg transition-shadow p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -134,22 +134,13 @@ export default function GoalCard({ goal, onEdit, compact = false }: GoalCardProp
           </span>
         </div>
 
-        <div className="relative">
+        <div>
           <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
             <div 
               className={`h-full ${progressColor} transition-all duration-500 ease-out`}
               style={{ width: `${Math.min(percentage, 100)}%` }}
             />
           </div>
-          {percentage > 0 && (
-            <div 
-              className="absolute -top-1 transition-all duration-500"
-              style={{ left: `${Math.min(percentage, 100)}%`, transform: 'translateX(-50%)' }}
-            >
-              <div className="w-5 h-5 bg-white border-2 border-current rounded-full shadow-sm"
-                   style={{ borderColor: progressColor.replace('bg-', '') }} />
-            </div>
-          )}
         </div>
 
         <div className="flex items-center justify-between text-sm">
