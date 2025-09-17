@@ -14,8 +14,17 @@ export default function LoginPage() {
   useEffect(() => {
     const handleAuth = async () => {
       try {
+        console.log('Login page: Starting auth check...');
+        console.log('Login page: Firebase auth instance:', auth);
+        console.log('Login page: Firebase config check:', {
+          apiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+          authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+        });
+        
         // Check if returning from redirect
         const result = await getRedirectResult(auth);
+        console.log('Login page: Redirect result:', result);
         if (result && result.user) {
           // Successful sign-in
           try {
@@ -89,7 +98,9 @@ export default function LoginPage() {
         }
 
         // If already logged in without redirect result
+        console.log('Login page: Current user:', auth.currentUser);
         if (auth.currentUser) {
+          console.log('Login page: User already signed in');
           setStatus('already-signed-in');
           try { localStorage.setItem('authStatus', 'signed-in'); } catch {}
           try { const bc = new BroadcastChannel('auth'); bc.postMessage({ type: 'auth-success' }); } catch {}
@@ -103,9 +114,13 @@ export default function LoginPage() {
         }
 
         // Initiate redirect sign-in
+        console.log('Login page: Initiating redirect sign-in');
         setStatus('redirecting');
         const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
+        provider.setCustomParameters({ 
+          hd: 'kanvabotanicals.com', // Restrict to company domain
+          prompt: 'select_account' 
+        });
         await signInWithRedirect(auth, provider);
       } catch (err: any) {
         console.error('Auth error:', err);
