@@ -68,3 +68,13 @@ node_modules/
 # dataconnect generated files
 .dataconnect
 .env.local
+
+# Add common ignores if missing
+@'
+.next/
+out/
+node_modules/
+.firebase/
+.env.local
+.env.*
+'@ | Out-File -FilePath .gitignore -Encoding utf8 -Append
