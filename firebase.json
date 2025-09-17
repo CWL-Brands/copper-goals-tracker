@@ -1,4 +1,27 @@
 {
+  "hosting": [
+    {
+      "site": "kanvaportal-goals",
+      "source": ".",
+      "frameworksBackend": {},
+      
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "frame-ancestors 'self' https://app.copper.com https://*.copper.com"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "emulators": {
     "dataconnect": {
       "dataDir": "dataconnect/.dataconnect/pgliteData"
@@ -6,12 +29,5 @@
   },
   "dataconnect": {
     "source": "dataconnect"
-  },
-  "hosting": [
-    {
-      "site": "kanvaportal-goals",
-      "source": ".",
-      "frameworksBackend": {}
-    }
-  ]
+  }
 }

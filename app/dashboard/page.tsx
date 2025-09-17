@@ -114,6 +114,19 @@ export default function DashboardPage() {
             console.warn('BC credential sign-in failed:', e);
           }
         }
+        if (data?.type === 'auth-id-token') {
+          try {
+            if (!auth.currentUser && data.idToken) {
+              const cred = GoogleAuthProvider.credential(data.idToken);
+              if (cred) {
+                await signInWithCredential(auth, cred);
+              }
+            }
+            onAuthSuccess();
+          } catch (e) {
+            console.warn('BC id-token sign-in failed:', e);
+          }
+        }
       };
     } catch {}
 
@@ -132,6 +145,19 @@ export default function DashboardPage() {
           onAuthSuccess();
         } catch (e) {
           console.warn('Credential sign-in failed:', e);
+        }
+      }
+      if (data?.type === 'auth-id-token') {
+        try {
+          if (!auth.currentUser && data.idToken) {
+            const cred = GoogleAuthProvider.credential(data.idToken);
+            if (cred) {
+              await signInWithCredential(auth, cred);
+            }
+          }
+          onAuthSuccess();
+        } catch (e) {
+          console.warn('Credential sign-in (idToken) failed:', e);
         }
       }
     };

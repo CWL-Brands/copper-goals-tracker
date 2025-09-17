@@ -55,6 +55,16 @@ export default function LoginPage() {
             }));
             const bc = new BroadcastChannel('auth');
             bc.postMessage({ type: 'auth-success' });
+            // Also broadcast Google credential for third-party cookie environments (e.g., Copper iframe)
+            try {
+              const cred = GoogleAuthProvider.credentialFromResult(result);
+              if (cred?.idToken || cred?.accessToken) {
+                bc.postMessage({ type: 'auth-google-credential', idToken: cred?.idToken, accessToken: cred?.accessToken });
+                if (window.opener) {
+                  window.opener.postMessage({ type: 'auth-google-credential', idToken: cred?.idToken, accessToken: cred?.accessToken }, '*');
+                }
+              }
+            } catch {}
             if (window.opener) window.opener.postMessage({ type: 'auth-success' }, '*');
           } catch {}
 
@@ -70,6 +80,13 @@ export default function LoginPage() {
           console.log('Login page: User already signed in');
           setStatus('already-signed-in');
           try { localStorage.setItem('authStatus', 'signed-in'); } catch {}
+          // Best-effort broadcast id token to allow credential sign-in in iframe contexts
+          try {
+            const token = await auth.currentUser.getIdToken();
+            const bc = new BroadcastChannel('auth');
+            bc.postMessage({ type: 'auth-id-token', idToken: token });
+            if (window.opener) window.opener.postMessage({ type: 'auth-id-token', idToken: token }, '*');
+          } catch {}
           setTimeout(() => { try { if (window.opener) window.close(); } catch {}; router.push('/dashboard'); }, 800);
           return;
         }
@@ -89,7 +106,19 @@ export default function LoginPage() {
           setStatus('redirecting');
           // Try popup first; fall back to redirect for blocked popup
           try {
-            await signInWithPopup(auth, createGoogleProvider());
+            const result = await signInWithPopup(auth, createGoogleProvider());
+            // Broadcast credentials from popup sign-in as well
+            try {
+              const cred = GoogleAuthProvider.credentialFromResult(result);
+              const bc = new BroadcastChannel('auth');
+              bc.postMessage({ type: 'auth-success' });
+              if (cred?.idToken || cred?.accessToken) {
+                bc.postMessage({ type: 'auth-google-credential', idToken: cred?.idToken, accessToken: cred?.accessToken });
+                if (window.opener) {
+                  window.opener.postMessage({ type: 'auth-google-credential', idToken: cred?.idToken, accessToken: cred?.accessToken }, '*');
+                }
+              }
+            } catch {}
             // after popup success, route
             router.push('/dashboard');
           } catch (e: any) {
