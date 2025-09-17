@@ -25,17 +25,20 @@ if (!getApps().length) {
 // Initialize Auth
 const auth = getAuth(app);
 
-// Google Auth Provider
-const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  hd: 'kanvabotanicals.com', // Restrict to company domain
-  prompt: 'select_account'
-});
+// Helper to create a properly configured Google provider (kept consistent across app)
+export const createGoogleProvider = () => {
+  const p = new GoogleAuthProvider();
+  p.setCustomParameters({
+    hd: 'kanvabotanicals.com', // Restrict to company domain
+    prompt: 'select_account',
+  });
+  return p;
+};
 
 // Auth Functions
 export const signInWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, createGoogleProvider());
     const user = result.user as FirebaseUser;
     
     // Check if user exists in Firestore
@@ -59,7 +62,7 @@ export const signInWithGoogle = async () => {
     // Fallback to redirect flow for popup/network issues
     const code = error?.code || error?.message || String(error);
     console.warn('Popup sign-in failed, attempting redirect. Reason:', code);
-    await signInWithRedirect(auth, googleProvider);
+    await signInWithRedirect(auth, createGoogleProvider());
     // Do not rethrow for known popup/network failures; redirect flow will continue
     if (
       typeof code === 'string' && (

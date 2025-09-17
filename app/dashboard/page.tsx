@@ -323,8 +323,10 @@ export default function DashboardPage() {
                     `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
                   );
                 } else {
-                  // Not in iframe: navigate to login route which performs redirect flow
-                  window.location.href = '/login';
+                  // Not in iframe: perform redirect sign-in directly in this tab
+                  const { auth, createGoogleProvider } = await import('@/lib/firebase/client');
+                  const { signInWithRedirect } = await import('firebase/auth');
+                  await signInWithRedirect(auth, createGoogleProvider());
                 }
               } catch (e) {
                 console.error('Sign-in failed', e);
