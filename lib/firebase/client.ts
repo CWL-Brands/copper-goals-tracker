@@ -1,7 +1,7 @@
 "use client";
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, type User as FirebaseUser, signOut as signOutFn } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, type User as FirebaseUser, signOut as signOutFn, setPersistence, inMemoryPersistence, browserLocalPersistence } from 'firebase/auth';
 import { db, doc, getDoc, setDoc, serverTimestamp, Timestamp } from './db';
 
 // Firebase configuration from environment variables
@@ -24,6 +24,12 @@ if (!getApps().length) {
 
 // Initialize Auth
 const auth = getAuth(app);
+// Configure persistence: in iframe use in-memory to bypass third‑party storage restrictions
+try {
+  let inIframe = false;
+  try { inIframe = typeof window !== 'undefined' && window.self !== window.top; } catch { inIframe = true; }
+  setPersistence(auth, inIframe ? inMemoryPersistence : browserLocalPersistence).catch(() => {});
+} catch {}
 
 // Helper to create a properly configured Google provider (kept consistent across app)
 export const createGoogleProvider = () => {

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "copper-sdk": "^0.9.1",
     "date-fns": "^2.30.0",
     "firebase": "^11.10.0",
     "firebase-admin": "^11.11.1",

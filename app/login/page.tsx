@@ -79,14 +79,30 @@ export default function LoginPage() {
         if (auth.currentUser) {
           console.log('Login page: User already signed in');
           setStatus('already-signed-in');
-          try { localStorage.setItem('authStatus', 'signed-in'); } catch {}
-          // Best-effort broadcast id token to allow credential sign-in in iframe contexts
+          // Ensure user profile exists even when we hit the already-signed-in path
           try {
-            const token = await auth.currentUser.getIdToken();
-            const bc = new BroadcastChannel('auth');
-            bc.postMessage({ type: 'auth-id-token', idToken: token });
-            if (window.opener) window.opener.postMessage({ type: 'auth-id-token', idToken: token }, '*');
-          } catch {}
+            const u = auth.currentUser;
+            if (u) {
+              const ref = doc(db, 'users', u.uid);
+              const snap = await getDoc(ref);
+              if (!snap.exists()) {
+                await setDoc(ref, {
+                  id: u.uid,
+                  email: u.email,
+                  name: u.displayName,
+                  photoUrl: u.photoURL,
+                  role: 'sales',
+                  createdAt: serverTimestamp(),
+                  updatedAt: serverTimestamp(),
+                });
+              } else {
+                await setDoc(ref, { updatedAt: serverTimestamp() }, { merge: true });
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to ensure user profile (already-signed-in):', e);
+          }
+          try { localStorage.setItem('authStatus', 'signed-in'); } catch {}
           setTimeout(() => { try { if (window.opener) window.close(); } catch {}; router.push('/dashboard'); }, 800);
           return;
         }

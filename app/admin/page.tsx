@@ -21,8 +21,23 @@ export default function AdminPage() {
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState<string | null>(null);
   const [emailActivityId, setEmailActivityId] = useState<string>('1');
+  const [copperUserEmail, setCopperUserEmail] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
   const [wholesaleKeywords, setWholesaleKeywords] = useState<string>('Focus+Flow, Zoom');
   const [distributionKeywords, setDistributionKeywords] = useState<string>('');
+  // Copper metadata/defaults state
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [meta, setMeta] = useState<any>(null);
+  const [defaultsLoading, setDefaultsLoading] = useState(false);
+  const [defaults, setDefaults] = useState<any>({
+    emailActivityId: '',
+    phoneCallActivityId: '',
+    SALES_PIPELINE_ID: '',
+    PRODUCT_FIELD_ID: '',
+    CLOSED_WON_STAGES: '', // comma-separated
+    STAGE_MAPPING: '{"Fact Finding":"lead_progression_a","Contact Stage":"lead_progression_b","Closing Stage":"lead_progression_c"}',
+  });
   const [teamGoals, setTeamGoals] = useState<Record<string, any>>({
     daily: {
       talk_time: 0,
@@ -85,10 +100,15 @@ export default function AdminPage() {
     setError(null);
     setResult(null);
     try {
+      const body: any = { userId: uid, period } as any;
+      if (startDate) body.start = new Date(startDate).toISOString();
+      if (endDate) body.end = new Date(endDate).toISOString();
+      if (copperUserEmail) body.copperUserEmail = copperUserEmail;
+
       const res = await fetch('/api/sync-metrics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: uid, period }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Sync failed');
@@ -219,6 +239,133 @@ export default function AdminPage() {
               {settingsMsg && <span className="text-sm text-gray-600">{settingsMsg}</span>}
             </div>
           </section>
+
+          {/* Copper Metadata & Defaults */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-medium">Copper Metadata</h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async()=>{
+                    setMetaLoading(true);
+                    try {
+                      const res = await fetch('/api/copper/metadata', { method: 'GET' });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data?.error || 'Failed to load metadata');
+                      setMeta(data?.data || data);
+                    } catch (e:any) {
+                      setMeta({ error: e.message || 'Failed to load metadata' });
+                    } finally {
+                      setMetaLoading(false);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-gray-100 text-sm"
+                >Load</button>
+                <button
+                  onClick={async()=>{
+                    setMetaLoading(true);
+                    try {
+                      const res = await fetch('/api/copper/metadata', { method: 'POST' });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data?.error || 'Failed to fetch & save metadata');
+                      setMeta(data?.data || data);
+                    } catch (e:any) {
+                      setMeta({ error: e.message || 'Failed to save metadata' });
+                    } finally {
+                      setMetaLoading(false);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-gray-100 text-sm"
+                >Fetch & Save</button>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Discover activity type IDs and custom field definitions, and store org-wide defaults used by the sync.</p>
+            {metaLoading && <div className="text-sm text-gray-600">Loading metadata…</div>}
+            {meta && (
+              <pre className="p-3 bg-gray-50 border rounded text-xs overflow-auto max-h-64">{JSON.stringify(meta, null, 2)}</pre>
+            )}
+
+            <h3 className="text-md font-medium mt-4 mb-2">Org Defaults</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="block">
+                <span className="text-sm text-gray-600">Email Activity Type ID</span>
+                <input value={defaults.emailActivityId} onChange={(e)=>setDefaults({...defaults, emailActivityId:e.target.value})} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="e.g. 1" />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">Phone Call Activity Type ID</span>
+                <input value={defaults.phoneCallActivityId} onChange={(e)=>setDefaults({...defaults, phoneCallActivityId:e.target.value})} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="e.g. 0" />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">Sales Pipeline ID</span>
+                <input value={defaults.SALES_PIPELINE_ID} onChange={(e)=>setDefaults({...defaults, SALES_PIPELINE_ID:e.target.value})} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="e.g. 1084986" />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">Product Field ID (custom field)</span>
+                <input value={defaults.PRODUCT_FIELD_ID} onChange={(e)=>setDefaults({...defaults, PRODUCT_FIELD_ID:e.target.value})} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="e.g. 705070" />
+              </label>
+              <label className="block md:col-span-2">
+                <span className="text-sm text-gray-600">Closed Won Stages (comma-separated)</span>
+                <input value={defaults.CLOSED_WON_STAGES} onChange={(e)=>setDefaults({...defaults, CLOSED_WON_STAGES:e.target.value})} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="Payment Received/Invoice Created" />
+              </label>
+              <label className="block md:col-span-2">
+                <span className="text-sm text-gray-600">Stage Mapping (JSON object of stageName → metricType)</span>
+                <textarea value={defaults.STAGE_MAPPING} onChange={(e)=>setDefaults({...defaults, STAGE_MAPPING:e.target.value})} className="mt-1 w-full border rounded-md px-3 py-2 h-28 font-mono text-xs" />
+              </label>
+            </div>
+            <div className="flex items-center gap-3 mt-3">
+              <button
+                onClick={async()=>{
+                  setDefaultsLoading(true);
+                  try {
+                    // Build payload
+                    let payload:any = { ...defaults };
+                    try { payload.SALES_PIPELINE_ID = Number(payload.SALES_PIPELINE_ID)||undefined; } catch {}
+                    try { payload.PRODUCT_FIELD_ID = Number(payload.PRODUCT_FIELD_ID)||undefined; } catch {}
+                    try { payload.emailActivityId = Number(payload.emailActivityId)||undefined; } catch {}
+                    try { payload.phoneCallActivityId = Number(payload.phoneCallActivityId)||undefined; } catch {}
+                    try { if (typeof payload.CLOSED_WON_STAGES === 'string') payload.CLOSED_WON_STAGES = payload.CLOSED_WON_STAGES.split(',').map((s:string)=>s.trim()).filter(Boolean); } catch {}
+                    try { if (typeof payload.STAGE_MAPPING === 'string') payload.STAGE_MAPPING = JSON.parse(payload.STAGE_MAPPING); } catch {}
+
+                    const res = await fetch('/api/copper/defaults', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ defaults: payload }) });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data?.error || 'Failed to save defaults');
+                    setSettingsMsg('Org defaults saved');
+                  } catch (e:any) {
+                    setSettingsMsg(e.message || 'Failed to save defaults');
+                  } finally {
+                    setDefaultsLoading(false);
+                  }
+                }}
+                className={`px-4 py-2 rounded-lg text-white ${defaultsLoading ? 'bg-gray-400' : 'bg-kanva-green hover:bg-green-600'}`}
+              >{defaultsLoading ? 'Saving…' : 'Save Org Defaults'}</button>
+
+              <button
+                onClick={async()=>{
+                  setDefaultsLoading(true);
+                  try {
+                    const res = await fetch('/api/copper/defaults');
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data?.error || 'Failed to load defaults');
+                    const d = data?.defaults || {};
+                    setDefaults({
+                      emailActivityId: d.emailActivityId ? String(d.emailActivityId) : '',
+                      phoneCallActivityId: d.phoneCallActivityId ? String(d.phoneCallActivityId) : '',
+                      SALES_PIPELINE_ID: d.SALES_PIPELINE_ID ? String(d.SALES_PIPELINE_ID) : '',
+                      PRODUCT_FIELD_ID: d.PRODUCT_FIELD_ID ? String(d.PRODUCT_FIELD_ID) : '',
+                      CLOSED_WON_STAGES: Array.isArray(d.CLOSED_WON_STAGES) ? d.CLOSED_WON_STAGES.join(', ') : (d.CLOSED_WON_STAGES||''),
+                      STAGE_MAPPING: d.STAGE_MAPPING ? JSON.stringify(d.STAGE_MAPPING) : defaults.STAGE_MAPPING,
+                    });
+                    setSettingsMsg('Org defaults loaded');
+                  } catch (e:any) {
+                    setSettingsMsg(e.message || 'Failed to load defaults');
+                  } finally {
+                    setDefaultsLoading(false);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-lg bg-gray-100 text-sm"
+              >Load Org Defaults</button>
+            </div>
+          </section>
           {/* Password Modal */}
           {showPwd && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -261,10 +408,6 @@ export default function AdminPage() {
                 <input value={distributionKeywords} onChange={(e) => setDistributionKeywords(e.target.value)} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="Pallet, Distributor" />
               </label>
             </div>
-            <div className="flex items-center gap-3 mt-4">
-              <button onClick={saveSettings} disabled={settingsLoading} className={`px-4 py-2 rounded-lg text-white ${settingsLoading ? 'bg-gray-400' : 'bg-kanva-green hover:bg-green-600'}`}>{settingsLoading ? 'Saving…' : 'Save Settings'}</button>
-              {settingsMsg && <span className="text-sm text-gray-600">{settingsMsg}</span>}
-            </div>
           </section>
           <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-medium mb-2">Data Sync</h2>
@@ -287,6 +430,42 @@ export default function AdminPage() {
                 className={`px-4 py-2 rounded-lg text-white ${loading ? 'bg-gray-400' : 'bg-kanva-green hover:bg-green-600'}`}
               >
                 {loading ? 'Syncing…' : 'Sync Now'}
+              </button>
+            </div>
+            {/* Optional overrides */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <label className="block">
+                <span className="text-sm text-gray-600">Copper User Email (override)</span>
+                <input value={copperUserEmail} onChange={(e)=>setCopperUserEmail(e.target.value)} className="mt-1 w-full border rounded-md px-3 py-2" placeholder="user@kanvabotanicals.com" />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">Start Date (optional)</span>
+                <input type="date" value={startDate} onChange={(e)=>setStartDate(e.target.value)} className="mt-1 w-full border rounded-md px-3 py-2" />
+              </label>
+              <label className="block">
+                <span className="text-sm text-gray-600">End Date (optional)</span>
+                <input type="date" value={endDate} onChange={(e)=>setEndDate(e.target.value)} className="mt-1 w-full border rounded-md px-3 py-2" />
+              </label>
+            </div>
+            <div className="flex items-center gap-3 mt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const end = new Date();
+                  const start = new Date(); start.setDate(end.getDate() - 90);
+                  setStartDate(start.toISOString().slice(0,10));
+                  setEndDate(end.toISOString().slice(0,10));
+                }}
+                className="px-3 py-1.5 rounded-lg bg-gray-100 text-sm"
+              >
+                Last 90 days
+              </button>
+              <button
+                type="button"
+                onClick={() => { setStartDate(''); setEndDate(''); }}
+                className="px-3 py-1.5 rounded-lg bg-gray-100 text-sm"
+              >
+                Clear Dates
               </button>
             </div>
             {(error || result) && (

@@ -28,24 +28,27 @@ const ACTIVITY_TYPES = {
   MEETING: { id: 2, category: 'user' },
 };
 
-function getDateRange(period: 'today' | 'week' | 'month' = 'today') {
+function getDateRange(period: 'today' | 'week' | 'month' = 'today', startISO?: string, endISO?: string) {
   const now = new Date();
-  const start = new Date(now);
-  if (period === 'today') start.setHours(0, 0, 0, 0);
-  if (period === 'week') start.setDate(now.getDate() - 7);
-  if (period === 'month') start.setMonth(now.getMonth() - 1);
+  const start = startISO ? new Date(startISO) : new Date(now);
+  const end = endISO ? new Date(endISO) : now;
+  if (!startISO) {
+    if (period === 'today') start.setHours(0, 0, 0, 0);
+    if (period === 'week') start.setDate(now.getDate() - 7);
+    if (period === 'month') start.setMonth(now.getMonth() - 1);
+  }
   return {
     start: start.toISOString(),
-    end: now.toISOString(),
+    end: end.toISOString(),
     startUnix: Math.floor(start.getTime() / 1000),
-    endUnix: Math.floor(now.getTime() / 1000),
+    endUnix: Math.floor(end.getTime() / 1000),
   };
 }
 
 // POST /api/sync-metrics - Sync metrics from Copper
 export async function POST(request: NextRequest) {
   try {
-    const { userId, period = 'today' } = await request.json();
+    const { userId, period = 'today', start, end, copperUserEmail } = await request.json();
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
@@ -55,6 +58,13 @@ export async function POST(request: NextRequest) {
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     const secretOk = !!process.env.SYNC_SECRET && token === process.env.SYNC_SECRET;
 
+    // Load org-wide defaults
+    let orgDefaults: any = {};
+    try {
+      const orgSnap = await getDoc(doc(db, 'settings', 'copper_metadata'));
+      if (orgSnap.exists()) orgDefaults = (orgSnap.data() as any)?.defaults || {};
+    } catch {}
+
     // Load per-user settings (overrides)
     let userSettings: any = {};
     try {
@@ -62,7 +72,7 @@ export async function POST(request: NextRequest) {
       if (settingsSnap.exists()) userSettings = settingsSnap.data();
     } catch {}
 
-    const dateRange = getDateRange(period);
+    const dateRange = getDateRange(period, start, end);
     const results = {
       emails: 0,
       calls: 0,
@@ -73,30 +83,60 @@ export async function POST(request: NextRequest) {
     };
 
     // Resolve activity type IDs from settings (fallback defaults)
-    const emailActivityId = Number(userSettings?.emailActivityId ?? ACTIVITY_TYPES.EMAIL.id);
+    const emailActivityId = Number(
+      userSettings?.emailActivityId ?? orgDefaults?.emailActivityId ?? ACTIVITY_TYPES.EMAIL.id
+    );
+    const phoneCallActivityId = Number(
+      userSettings?.phoneCallActivityId ?? orgDefaults?.phoneCallActivityId ?? ACTIVITY_TYPES.PHONE_CALL.id
+    );
+
+    // Determine which Copper user email to query as (per-user override > request > env)
+    let pwUserEmail = String(copperUserEmail || userSettings?.copperUserEmail || orgDefaults?.copperUserEmail || COPPER_USER_EMAIL || '').trim();
+    if (!pwUserEmail) {
+      try {
+        const uSnap = await getDoc(doc(db, 'users', userId));
+        pwUserEmail = String(uSnap.data()?.email || COPPER_USER_EMAIL || '').trim();
+      } catch {}
+    }
+
+    // Helper to perform paginated search POSTs to Copper
+    async function fetchAll(endpoint: string, body: any) {
+      const all: any[] = [];
+      const pageSize = Number(body?.page_size) || 200;
+      let page = 1;
+      while (true) {
+        const res = await fetch(`${COPPER_API_BASE}${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'X-PW-AccessToken': COPPER_API_KEY,
+            'X-PW-Application': 'developer_api',
+            'X-PW-UserEmail': pwUserEmail,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...body, page_number: page, page_size: pageSize }),
+        });
+        if (!res.ok) break;
+        const chunk = await res.json();
+        if (!Array.isArray(chunk) || chunk.length === 0) break;
+        all.push(...chunk);
+        if (chunk.length < pageSize) break;
+        page += 1;
+        if (page > 50) break; // safety cap
+      }
+      return all;
+    }
 
     // 1) Emails
     try {
-      const emailResponse = await fetch(`${COPPER_API_BASE}/activities/search`, {
-        method: 'POST',
-        headers: {
-          'X-PW-AccessToken': COPPER_API_KEY,
-          'X-PW-Application': 'developer_api',
-          'X-PW-UserEmail': COPPER_USER_EMAIL,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          page_size: 200,
-          sort_by: 'activity_date',
-          sort_direction: 'desc',
-          activity_types: [{ id: emailActivityId, category: 'user' }],
-          minimum_activity_date: dateRange.startUnix,
-          maximum_activity_date: dateRange.endUnix,
-        }),
+      const emailData = await fetchAll('/activities/search', {
+        sort_by: 'activity_date',
+        sort_direction: 'desc',
+        activity_types: [{ id: emailActivityId, category: 'user' }],
+        minimum_activity_date: dateRange.startUnix,
+        maximum_activity_date: dateRange.endUnix,
       });
-      if (emailResponse.ok) {
-        const emailData = await emailResponse.json();
-        results.emails = emailData?.length || 0;
+      if (Array.isArray(emailData)) {
+        results.emails = emailData.length || 0;
         if (results.emails > 0) {
           await metricService.logMetric({
             userId,
@@ -108,7 +148,7 @@ export async function POST(request: NextRequest) {
           });
         }
       } else {
-        results.warnings.push(`Email sync status ${emailResponse.status}`);
+        results.warnings.push('Email sync unavailable');
       }
     } catch (e) {
       results.warnings.push('Email sync failed');
@@ -116,25 +156,14 @@ export async function POST(request: NextRequest) {
 
     // 2) Calls and talk time
     try {
-      const callResponse = await fetch(`${COPPER_API_BASE}/activities/search`, {
-        method: 'POST',
-        headers: {
-          'X-PW-AccessToken': COPPER_API_KEY,
-          'X-PW-Application': 'developer_api',
-          'X-PW-UserEmail': COPPER_USER_EMAIL,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          page_size: 200,
-          sort_by: 'activity_date',
-          sort_direction: 'desc',
-          activity_types: [ACTIVITY_TYPES.PHONE_CALL],
-          minimum_activity_date: dateRange.startUnix,
-          maximum_activity_date: dateRange.endUnix,
-        }),
+      const callData = await fetchAll('/activities/search', {
+        sort_by: 'activity_date',
+        sort_direction: 'desc',
+        activity_types: [{ id: phoneCallActivityId, category: 'user' }],
+        minimum_activity_date: dateRange.startUnix,
+        maximum_activity_date: dateRange.endUnix,
       });
-      if (callResponse.ok) {
-        const callData = await callResponse.json();
+      if (Array.isArray(callData)) {
         results.calls = callData?.length || 0;
         let talk = 0;
         for (const call of callData || []) {
@@ -161,23 +190,12 @@ export async function POST(request: NextRequest) {
 
     // 3) Pipeline stages and sales
     try {
-      const oppResponse = await fetch(`${COPPER_API_BASE}/opportunities/search`, {
-        method: 'POST',
-        headers: {
-          'X-PW-AccessToken': COPPER_API_KEY,
-          'X-PW-Application': 'developer_api',
-          'X-PW-UserEmail': COPPER_USER_EMAIL,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          page_size: 200,
-          sort_by: 'date_modified',
-          sort_direction: 'desc',
-          pipeline_ids: [PIPELINE_CONFIG.SALES_PIPELINE_ID],
-        }),
+      const opps = await fetchAll('/opportunities/search', {
+        sort_by: 'date_modified',
+        sort_direction: 'desc',
+        pipeline_ids: [Number(orgDefaults?.SALES_PIPELINE_ID ?? PIPELINE_CONFIG.SALES_PIPELINE_ID)],
       });
-      if (oppResponse.ok) {
-        const opps = await oppResponse.json();
+      if (Array.isArray(opps)) {
         const stageCounts: Record<string, number> = {
           lead_progression_a: 0,
           lead_progression_b: 0,
@@ -200,15 +218,18 @@ export async function POST(request: NextRequest) {
 
         for (const opp of opps || []) {
           const stageName = opp?.stage_name as string | undefined;
-          if (stageName && PIPELINE_CONFIG.STAGE_MAPPING[stageName]) {
-            const metricType = PIPELINE_CONFIG.STAGE_MAPPING[stageName];
+          const STAGE_MAPPING = orgDefaults?.STAGE_MAPPING || PIPELINE_CONFIG.STAGE_MAPPING;
+          if (stageName && STAGE_MAPPING[stageName]) {
+            const metricType = STAGE_MAPPING[stageName];
             stageCounts[metricType] = (stageCounts[metricType] || 0) + 1;
           }
 
-          if (stageName && PIPELINE_CONFIG.CLOSED_WON_STAGES.includes(stageName)) {
+          const CLOSED_WON_STAGES: string[] = Array.isArray(orgDefaults?.CLOSED_WON_STAGES) ? orgDefaults.CLOSED_WON_STAGES : PIPELINE_CONFIG.CLOSED_WON_STAGES;
+          if (stageName && CLOSED_WON_STAGES.includes(stageName)) {
             const value = Number(opp?.monetary_value || 0);
             const customFields = opp?.custom_fields || [];
-            const productField = customFields.find((f: any) => f.custom_field_definition_id === 705070);
+            const PRODUCT_FIELD_ID = Number(orgDefaults?.PRODUCT_FIELD_ID ?? 705070);
+            const productField = customFields.find((f: any) => f.custom_field_definition_id === PRODUCT_FIELD_ID);
             if (value > 0) {
               if (productField?.value) {
                 const pv = String(productField.value).toLowerCase();
@@ -273,7 +294,7 @@ export async function POST(request: NextRequest) {
           total: Math.round(wholesale + distribution),
         };
       } else {
-        results.warnings.push(`Pipeline sync status ${oppResponse.status}`);
+        results.warnings.push('Pipeline sync unavailable');
       }
     } catch (e) {
       results.warnings.push('Pipeline sync failed');

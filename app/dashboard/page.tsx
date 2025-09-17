@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { User, Goal, Metric, GoalType, GoalPeriod } from '@/types';
 import { userService, goalService, metricService } from '@/lib/firebase/services';
 import { auth, onAuthStateChange } from '@/lib/firebase/client';
+import { db, doc, getDoc, setDoc, serverTimestamp } from '@/lib/firebase/db';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { copperIntegration } from '@/lib/copper/integration';
 import GoalCard from '@/components/molecules/GoalCard';
@@ -56,6 +57,7 @@ export default function DashboardPage() {
   useEffect(() => {
     // Subscribe to Firebase Auth state and load data for the signed-in user
     const unsubscribeAuth = onAuthStateChange(async (firebaseUser) => {
+      console.log('[Dashboard] onAuthStateChange fired. user:', !!firebaseUser, firebaseUser?.email);
       if (!firebaseUser) {
         setUser(null);
         setGoals([]);
@@ -68,7 +70,28 @@ export default function DashboardPage() {
       }
 
       // Ensure a corresponding Firestore user doc exists and fetch it
-      const userData = await userService.getUser(firebaseUser.uid);
+      let userData = await userService.getUser(firebaseUser.uid);
+      if (!userData) {
+        console.warn('[Dashboard] No user doc found; creating profile…');
+        try {
+          const ref = doc(db, 'users', firebaseUser.uid);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) {
+            await setDoc(ref, {
+              id: firebaseUser.uid,
+              email: firebaseUser.email,
+              name: firebaseUser.displayName,
+              photoUrl: firebaseUser.photoURL,
+              role: 'sales',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            });
+          }
+          userData = await userService.getUser(firebaseUser.uid);
+        } catch (e) {
+          console.error('[Dashboard] Failed to create user profile:', e);
+        }
+      }
       if (userData) {
         setUser(userData);
         await loadDashboardData(firebaseUser.uid);
@@ -114,19 +137,6 @@ export default function DashboardPage() {
             console.warn('BC credential sign-in failed:', e);
           }
         }
-        if (data?.type === 'auth-id-token') {
-          try {
-            if (!auth.currentUser && data.idToken) {
-              const cred = GoogleAuthProvider.credential(data.idToken);
-              if (cred) {
-                await signInWithCredential(auth, cred);
-              }
-            }
-            onAuthSuccess();
-          } catch (e) {
-            console.warn('BC id-token sign-in failed:', e);
-          }
-        }
       };
     } catch {}
 
@@ -145,19 +155,6 @@ export default function DashboardPage() {
           onAuthSuccess();
         } catch (e) {
           console.warn('Credential sign-in failed:', e);
-        }
-      }
-      if (data?.type === 'auth-id-token') {
-        try {
-          if (!auth.currentUser && data.idToken) {
-            const cred = GoogleAuthProvider.credential(data.idToken);
-            if (cred) {
-              await signInWithCredential(auth, cred);
-            }
-          }
-          onAuthSuccess();
-        } catch (e) {
-          console.warn('Credential sign-in (idToken) failed:', e);
         }
       }
     };
@@ -338,16 +335,8 @@ export default function DashboardPage() {
                 try { inIframe = window.self !== window.top; } catch { inIframe = true; }
 
                 if (inIframe) {
-                  // Open top-level login flow in a separate window/tab
-                  const width = 520;
-                  const height = 640;
-                  const left = window.screen.width / 2 - width / 2;
-                  const top = window.screen.height / 2 - height / 2;
-                  window.open(
-                    `${window.location.origin}/login`,
-                    'KanvaAuth',
-                    `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
-                  );
+                  // Open a new tab to complete Google auth (popup-less UX)
+                  window.open(`${window.location.origin}/login`, '_blank');
                 } else {
                   // Not in iframe: perform redirect sign-in directly in this tab
                   const { auth, createGoogleProvider } = await import('@/lib/firebase/client');
