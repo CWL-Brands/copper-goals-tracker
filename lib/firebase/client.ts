@@ -31,11 +31,18 @@ try {
   setPersistence(auth, inIframe ? inMemoryPersistence : browserLocalPersistence).catch(() => {});
 } catch {}
 
+// Expose for debugging in development: allows checking auth/app in the browser console
+if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+  try {
+    (window as any).auth = auth;
+    (window as any).firebaseApp = app;
+  } catch {}
+}
+
 // Helper to create a properly configured Google provider (kept consistent across app)
 export const createGoogleProvider = () => {
   const p = new GoogleAuthProvider();
   p.setCustomParameters({
-    hd: 'kanvabotanicals.com', // Restrict to company domain
     prompt: 'select_account',
   });
   return p;

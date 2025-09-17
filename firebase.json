@@ -4,7 +4,6 @@
       "site": "kanvaportal-goals",
       "source": ".",
       "frameworksBackend": {},
-      
       "headers": [
         {
           "source": "**",
@@ -22,6 +21,10 @@
       ]
     }
   ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "emulators": {
     "dataconnect": {
       "dataDir": "dataconnect/.dataconnect/pgliteData"
