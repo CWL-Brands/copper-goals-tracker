@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase/admin';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 function getAdminEmails(): string[] {
   const env = process.env.NEXT_PUBLIC_ADMIN_EMAILS || process.env.ADMIN_EMAILS || '';
   return env.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
@@ -23,19 +26,20 @@ async function requireAdmin(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const admin = await requireAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!admin) return NextResponse.json({ error: 'Unauthorized (missing/invalid token or email not in NEXT_PUBLIC_ADMIN_EMAILS)' }, { status: 401 });
   try {
     const snap = await adminDb.collection('users').orderBy('email').get();
     const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     return NextResponse.json({ users });
   } catch (e: any) {
+    try { console.error('[api/admin/users] GET error:', e?.stack || e?.message || e); } catch {}
     return NextResponse.json({ error: e?.message || 'Failed to list users' }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   const admin = await requireAdmin(req);
-  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!admin) return NextResponse.json({ error: 'Unauthorized (missing/invalid token or email not in NEXT_PUBLIC_ADMIN_EMAILS)' }, { status: 401 });
 
   try {
     const body = await req.json();
@@ -69,6 +73,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ id: u.uid });
   } catch (e: any) {
+    try { console.error('[api/admin/users] POST error:', e?.stack || e?.message || e); } catch {}
     return NextResponse.json({ error: e?.message || 'Failed to create user' }, { status: 500 });
   }
 }
+

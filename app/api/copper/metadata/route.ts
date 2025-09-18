@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, doc, setDoc } from '@/lib/firebase/db';
+import { adminDb } from '@/lib/firebase/admin';
 
 const COPPER_API_BASE = 'https://api.copper.com/developer_api/v1';
 const COPPER_API_KEY = process.env.COPPER_API_KEY!;
 const COPPER_USER_EMAIL = process.env.COPPER_USER_EMAIL!;
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 async function fetchJson(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -85,6 +88,9 @@ async function gatherMetadata() {
 
 export async function GET(_req: NextRequest) {
   try {
+    if (!COPPER_API_KEY || !COPPER_USER_EMAIL) {
+      return NextResponse.json({ success: false, error: 'Server missing COPPER_API_KEY/COPPER_USER_EMAIL' }, { status: 500 });
+    }
     const data = await gatherMetadata();
     return NextResponse.json({ success: true, data });
   } catch (e: any) {
@@ -94,9 +100,12 @@ export async function GET(_req: NextRequest) {
 
 export async function POST(_req: NextRequest) {
   try {
+    if (!COPPER_API_KEY || !COPPER_USER_EMAIL) {
+      return NextResponse.json({ success: false, error: 'Server missing COPPER_API_KEY/COPPER_USER_EMAIL' }, { status: 500 });
+    }
     const data = await gatherMetadata();
-    // Save to Firestore org-wide metadata document
-    await setDoc(doc(db, 'settings', 'copper_metadata'), data, { merge: true });
+    // Save to Firestore org-wide metadata document using Admin SDK
+    await adminDb.collection('settings').doc('copper_metadata').set(data, { merge: true });
     return NextResponse.json({ success: true, saved: true, data });
   } catch (e: any) {
     return NextResponse.json({ success: false, error: e?.message || 'Failed' }, { status: 500 });

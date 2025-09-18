@@ -4,6 +4,9 @@ const COPPER_API_BASE = 'https://api.copper.com/developer_api/v1';
 const COPPER_API_KEY = process.env.COPPER_API_KEY!;
 const COPPER_USER_EMAIL = process.env.COPPER_USER_EMAIL!;
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // GET /api/copper - Fetch data from Copper
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

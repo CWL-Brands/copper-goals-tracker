@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { Timestamp } from 'firebase-admin/firestore';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Simple per-IP rate limiter (burst 60 / 60s)
 const rl = (globalThis as any).__rl_team_metrics || { map: new Map<string, number[]>() };
 (globalThis as any).__rl_team_metrics = rl;

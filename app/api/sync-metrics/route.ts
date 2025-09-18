@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { metricService } from '@/lib/firebase/services';
-import { db, doc, getDoc } from '@/lib/firebase/db';
-import { collections } from '@/lib/firebase/db';
+import { adminDb } from '@/lib/firebase/admin';
+import { Timestamp } from 'firebase-admin/firestore';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const COPPER_API_BASE = 'https://api.copper.com/developer_api/v1';
 const COPPER_API_KEY = process.env.COPPER_API_KEY!;
@@ -58,18 +60,18 @@ export async function POST(request: NextRequest) {
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     const secretOk = !!process.env.SYNC_SECRET && token === process.env.SYNC_SECRET;
 
-    // Load org-wide defaults
+    // Load org-wide defaults (Admin SDK)
     let orgDefaults: any = {};
     try {
-      const orgSnap = await getDoc(doc(db, 'settings', 'copper_metadata'));
-      if (orgSnap.exists()) orgDefaults = (orgSnap.data() as any)?.defaults || {};
+      const orgSnap = await adminDb.collection('settings').doc('copper_metadata').get();
+      if (orgSnap.exists) orgDefaults = (orgSnap.data() as any)?.defaults || {};
     } catch {}
 
-    // Load per-user settings (overrides)
+    // Load per-user settings (overrides) via Admin SDK
     let userSettings: any = {};
     try {
-      const settingsSnap = await getDoc(doc(db, collections.settings, userId));
-      if (settingsSnap.exists()) userSettings = settingsSnap.data();
+      const settingsSnap = await adminDb.collection('settings').doc(userId).get();
+      if (settingsSnap.exists) userSettings = settingsSnap.data();
     } catch {}
 
     const dateRange = getDateRange(period, start, end);
@@ -94,9 +96,25 @@ export async function POST(request: NextRequest) {
     let pwUserEmail = String(copperUserEmail || userSettings?.copperUserEmail || orgDefaults?.copperUserEmail || COPPER_USER_EMAIL || '').trim();
     if (!pwUserEmail) {
       try {
-        const uSnap = await getDoc(doc(db, 'users', userId));
+        const uSnap = await adminDb.collection('users').doc(userId).get();
         pwUserEmail = String(uSnap.data()?.email || COPPER_USER_EMAIL || '').trim();
       } catch {}
+    }
+
+    // Helper: write metric using Admin SDK
+    async function logMetricAdmin(metric: { userId: string; type: string; value: number; date: Date; source?: string; metadata?: any; }) {
+      const ref = adminDb.collection('metrics').doc();
+      await ref.set({
+        id: ref.id,
+        userId: metric.userId,
+        type: metric.type,
+        value: metric.value,
+        date: Timestamp.fromDate(metric.date),
+        source: metric.source || 'copper',
+        metadata: metric.metadata || {},
+        createdAt: Timestamp.fromDate(new Date()),
+      });
+      return ref.id;
     }
 
     // Helper to perform paginated search POSTs to Copper
@@ -138,7 +156,7 @@ export async function POST(request: NextRequest) {
       if (Array.isArray(emailData)) {
         results.emails = emailData.length || 0;
         if (results.emails > 0) {
-          await metricService.logMetric({
+          await logMetricAdmin({
             userId,
             type: 'email_quantity',
             value: results.emails,
@@ -172,7 +190,7 @@ export async function POST(request: NextRequest) {
         }
         results.talkTime = talk;
         if (talk > 0) {
-          await metricService.logMetric({
+          await logMetricAdmin({
             userId,
             type: 'talk_time',
             value: talk,
@@ -255,7 +273,7 @@ export async function POST(request: NextRequest) {
         // Log pipeline stage metrics
         for (const [metricType, count] of Object.entries(stageCounts)) {
           if (count > 0) {
-            await metricService.logMetric({
+            await logMetricAdmin({
               userId,
               type: metricType as any,
               value: count,
@@ -267,7 +285,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (wholesale > 0) {
-          await metricService.logMetric({
+          await logMetricAdmin({
             userId,
             type: 'new_sales_wholesale',
             value: Math.round(wholesale),
@@ -277,7 +295,7 @@ export async function POST(request: NextRequest) {
           });
         }
         if (distribution > 0) {
-          await metricService.logMetric({
+          await logMetricAdmin({
             userId,
             type: 'new_sales_distribution',
             value: Math.round(distribution),

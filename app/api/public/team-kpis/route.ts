@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { Timestamp } from 'firebase-admin/firestore';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 const goalTypes = [
   'talk_time',
   'email_quantity',

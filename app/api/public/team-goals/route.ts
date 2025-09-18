@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Simple per-IP rate limiter (burst 30 / 60s)
 const rl = (globalThis as any).__rl_team_goals || { map: new Map<string, number[]>() };
 (globalThis as any).__rl_team_goals = rl;

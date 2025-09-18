@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { Timestamp } from 'firebase-admin/firestore';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 function getRange(period: string) {
   const now = new Date();
   let days = 30;

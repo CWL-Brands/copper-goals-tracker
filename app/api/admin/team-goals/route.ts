@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, doc, setDoc, serverTimestamp } from '@/lib/firebase/db';
-import { collections } from '@/lib/firebase/db';
+import { adminDb } from '@/lib/firebase/admin';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // POST /api/admin/team-goals
 // Secured by header x-admin-pass which must match process.env.TEAM_ADMIN_PASS
@@ -20,9 +22,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
     }
 
-    await setDoc(doc(db, collections.settings, 'team_goals'), {
+    await adminDb.collection('settings').doc('team_goals').set({
       ...body,
-      updatedAt: serverTimestamp(),
+      updatedAt: new Date(),
     }, { merge: true });
 
     return NextResponse.json({ success: true });

@@ -84,8 +84,14 @@ export default function AdminPage() {
             if (s.wholesaleKeywords) setWholesaleKeywords(Array.isArray(s.wholesaleKeywords) ? s.wholesaleKeywords.join(', ') : String(s.wholesaleKeywords));
             if (s.distributionKeywords) setDistributionKeywords(Array.isArray(s.distributionKeywords) ? s.distributionKeywords.join(', ') : String(s.distributionKeywords));
           }
-          const tg = await settingsService.getTeamGoals();
-          if (tg) setTeamGoals({ ...teamGoals, ...tg });
+          // Load team goals via public API to avoid client Firestore permission issues
+          try {
+            const res = await fetch('/api/public/team-goals');
+            const data = await res.json();
+            if (res.ok && data?.teamGoals) {
+              setTeamGoals((prev) => ({ ...prev, ...data.teamGoals }));
+            }
+          } catch {}
         } finally {
           setSettingsLoading(false);
         }
