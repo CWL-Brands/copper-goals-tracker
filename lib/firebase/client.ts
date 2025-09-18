@@ -1,7 +1,8 @@
 "use client";
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, type User as FirebaseUser, signOut as signOutFn, setPersistence, inMemoryPersistence, browserLocalPersistence } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, type User as FirebaseUser, signOut as signOutFn, setPersistence, inMemoryPersistence, browserLocalPersistence, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { clearAuthData } from '@/lib/auth/storage';
 import { db, doc, getDoc, setDoc, serverTimestamp, Timestamp } from './db';
 
 // Firebase configuration from environment variables
@@ -24,11 +25,10 @@ if (!getApps().length) {
 
 // Initialize Auth
 const auth = getAuth(app);
-// Configure persistence: in iframe use in-memory to bypass third‑party storage restrictions
+// Configure default persistence: prefer browserLocalPersistence (IndexedDB) even in iframes,
+// fallback to inMemory if storage is unavailable.
 try {
-  let inIframe = false;
-  try { inIframe = typeof window !== 'undefined' && window.self !== window.top; } catch { inIframe = true; }
-  setPersistence(auth, inIframe ? inMemoryPersistence : browserLocalPersistence).catch(() => {});
+  setPersistence(auth, browserLocalPersistence).catch(() => setPersistence(auth, inMemoryPersistence));
 } catch {}
 
 // Expose for debugging in development: allows checking auth/app in the browser console
@@ -39,59 +39,38 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
   } catch {}
 }
 
-// Helper to create a properly configured Google provider (kept consistent across app)
-export const createGoogleProvider = () => {
-  const p = new GoogleAuthProvider();
-  p.setCustomParameters({
-    prompt: 'select_account',
-  });
-  return p;
-};
-
-// Auth Functions
-export const signInWithGoogle = async () => {
+// Email/Password Auth Helpers
+export async function emailPasswordSignIn(email: string, password: string) {
+  const { user } = await signInWithEmailAndPassword(auth, email, password);
+  // Ensure user doc exists
   try {
-    const result = await signInWithPopup(auth, createGoogleProvider());
-    const user = result.user as FirebaseUser;
-    
-    // Check if user exists in Firestore
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    
-    if (!userDoc.exists()) {
-      // Create new user document
-      await setDoc(doc(db, 'users', user.uid), {
+    const ref = doc(db, 'users', user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
         id: user.uid,
         email: user.email,
-        name: user.displayName,
-        photoUrl: user.photoURL,
-        role: 'sales', // Default role
+        name: user.displayName || null,
+        photoUrl: user.photoURL || null,
+        role: 'sales',
+        passwordChanged: false,
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       });
     }
-    
-    return user;
-  } catch (error: any) {
-    // Fallback to redirect flow for popup/network issues
-    const code = error?.code || error?.message || String(error);
-    console.warn('Popup sign-in failed, attempting redirect. Reason:', code);
-    await signInWithRedirect(auth, createGoogleProvider());
-    // Do not rethrow for known popup/network failures; redirect flow will continue
-    if (
-      typeof code === 'string' && (
-        code.includes('auth/network-request-failed') ||
-        code.includes('auth/popup-blocked') ||
-        code.includes('auth/popup-closed-by-user')
-      )
-    ) {
-      return null as any;
-    }
-    throw error;
+  } catch (e) {
+    console.warn('[auth] failed to ensure user profile', e);
   }
-};
+  return user;
+}
+
+export async function sendResetEmail(email: string) {
+  await sendPasswordResetEmail(auth, email);
+}
 
 export const signOut = async () => {
   try {
+    try { await clearAuthData(); } catch {}
     await signOutFn(auth);
   } catch (error) {
     console.error('Error signing out:', error);

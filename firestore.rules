@@ -1,24 +1,26 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read all users but only update their own
+    // Users can only read/write their own profile
     match /users/{userId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && request.auth.uid == userId;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Goals - users can manage their own goals, read all for team view
+    // Goals - users can manage and read only their own goals
     match /goals/{goalId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && 
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null &&
         request.auth.uid == resource.data.userId;
       allow create: if request.auth != null &&
         request.auth.uid == request.resource.data.userId;
     }
     
-    // Metrics - users can write their own, read all for team view
+    // Metrics - users can write and read only their own
     match /metrics/{metricId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && 
         request.auth.uid == request.resource.data.userId;
       allow update, delete: if request.auth != null && 
@@ -31,9 +33,9 @@ service cloud.firestore {
         request.auth.uid == userId;
     }
     
-    // Organization settings - authenticated users can read
+    // Organization settings - deny client writes; reads via server if needed
     match /settings/organization/defaults {
-      allow read: if request.auth != null;
+      allow read: if false;
       allow write: if false; // Admin only via Cloud Functions
     }
   }

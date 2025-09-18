@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import AppShell from '@/components/templates/AppShell';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -52,11 +53,11 @@ export default function RootLayout({
           }}
         />
         
-        {/* Copper SDK Script */}
+        {/* Copper SDK Script - Only in iframe */}
         {typeof window !== 'undefined' && window.self !== window.top && (
-          <script
-            src={process.env.NEXT_PUBLIC_COPPER_SDK_URL}
-            async
+          <Script
+            src={process.env.NEXT_PUBLIC_COPPER_SDK_URL || 'https://cdn.jsdelivr.net/npm/copper-sdk@0.9/dist/copper-sdk.min.js'}
+            strategy="afterInteractive"
           />
         )}
       </body>

@@ -71,6 +71,13 @@ export default function AppShell({ children }: AppShellProps) {
               >
                 <Settings className="w-4 h-4" /> Settings
               </Link>
+              <Link
+                href={`/admin/users${query}`}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100"
+                aria-label="Users"
+              >
+                <Users className="w-4 h-4" /> Users
+              </Link>
             </nav>
           </div>
         </div>

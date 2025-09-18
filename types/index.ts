@@ -6,6 +6,7 @@ export interface User {
     role: 'sales' | 'manager' | 'admin';
     copperId?: string;
     photoUrl?: string;
+    passwordChanged?: boolean;
     createdAt: Date;
     updatedAt: Date;
   }

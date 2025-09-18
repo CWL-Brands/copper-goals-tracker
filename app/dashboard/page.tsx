@@ -7,7 +7,6 @@ import { User, Goal, Metric, GoalType, GoalPeriod } from '@/types';
 import { userService, goalService, metricService } from '@/lib/firebase/services';
 import { auth, onAuthStateChange } from '@/lib/firebase/client';
 import { db, doc, getDoc, setDoc, serverTimestamp } from '@/lib/firebase/db';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { copperIntegration } from '@/lib/copper/integration';
 import GoalCard from '@/components/molecules/GoalCard';
 import GoalSetter from '@/components/molecules/GoalSetter';
@@ -93,6 +92,11 @@ export default function DashboardPage() {
         }
       }
       if (userData) {
+        // If first login, force password change
+        if (userData.passwordChanged === false) {
+          window.location.href = '/change-password';
+          return;
+        }
         setUser(userData);
         await loadDashboardData(firebaseUser.uid);
       } else {
@@ -106,71 +110,9 @@ export default function DashboardPage() {
     };
   }, [selectedPeriod]);
 
-  // Listen for auth success events from the login popup to avoid loops and refresh data
+  // Remove Google OAuth cross-window listeners; email/password flow relies on standard auth state
   useEffect(() => {
-    const onAuthSuccess = () => {
-      if (user?.id) {
-        loadDashboardData(user.id);
-      } else {
-        // fallback: trigger a soft reload which re-checks auth
-        window.location.reload();
-      }
-    };
-
-    // BroadcastChannel for cross-context communication
-    let bc: BroadcastChannel | null = null;
-    try {
-      bc = new BroadcastChannel('auth');
-      bc.onmessage = async (ev) => {
-        const data: any = ev?.data;
-        if (data?.type === 'auth-success') onAuthSuccess();
-        if (data?.type === 'auth-google-credential') {
-          try {
-            if (!auth.currentUser) {
-              const cred = GoogleAuthProvider.credential(data.idToken, data.accessToken);
-              if (cred) {
-                await signInWithCredential(auth, cred);
-              }
-            }
-            onAuthSuccess();
-          } catch (e) {
-            console.warn('BC credential sign-in failed:', e);
-          }
-        }
-      };
-    } catch {}
-
-    // window message from opener
-    const onMessage = async (ev: MessageEvent) => {
-      const data: any = ev?.data;
-      if (data?.type === 'auth-success') onAuthSuccess();
-      if (data?.type === 'auth-google-credential') {
-        try {
-          if (!auth.currentUser) {
-            const cred = GoogleAuthProvider.credential(data.idToken, data.accessToken);
-            if (cred) {
-              await signInWithCredential(auth, cred);
-            }
-          }
-          onAuthSuccess();
-        } catch (e) {
-          console.warn('Credential sign-in failed:', e);
-        }
-      }
-    };
-    window.addEventListener('message', onMessage);
-
-    // storage event (fires across tabs/frames)
-    const onStorage = (ev: StorageEvent) => {
-      if (ev.key === 'auth:status') onAuthSuccess();
-    };
-    window.addEventListener('storage', onStorage);
-
-    return () => {
-      try { if (bc) bc.close(); } catch {}
-      window.removeEventListener('message', onMessage);
-      window.removeEventListener('storage', onStorage);
-    };
+    // No-op effect kept to preserve prior structure; all updates driven by onAuthStateChange
   }, [user?.id]);
 
   const loadDashboardData = async (uid?: string) => {
@@ -326,34 +268,8 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="bg-white shadow-sm rounded-xl p-8 max-w-md w-full text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Sign in to continue</h2>
-          <p className="text-sm text-gray-600 mb-6">Use your Kanva Botanicals Google account to access your goals.</p>
-          <button
-            onClick={async () => {
-              try {
-                // Detect iframe context
-                let inIframe = false;
-                try { inIframe = window.self !== window.top; } catch { inIframe = true; }
-
-                if (inIframe) {
-                  // Open a new tab to complete Google auth (popup-less UX)
-                  window.open(`${window.location.origin}/login`, '_blank');
-                } else {
-                  // Not in iframe: perform redirect sign-in directly in this tab
-                  const { auth, createGoogleProvider } = await import('@/lib/firebase/client');
-                  const { signInWithRedirect } = await import('firebase/auth');
-                  await signInWithRedirect(auth, createGoogleProvider());
-                }
-              } catch (e) {
-                console.error('Sign-in failed', e);
-                toast.error('Sign-in failed');
-              }
-            }}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-kanva-green text-white hover:bg-green-600 transition-colors"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.7 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.2-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.4 16.2 18.8 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.7 29.6 4 24 4 16 4 9.2 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.4l-6.3-5.2C29 35.2 26.6 36 24 36c-5.2 0-9.6-3.6-11.3-8.3l-6.5 5C8.9 39.7 15.9 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.3 3.9-4.9 7.5-9.3 7.5-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.7 29.6 4 24 4c-7.1 0-13.1 3.8-17.7 9.9l-6 4.8z"/></svg>
-            Continue with Google
-          </button>
-          <p className="text-xs text-gray-500 mt-3">Make sure Google sign-in is enabled for the Firebase project and localhost is an authorized domain.</p>
+          <p className="text-sm text-gray-600 mb-6">Use your Kanva Botanicals email and password to access your goals.</p>
+          <a href="/login" className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-kanva-green text-white hover:bg-green-600 transition-colors">Go to Login</a>
         </div>
       </div>
     );

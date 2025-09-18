@@ -19,6 +19,16 @@
           ]
         }
       ]
+    },
+    {
+      "site": "kanvaportal",
+      "public": "public",
+      "rewrites": [
+        {
+          "source": "/__/auth/**",
+          "destination": "https://kanvaportal-goals.firebaseapp.com/__/auth/**"
+        }
+      ]
     }
   ],
   "firestore": {

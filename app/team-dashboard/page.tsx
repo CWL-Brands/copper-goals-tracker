@@ -3,9 +3,9 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useMemo, useState } from 'react';
-import { settingsService, metricService } from '@/lib/firebase/services';
 import { GoalPeriod, GoalType } from '@/types';
 import Link from 'next/link';
+import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 const goalTypes: GoalType[] = [
   'talk_time',
@@ -36,36 +36,74 @@ export default function TeamDashboardPage() {
     new_sales_wholesale: 0,
     new_sales_distribution: 0,
   });
+  const [kpis, setKpis] = useState<Array<{ type: GoalType; value: number; target: number; pct: number; projected: number }>>([]);
+  const [salesKpi, setSalesKpi] = useState<{ total: number; target: number; pct: number; projected: number } | null>(null);
+  const [trends, setTrends] = useState<Record<string, { date: string; value: number }[]>>({});
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       setLoading(true);
       try {
-        const tg = await settingsService.getTeamGoals();
-        if (!cancelled) setTeamGoals(tg || {});
+        // Team goals
+        const resGoals = await fetch('/api/public/team-goals', { cache: 'no-store' });
+        const dataGoals = await resGoals.json();
+        if (!resGoals.ok) throw new Error(dataGoals?.error || 'Failed to load team goals');
+        if (!cancelled) setTeamGoals(dataGoals?.teamGoals || {});
 
-        // Aggregate metrics for the selected period across the team
-        const entries = await Promise.all(
-          goalTypes.map(async (t) => [t, await metricService.getTeamMetrics(t, period)] as const)
-        );
-        // Sum values per type
-        const agg: any = {};
-        for (const [type, map] of entries) {
-          let total = 0;
-          // map is Map<userId, number>
-          (map as Map<string, number>).forEach((v) => (total += v));
-          agg[type] = total;
+        // Aggregated team metrics for the selected period
+        const resTotals = await fetch(`/api/public/team-metrics?period=${period}`, { cache: 'no-store' });
+        const dataTotals = await resTotals.json();
+        if (!resTotals.ok) throw new Error(dataTotals?.error || 'Failed to load team metrics');
+        const totals = dataTotals?.totals || {};
+        const agg: Record<GoalType, number> = {
+          talk_time: Number(totals['talk_time'] || 0),
+          email_quantity: Number(totals['email_quantity'] || 0),
+          lead_progression_a: Number(totals['lead_progression_a'] || 0),
+          lead_progression_b: Number(totals['lead_progression_b'] || 0),
+          lead_progression_c: Number(totals['lead_progression_c'] || 0),
+          new_sales_wholesale: Number(totals['new_sales_wholesale'] || 0),
+          new_sales_distribution: Number(totals['new_sales_distribution'] || 0),
+        };
+        if (!cancelled) setMetrics(agg);
+
+        // KPIs (projected vs target)
+        const resKpis = await fetch(`/api/public/team-kpis?period=${period}`, { cache: 'no-store' });
+        const dataKpis = await resKpis.json();
+        if (resKpis.ok) {
+          if (!cancelled) {
+            setKpis((dataKpis?.kpis || []).map((k: any) => ({
+              type: k.type,
+              value: Number(k.value||0),
+              target: Number(k.target||0),
+              pct: Number(k.pct||0),
+              projected: Number(k.projected||0),
+            })));
+            setSalesKpi(dataKpis?.sales || null);
+          }
         }
-        if (!cancelled) setMetrics(agg as Record<GoalType, number>);
+
+        // Trends (sparklines)
+        const resTrends = await fetch(`/api/public/team-trends?period=${period}`, { cache: 'no-store' });
+        const dataTrends = await resTrends.json();
+        if (resTrends.ok && dataTrends?.series) {
+          if (!cancelled) setTrends(dataTrends.series);
+        }
+      } catch (e) {
+        // Silently fail and show loading/zeros
+        if (!cancelled) {
+          setTeamGoals(teamGoals || {});
+          setMetrics((m) => ({ ...m }));
+          setKpis([]);
+          setSalesKpi(null);
+          setTrends({});
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
     load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [period]);
 
   // Helpers to compute pace
@@ -92,10 +130,10 @@ export default function TeamDashboardPage() {
 
     return goalTypes.map((type) => {
       const value = metrics[type] || 0;
-      const target = teamGoals?.[period]?.[type] ?? 0;
+      const target = Number(teamGoals?.[period]?.[type] ?? 0);
       const pct = target > 0 ? Math.min((value / target) * 100, 999) : 0;
-      const elapsed = getElapsedFraction(period);
-      const projected = value / elapsed; // naive pace projection
+      const k = kpis.find((x) => x.type === type as GoalType);
+      const projected = k?.projected ?? value / getElapsedFraction(period);
       const onPace = target > 0 ? projected >= target : true;
       return (
         <div key={type} className="bg-white rounded-xl shadow-sm p-5">
@@ -120,7 +158,7 @@ export default function TeamDashboardPage() {
         </div>
       );
     });
-  }, [metrics, teamGoals, period]);
+  }, [metrics, teamGoals, period, kpis]);
 
   return (
     <div>
@@ -160,8 +198,7 @@ export default function TeamDashboardPage() {
               const total = wholesale + distribution;
               const tg = (teamGoals?.[period]?.['new_sales_wholesale'] ?? 0) + (teamGoals?.[period]?.['new_sales_distribution'] ?? 0);
               const pct = tg > 0 ? Math.min((total / tg) * 100, 999) : 0;
-              const elapsed = getElapsedFraction(period);
-              const projected = total / elapsed;
+              const projected = salesKpi?.projected ?? total / getElapsedFraction(period);
               const onPace = tg > 0 ? projected >= tg : true;
               return (
                 <>
@@ -194,6 +231,35 @@ export default function TeamDashboardPage() {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{kpiCards}</div>
+
+          {/* Trends (Sparklines) */}
+          <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-4">Team Trends ({periodLabels[period]})</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {(['email_quantity','talk_time'] as GoalType[]).map((t, idx) => (
+                <div key={t}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600">{t.replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase())} – recent</span>
+                    <span className="text-sm text-gray-900 font-medium">{(trends?.[t]?.reduce((a,b)=>a+b.value,0) || 0)}</span>
+                  </div>
+                  <div className="h-24">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={trends?.[t] || []} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+                        <defs>
+                          <linearGradient id={`tg${idx}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#16a34a" stopOpacity={0.5}/>
+                            <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <Tooltip formatter={(v)=>[v as number,'Value']} labelFormatter={(l)=>l} cursor={{ stroke: '#e5e7eb' }} />
+                        <Area type="monotone" dataKey="value" stroke="#16a34a" fillOpacity={1} fill={`url(#tg${idx})`} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Stage distribution simple chart */}
           <div className="mt-8 bg-white rounded-xl shadow-sm p-6">

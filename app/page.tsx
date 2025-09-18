@@ -28,6 +28,9 @@ export default function HomePage() {
   const [period, setPeriod] = useState<GoalPeriod>('daily');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
+  // Public team overview state
+  const [teamGoals, setTeamGoals] = useState<Record<string, any> | null>(null);
+  const [teamTotals, setTeamTotals] = useState<Record<string, number>>({});
   const [showSetter, setShowSetter] = useState(false);
   const [setterType, setSetterType] = useState<GoalType | null>(null);
   const [calendarMarks, setCalendarMarks] = useState<Record<string, boolean>>({});
@@ -73,6 +76,30 @@ export default function HomePage() {
     return () => unsub();
   }, [period]);
 
+  // Load public team aggregates (no auth required)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [gRes, mRes] = await Promise.all([
+          fetch('/api/public/team-goals', { cache: 'no-store' }),
+          fetch(`/api/public/team-metrics?period=${period}`, { cache: 'no-store' }),
+        ]);
+        const gData = await gRes.json();
+        const mData = await mRes.json();
+        if (!gRes.ok) throw new Error(gData?.error || 'Failed team goals');
+        if (!mRes.ok) throw new Error(mData?.error || 'Failed team metrics');
+        if (!cancelled) {
+          setTeamGoals(gData?.teamGoals || {});
+          setTeamTotals(mData?.totals || {});
+        }
+      } catch (e) {
+        if (!cancelled) { setTeamGoals(null); setTeamTotals({}); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [period]);
+
   // Calendar for current month
   const calendarDays = useMemo(() => {
     const now = new Date();
@@ -116,6 +143,41 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
+      {/* Team Overview (Public) */}
+      <div className="bg-white rounded-xl shadow-sm p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Team Overview</h3>
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+            {(['daily','weekly','monthly'] as GoalPeriod[]).map((p) => (
+              <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1 rounded-md text-sm ${period===p?'bg-white text-kanva-green shadow-sm':'text-gray-600'}`}>{p[0].toUpperCase()+p.slice(1)}</button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {goalTypes.map((t) => {
+            const value = Number(teamTotals[t] || 0);
+            const target = Number(teamGoals?.[period]?.[t] ?? 0);
+            const pct = target > 0 ? Math.min((value / target) * 100, 999) : 0;
+            const label = t.replace(/_/g, ' ').replace(/\b\w/g, (l)=>l.toUpperCase());
+            const isMoney = t.startsWith('new_sales_');
+            return (
+              <div key={t} className="rounded-lg border border-gray-100 p-4">
+                <div className="text-sm text-gray-500">{label} ({period})</div>
+                <div className="mt-1 text-2xl font-semibold text-gray-900">
+                  {isMoney ? `$${value.toLocaleString()}` : value}
+                  <span className="text-sm text-gray-500 ml-2">of {isMoney ? `$${target.toLocaleString()}` : target}</span>
+                </div>
+                <div className="mt-3 h-2 bg-gray-100 rounded">
+                  <div className="h-2 bg-kanva-green rounded" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-4 text-right">
+          <Link href={`/team-dashboard${typeof window!=='undefined'?window.location.search:''}`} className="text-sm text-kanva-green hover:underline">Open Full Team Dashboard →</Link>
+        </div>
+      </div>
       {/* A. Header / Navigation-like strip */}
       <div className="bg-white rounded-xl shadow-sm p-5">
         <div className="flex items-center justify-between">
