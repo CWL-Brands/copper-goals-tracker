@@ -15,6 +15,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -104,7 +105,6 @@ export default function AdminUsersPage() {
   };
 
   const deleteUser = async (u: ApiUser) => {
-    if (!confirm(`Delete ${u.email}?`)) return;
     setError(null);
     try {
       const token = await getToken();
@@ -114,6 +114,8 @@ export default function AdminUsersPage() {
       await loadUsers();
     } catch (e: any) {
       setError(e.message || 'Failed to delete user');
+    } finally {
+      setPendingDeleteId(null);
     }
   };
 
@@ -190,7 +192,14 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="py-2 pr-3">{u.passwordChanged === false ? 'Yes (pending change)' : 'No'}</td>
                     <td className="py-2 pr-3 text-right">
-                      <button onClick={()=>deleteUser(u)} className="px-3 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 text-xs">Delete</button>
+                      {pendingDeleteId === u.id ? (
+                        <div className="inline-flex items-center gap-2">
+                          <button onClick={()=>deleteUser(u)} className="px-3 py-1.5 rounded bg-red-600 text-white hover:bg-red-700 text-xs">Confirm</button>
+                          <button onClick={()=>setPendingDeleteId(null)} className="px-3 py-1.5 rounded bg-gray-100 text-xs">Cancel</button>
+                        </div>
+                      ) : (
+                        <button onClick={()=>setPendingDeleteId(u.id)} className="px-3 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 text-xs">Delete</button>
+                      )}
                     </td>
                   </tr>
                 ))}

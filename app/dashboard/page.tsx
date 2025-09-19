@@ -5,9 +5,8 @@ export const dynamic = 'force-dynamic';
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Goal, Metric, GoalType, GoalPeriod } from '@/types';
 import { userService, goalService, metricService } from '@/lib/firebase/services';
-import { auth, onAuthStateChange } from '@/lib/firebase/client';
+import { auth, onAuthStateChange, signOut } from '@/lib/firebase/client';
 import { db, doc, getDoc, setDoc, serverTimestamp } from '@/lib/firebase/db';
-import { copperIntegration } from '@/lib/copper/integration';
 import GoalCard from '@/components/molecules/GoalCard';
 import GoalSetter from '@/components/molecules/GoalSetter';
 import MetricsToolbar from '@/components/organisms/MetricsToolbar';
@@ -193,18 +192,7 @@ export default function DashboardPage() {
     loadSeries();
   }, [user?.id]);
 
-  const initializeCopperIntegration = async () => {
-    try {
-      await copperIntegration.init();
-      const context = await copperIntegration.getContext();
-      if (context) {
-        console.log('Copper context loaded:', context);
-        // Could auto-update metrics based on Copper data
-      }
-    } catch (error) {
-      console.error('Copper integration error:', error);
-    }
-  };
+  // Copper integration removed (standalone login only)
 
   const handleAddGoal = (type: GoalType) => {
     setSelectedGoalType(type);
@@ -285,6 +273,12 @@ export default function DashboardPage() {
         teamView={teamView}
         onToggleTeamView={() => setTeamView(!teamView)}
       />
+      <div className="mt-2 flex justify-end">
+        <button
+          onClick={async()=>{ try { await signOut(); } catch {} finally { window.location.reload(); } }}
+          className="px-3 py-1.5 rounded-md text-xs bg-gray-100 hover:bg-gray-200"
+        >Reload Session</button>
+      </div>
 
       {/* User Summary */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -303,9 +297,9 @@ export default function DashboardPage() {
             )}
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                {user?.name || 'Sales Representative'}
+                {user?.name || (user?.email ? user.email.split('@')[0] : 'Sales Representative')}
               </h2>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+              <p className="text-sm text-gray-500">{user?.email || ''}</p>
             </div>
           </div>
           
@@ -347,7 +341,7 @@ export default function DashboardPage() {
             const ds = goals.find(g => g.type === 'new_sales_distribution');
             const current = (ws?.current || 0) + (ds?.current || 0);
             const target = (ws?.target || 0) + (ds?.target || 0);
-            const pct = target > 0 ? Math.min((current / target) * 100, 999) : 0;
+            const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
             return (
               <div className="rounded-lg border border-gray-100 p-4">
                 <div className="text-sm text-gray-500">Total Sales ({selectedPeriod})</div>
@@ -364,7 +358,7 @@ export default function DashboardPage() {
             const g = goals.find(g => g.type === t);
             const current = g?.current ?? 0;
             const target = g?.target ?? 0;
-            const pct = target > 0 ? Math.min((current / target) * 100, 999) : 0;
+            const pct = target > 0 ? Math.min((current / target) * 100, 100) : 0;
             const isMoney = t.startsWith('new_sales_');
             const label = t.replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase());
             return (

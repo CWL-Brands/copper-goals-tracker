@@ -126,12 +126,15 @@ export default function TeamDashboardPage() {
   };
 
   const kpiCards = useMemo(() => {
-    const toTitle = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    const toTitle = (s: string) => {
+      if (s === 'talk_time') return 'Phone Calls';
+      return s.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+    };
 
     return goalTypes.map((type) => {
       const value = metrics[type] || 0;
       const target = Number(teamGoals?.[period]?.[type] ?? 0);
-      const pct = target > 0 ? Math.min((value / target) * 100, 999) : 0;
+      const pct = target > 0 ? Math.min((value / target) * 100, 100) : 0;
       const k = kpis.find((x) => x.type === type as GoalType);
       const projected = k?.projected ?? value / getElapsedFraction(period);
       const onPace = target > 0 ? projected >= target : true;
@@ -197,7 +200,7 @@ export default function TeamDashboardPage() {
               const distribution = metrics['new_sales_distribution'] || 0;
               const total = wholesale + distribution;
               const tg = (teamGoals?.[period]?.['new_sales_wholesale'] ?? 0) + (teamGoals?.[period]?.['new_sales_distribution'] ?? 0);
-              const pct = tg > 0 ? Math.min((total / tg) * 100, 999) : 0;
+              const pct = tg > 0 ? Math.min((total / tg) * 100, 100) : 0;
               const projected = salesKpi?.projected ?? total / getElapsedFraction(period);
               const onPace = tg > 0 ? projected >= tg : true;
               return (
@@ -239,7 +242,7 @@ export default function TeamDashboardPage() {
               {(['email_quantity','talk_time'] as GoalType[]).map((t, idx) => (
                 <div key={t}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">{t.replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase())} – recent</span>
+                    <span className="text-sm text-gray-600">{t === 'talk_time' ? 'Phone Calls' : t.replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase())} – recent</span>
                     <span className="text-sm text-gray-900 font-medium">{(trends?.[t]?.reduce((a,b)=>a+b.value,0) || 0)}</span>
                   </div>
                   <div className="h-24">

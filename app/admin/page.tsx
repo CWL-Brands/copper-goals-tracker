@@ -203,7 +203,7 @@ export default function AdminPage() {
                 <h3 className="text-sm font-semibold text-gray-800 mb-2 capitalize">{periodKey}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <label className="block">
-                    <span className="text-sm text-gray-600">Talk Time (min)</span>
+                    <span className="text-sm text-gray-600">Phone Calls</span>
                     <input type="number" className="mt-1 w-full border rounded-md px-3 py-2" value={teamGoals[periodKey].talk_time}
                       onChange={(e)=>handleGoalChange(periodKey,'talk_time',Number(e.target.value))} />
                   </label>

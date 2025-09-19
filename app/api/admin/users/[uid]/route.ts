@@ -34,9 +34,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { uid: strin
       const em = String(email).trim().toLowerCase();
       if (!em.endsWith('@kanvabotanicals.com')) return NextResponse.json({ error: 'Email must be @kanvabotanicals.com' }, { status: 400 });
       await adminAuth.updateUser(uid, { email: em, displayName: name });
-      await adminDb.collection('users').doc(uid).set({ email: em, name: name || em.split('@')[0], role, updatedAt: new Date() }, { merge: true });
+      const update: any = { email: em, updatedAt: new Date() };
+      update.name = (name ?? em.split('@')[0]);
+      if (typeof role !== 'undefined' && role !== null) update.role = role;
+      await adminDb.collection('users').doc(uid).set(update, { merge: true });
     } else {
-      await adminDb.collection('users').doc(uid).set({ name, role, updatedAt: new Date() }, { merge: true });
+      const update: any = { updatedAt: new Date() };
+      if (typeof name !== 'undefined' && name !== null) update.name = name;
+      if (typeof role !== 'undefined' && role !== null) update.role = role;
+      await adminDb.collection('users').doc(uid).set(update, { merge: true });
     }
 
     return NextResponse.json({ ok: true });

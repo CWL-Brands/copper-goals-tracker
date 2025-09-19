@@ -21,7 +21,7 @@ const goalIcons: Record<GoalType, React.ReactNode> = {
 };
 
 const goalLabels: Record<GoalType, string> = {
-  'talk_time': 'Talk Time',
+  'talk_time': 'Phone Calls',
   'email_quantity': 'Emails Sent',
   'lead_progression_a': 'Fact Finding',
   'lead_progression_b': 'Contact Stage',
@@ -32,9 +32,8 @@ const goalLabels: Record<GoalType, string> = {
 
 const formatValue = (value: number, type: GoalType): string => {
   if (type === 'talk_time') {
-    const hours = Math.floor(value / 60);
-    const minutes = value % 60;
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    // Now represents phone call COUNT
+    return `${value}`;
   }
   if (type.includes('sales')) {
     return new Intl.NumberFormat('en-US', {

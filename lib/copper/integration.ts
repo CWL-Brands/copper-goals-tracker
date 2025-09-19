@@ -1,4 +1,4 @@
-import { CopperContext, CopperActivity } from '@/types';
+﻿import { CopperContext, CopperActivity } from '@/types';
 
 declare global {
   interface Window {
@@ -21,15 +21,13 @@ class CopperIntegration {
         const params = new URLSearchParams(window.location.search);
         const parentOrigin = params.get('parentOrigin') || params.get('origin');
         const hasParams = !!(parentOrigin && params.get('instanceId'));
+        
         if (isInIframe && hasParams) {
           this.init();
-        } else {
-          // Do not try to init without embed params; avoids SDK errors
-          // This will be initialized later if needed when correct params are present
-          // console.debug('Skipping Copper SDK auto-init: not embedded or missing params');
         }
+        // If not in iframe or missing params, initialization will happen later if needed
       } catch {
-        // In cross-origin iframe checks, just skip
+        // Cross-origin iframe checks might fail, skip initialization
       }
     }
   }
@@ -38,7 +36,6 @@ class CopperIntegration {
    * Initialize Copper SDK
    */
   async init(): Promise<void> {
-
     // Return existing promise if already initializing
     if (this.initPromise) {
       return this.initPromise;
@@ -52,7 +49,12 @@ class CopperIntegration {
     this.initPromise = new Promise((resolve, reject) => {
       // Check if we're in Copper iframe with required params
       let isInIframe = false;
-      try { isInIframe = window.self !== window.top; } catch { isInIframe = true; }
+      try { 
+        isInIframe = window.self !== window.top; 
+      } catch { 
+        isInIframe = true; 
+      }
+      
       const params = new URLSearchParams(window.location.search);
       const parentOrigin = params.get('parentOrigin') || params.get('origin');
       const hasParams = !!(parentOrigin && params.get('instanceId'));
@@ -62,6 +64,7 @@ class CopperIntegration {
         resolve();
         return;
       }
+      
       if (!hasParams) {
         console.warn('Copper SDK initialization skipped: missing origin/instanceId');
         resolve();
@@ -111,7 +114,7 @@ class CopperIntegration {
       // Initialize SDK
       this.sdk = window.Copper.init();
       this.isInitialized = true;
-      console.log('✅ Copper SDK initialized');
+      console.log(' Copper SDK initialized');
 
       // Get initial context
       await this.refreshContext();
@@ -234,7 +237,7 @@ class CopperIntegration {
           id: activity.parentId
         }
       });
-      console.log('✅ Activity logged in Copper');
+      console.log(' Activity logged in Copper');
     } catch (error) {
       console.error('Failed to log activity:', error);
     }

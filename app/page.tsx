@@ -3,10 +3,10 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { onAuthStateChange } from '@/lib/firebase/client';
+import { onAuthStateChange, auth, signOut } from '@/lib/firebase/client';
 import { userService, goalService, metricService, settingsService } from '@/lib/firebase/services';
 import { Goal, GoalPeriod, GoalType, Metric, User } from '@/types';
-import { copperIntegration } from '@/lib/copper/integration';
+// Copper SSO removed: standalone login only
 import GoalGrid from '@/components/organisms/GoalGrid';
 import GoalSetter from '@/components/molecules/GoalSetter';
 import toast from 'react-hot-toast';
@@ -36,42 +36,39 @@ export default function HomePage() {
   const [calendarMarks, setCalendarMarks] = useState<Record<string, boolean>>({});
   const [saw, setSaw] = useState<{ skills?: string; training?: string; reading?: string; habits?: string }>({});
 
-  // Copper SDK init when in iframe
-  useEffect(() => {
-    (async () => {
-      try {
-        const inIframe = (() => { try { return window.self !== window.top; } catch { return true; } })();
-        if (inIframe) await copperIntegration.init();
-      } catch {}
-    })();
-  }, []);
+  // Copper SSO removed
 
-  // Auth and initial data
+  // Auth and initial data (standalone login only)
   useEffect(() => {
     const unsub = onAuthStateChange(async (u) => {
-      if (!u) {
-        setUser(null); setGoals([]); setMetrics([]);
-        return;
+      try {
+        if (!u) throw new Error('unauth');
+
+        const profile = await userService.getUser(u.uid);
+        if (profile) setUser(profile); else {
+          // Fallback to Firebase auth user for display if profile doc missing
+          setUser({ id: u.uid, email: u.email || '', name: u.displayName || (u.email ? u.email.split('@')[0] : 'Sales Representative'), role: 'sales' } as any);
+        }
+        const g = await goalService.getUserGoals(u.uid, period);
+        setGoals(g);
+        metricService.subscribeToMetrics(u.uid, setMetrics);
+        const today = new Date();
+        const start = subDays(today, 29);
+        const perDay: Record<string, boolean> = {};
+        for (const t of goalTypes) {
+          const ms = await metricService.getMetrics(u.uid, t, start, today);
+          ms.forEach(m => { const k = format(m.date, 'yyyy-MM-dd'); perDay[k] = true; });
+        }
+        setCalendarMarks(perDay);
+        const s = await settingsService.getSettings(u.uid);
+        if (s?.saw) setSaw(s.saw);
+      } catch {
+        // Not authenticated: leave state cleared; standalone login page will handle auth
+        setUser(null);
+        setGoals([]);
+        setMetrics([]);
+        setCalendarMarks({});
       }
-      const profile = await userService.getUser(u.uid);
-      if (profile) setUser(profile);
-      // Load goals for selected period
-      const g = await goalService.getUserGoals(u.uid, period);
-      setGoals(g);
-      // Live metrics tail (not strictly needed for calendar)
-      metricService.subscribeToMetrics(u.uid, setMetrics);
-      // Load calendar marks: any activity in last 30 days
-      const today = new Date();
-      const start = subDays(today, 29);
-      const perDay: Record<string, boolean> = {};
-      for (const t of goalTypes) {
-        const ms = await metricService.getMetrics(u.uid, t, start, today);
-        ms.forEach(m => { const k = format(m.date, 'yyyy-MM-dd'); perDay[k] = true; });
-      }
-      setCalendarMarks(perDay);
-      // Load "Sharpening the Saw" from settings
-      const s = await settingsService.getSettings(u.uid);
-      if (s?.saw) setSaw(s.saw);
     });
     return () => unsub();
   }, [period]);
@@ -157,8 +154,8 @@ export default function HomePage() {
           {goalTypes.map((t) => {
             const value = Number(teamTotals[t] || 0);
             const target = Number(teamGoals?.[period]?.[t] ?? 0);
-            const pct = target > 0 ? Math.min((value / target) * 100, 999) : 0;
-            const label = t.replace(/_/g, ' ').replace(/\b\w/g, (l)=>l.toUpperCase());
+            const pct = target > 0 ? Math.min((value / target) * 100, 100) : 0;
+            const label = t === 'talk_time' ? 'Phone Calls' : t.replace(/_/g, ' ').replace(/\b\w/g, (l)=>l.toUpperCase());
             const isMoney = t.startsWith('new_sales_');
             return (
               <div key={t} className="rounded-lg border border-gray-100 p-4">
@@ -185,8 +182,8 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-lg bg-kanva-green text-white grid place-items-center">🌿</div>
             <div>
               <div className="text-sm text-gray-500">Kanva Botanicals</div>
-              <div className="font-semibold">{user?.name || 'Sales Rep'}</div>
-              <div className="text-xs text-gray-500">{user?.role || 'User'}</div>
+              <div className="font-semibold">{user?.name || (user?.email ? user.email.split('@')[0] : 'Sales Rep')}</div>
+              <div className="text-xs text-gray-500">{user?.email || ''}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
@@ -194,6 +191,9 @@ export default function HomePage() {
               <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1 rounded-md text-sm ${period===p?'bg-white text-kanva-green shadow-sm':'text-gray-600'}`}>{p[0].toUpperCase()+p.slice(1)}</button>
             ))}
           </div>
+        </div>
+        <div className="mt-3 flex justify-end">
+          <button onClick={async()=>{ try { await signOut(); } catch {} finally { window.location.reload(); } }} className="px-3 py-1.5 rounded-md text-xs bg-gray-100 hover:bg-gray-200">Reload Session</button>
         </div>
       </div>
 
@@ -237,12 +237,12 @@ export default function HomePage() {
                   <div className="h-1.5 bg-gray-100 rounded"><div className="h-1.5 bg-blue-500 rounded" style={{width:`${Math.round(dailyTalk/maxBar*100)}%`}}/></div>
                   <div className="h-1.5 bg-gray-100 rounded"><div className="h-1.5 bg-amber-500 rounded" style={{width:`${Math.round(dailyLeads/maxBar*100)}%`}}/></div>
                 </div>
-                <div className="mt-1 text-[10px] text-gray-500">E:{dailyEmails} • T:{dailyTalk} • L:{dailyLeads}</div>
+                <div className="mt-1 text-[10px] text-gray-500">E:{dailyEmails} • P:{dailyTalk} • L:{dailyLeads}</div>
               </div>
             );
           })}
         </div>
-        <div className="mt-2 text-xs text-gray-500">Bars: Emails (green), Talk (blue), Leads (amber)</div>
+        <div className="mt-2 text-xs text-gray-500">Bars: Emails (green), Phone Calls (blue), Leads (amber)</div>
       </div>
 
       {/* D. Active Goals Dashboard */}

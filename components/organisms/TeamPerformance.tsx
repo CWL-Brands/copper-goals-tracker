@@ -22,7 +22,7 @@ export default function TeamPerformance({ goals }: TeamPerformanceProps) {
         {goals.map((goal) => {
           const rank = calculateTeamRank(goal.type);
           const top = rank <= 3;
-          const pct = Math.min((goal.current / goal.target) * 100, 999);
+          const pct = Math.min((goal.current / goal.target) * 100, 100);
           return (
             <div key={goal.id} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
               <div className="flex items-center gap-3">

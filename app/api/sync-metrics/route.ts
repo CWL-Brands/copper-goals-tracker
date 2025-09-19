@@ -55,6 +55,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
+    // Helper: load Copper users map (email -> id) and cache in Firestore
+    async function getCopperUsersMap(): Promise<Record<string, number>> {
+      const mapDoc = adminDb.collection('settings').doc('copper_users_map');
+      try {
+        const snap = await mapDoc.get();
+        const data = snap.exists ? (snap.data() as any) : null;
+        const byEmail: Record<string, number> = data?.byEmail || {};
+        const updatedAt = data?.updatedAt ? new Date(data.updatedAt) : null;
+        const fresh = updatedAt ? (Date.now() - updatedAt.getTime()) < 24*60*60*1000 : false; // 24h cache
+        if (Object.keys(byEmail).length && fresh) return byEmail;
+      } catch {}
+
+      // Refresh from Copper
+      const res = await fetch(`${COPPER_API_BASE}/users`, {
+        method: 'GET',
+        headers: {
+          'X-PW-AccessToken': COPPER_API_KEY,
+          'X-PW-Application': 'developer_api',
+          'X-PW-UserEmail': pwUserEmail,
+        },
+      });
+      const arr = res.ok ? await res.json() : [];
+      const byEmail: Record<string, number> = {};
+      if (Array.isArray(arr)) {
+        for (const u of arr) {
+          const em = String(u?.email || '').toLowerCase().trim();
+          const id = Number(u?.id);
+          if (em && id) byEmail[em] = id;
+        }
+      }
+      try {
+        await mapDoc.set({ byEmail, updatedAt: new Date().toISOString() }, { merge: true });
+      } catch {}
+      return byEmail;
+    }
+
+    // Defer resolving owner until after userSettings and results are defined
+
     // Optional SYNC_SECRET check for privileged calls (e.g., Cloud Scheduler)
     const authHeader = request.headers.get('authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -92,13 +130,26 @@ export async function POST(request: NextRequest) {
       userSettings?.phoneCallActivityId ?? orgDefaults?.phoneCallActivityId ?? ACTIVITY_TYPES.PHONE_CALL.id
     );
 
-    // Determine which Copper user email to query as (per-user override > request > env)
-    let pwUserEmail = String(copperUserEmail || userSettings?.copperUserEmail || orgDefaults?.copperUserEmail || COPPER_USER_EMAIL || '').trim();
+    // Use ORG-WIDE identity for Copper calls for consistent visibility
+    // Prefer orgDefaults.copperUserEmail or env COPPER_USER_EMAIL; ignore per-user overrides for identity
+    let pwUserEmail = String(orgDefaults?.copperUserEmail || COPPER_USER_EMAIL || '').trim();
     if (!pwUserEmail) {
+      // fallback to request-provided override only if env/default is missing
+      pwUserEmail = String(copperUserEmail || '').trim();
+    }
+
+    // Map Firebase user -> Copper owner id using cached users map
+    const usersMap = await getCopperUsersMap();
+    let ownerEmail = String(userSettings?.copperUserEmail || copperUserEmail || '').trim().toLowerCase();
+    if (!ownerEmail) {
       try {
         const uSnap = await adminDb.collection('users').doc(userId).get();
-        pwUserEmail = String(uSnap.data()?.email || COPPER_USER_EMAIL || '').trim();
+        ownerEmail = String((uSnap.data()?.email || '')).toLowerCase().trim();
       } catch {}
+    }
+    const ownerId: number | undefined = ownerEmail ? usersMap[ownerEmail] : undefined;
+    if (!ownerId) {
+      results.warnings.push(`No Copper user id found for ${ownerEmail || 'unknown email'}`);
     }
 
     // Helper: write metric using Admin SDK
@@ -149,21 +200,35 @@ export async function POST(request: NextRequest) {
       const emailData = await fetchAll('/activities/search', {
         sort_by: 'activity_date',
         sort_direction: 'desc',
-        activity_types: [{ id: emailActivityId, category: 'user' }],
+        // Include all categories for the given type ID (Gmail sync often uses 'system')
+        activity_types: [{ id: emailActivityId }],
+        ...(ownerId ? { user_ids: [ownerId] } : {}),
         minimum_activity_date: dateRange.startUnix,
         maximum_activity_date: dateRange.endUnix,
       });
       if (Array.isArray(emailData)) {
         results.emails = emailData.length || 0;
         if (results.emails > 0) {
-          await logMetricAdmin({
-            userId,
-            type: 'email_quantity',
-            value: results.emails,
-            date: new Date(),
-            source: 'copper',
-            metadata: { period, syncedAt: new Date().toISOString() },
-          });
+          // Per-day bucketing
+          const byDay: Record<string, number> = {};
+          for (const a of emailData) {
+            const tsSec = typeof a.activity_date === 'number' ? a.activity_date : (a.date_created ? Math.floor(new Date(a.date_created).getTime()/1000) : undefined);
+            if (!tsSec) continue;
+            const d = new Date(tsSec * 1000);
+            d.setHours(0,0,0,0);
+            const key = d.toISOString();
+            byDay[key] = (byDay[key] || 0) + 1;
+          }
+          for (const [isoDay, count] of Object.entries(byDay)) {
+            await logMetricAdmin({
+              userId,
+              type: 'email_quantity',
+              value: count,
+              date: new Date(isoDay),
+              source: 'copper',
+              metadata: { period, bucketed: true, syncedAt: new Date().toISOString() },
+            });
+          }
         }
       } else {
         results.warnings.push('Email sync unavailable');
@@ -172,33 +237,45 @@ export async function POST(request: NextRequest) {
       results.warnings.push('Email sync failed');
     }
 
-    // 2) Calls and talk time
+    // 2) Calls (store count as value; minutes kept in metadata for future use)
     try {
       const callData = await fetchAll('/activities/search', {
         sort_by: 'activity_date',
         sort_direction: 'desc',
-        activity_types: [{ id: phoneCallActivityId, category: 'user' }],
+        // Include all categories for the given type ID
+        activity_types: [{ id: phoneCallActivityId }],
+        ...(ownerId ? { user_ids: [ownerId] } : {}),
         minimum_activity_date: dateRange.startUnix,
         maximum_activity_date: dateRange.endUnix,
       });
       if (Array.isArray(callData)) {
         results.calls = callData?.length || 0;
-        let talk = 0;
+        // Per-day bucketing of calls (count as value), minutes in metadata
+        const byDay: Record<string, { count: number; minutes: number }> = {};
         for (const call of callData || []) {
-          const duration = typeof call.duration === 'number' ? call.duration : 5; // minutes fallback
-          talk += duration;
+          const tsSec = typeof call.activity_date === 'number' ? call.activity_date : (call.date_created ? Math.floor(new Date(call.date_created).getTime()/1000) : undefined);
+          if (!tsSec) continue;
+          const d = new Date(tsSec * 1000);
+          d.setHours(0,0,0,0);
+          const key = d.toISOString();
+          const dur = typeof call.duration === 'number' ? call.duration : 0;
+          byDay[key] = byDay[key] || { count: 0, minutes: 0 };
+          byDay[key].count += 1;
+          byDay[key].minutes += dur;
         }
-        results.talkTime = talk;
-        if (talk > 0) {
+        let minutesTotal = 0;
+        for (const [isoDay, info] of Object.entries(byDay)) {
+          minutesTotal += info.minutes;
           await logMetricAdmin({
             userId,
             type: 'talk_time',
-            value: talk,
-            date: new Date(),
+            value: info.count,
+            date: new Date(isoDay),
             source: 'copper',
-            metadata: { callCount: results.calls, period, syncedAt: new Date().toISOString() },
+            metadata: { callCount: info.count, minutes: info.minutes, period, bucketed: true, syncedAt: new Date().toISOString() },
           });
         }
+        results.talkTime = results.calls;
       } else {
         results.warnings.push('Call sync unavailable');
       }
@@ -212,6 +289,7 @@ export async function POST(request: NextRequest) {
         sort_by: 'date_modified',
         sort_direction: 'desc',
         pipeline_ids: [Number(orgDefaults?.SALES_PIPELINE_ID ?? PIPELINE_CONFIG.SALES_PIPELINE_ID)],
+        ...(ownerId ? { owner_ids: [ownerId] } : {}),
       });
       if (Array.isArray(opps)) {
         const stageCounts: Record<string, number> = {
@@ -246,13 +324,14 @@ export async function POST(request: NextRequest) {
           if (stageName && CLOSED_WON_STAGES.includes(stageName)) {
             const value = Number(opp?.monetary_value || 0);
             const customFields = opp?.custom_fields || [];
-            const PRODUCT_FIELD_ID = Number(orgDefaults?.PRODUCT_FIELD_ID ?? 705070);
-            const productField = customFields.find((f: any) => f.custom_field_definition_id === PRODUCT_FIELD_ID);
+            // Use Sale Type custom field when available
+            const SALE_TYPE_FIELD_ID = Number(orgDefaults?.SALE_TYPE_FIELD_ID ?? 0);
+            const saleTypeField = SALE_TYPE_FIELD_ID ? customFields.find((f: any) => f.custom_field_definition_id === SALE_TYPE_FIELD_ID) : null;
             if (value > 0) {
-              if (productField?.value) {
-                const pv = String(productField.value).toLowerCase();
-                const isWholesale = wholesaleKeywords.some((k) => pv.includes(String(k).toLowerCase()));
-                const isDistribution = distributionKeywords.some((k) => pv.includes(String(k).toLowerCase()));
+              if (saleTypeField?.value) {
+                const sv = String(saleTypeField.value).toLowerCase();
+                const isWholesale = sv.includes('wholesale');
+                const isDistribution = sv.includes('distribution');
                 if (isWholesale && !isDistribution) {
                   wholesale += value;
                 } else if (isDistribution && !isWholesale) {
