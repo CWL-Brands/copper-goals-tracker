@@ -1,0 +1,15 @@
+{
+  "timestamp": "2025-10-02T15:27:25.241Z",
+  "stats": {
+    "totalCopperCompanies": 0,
+    "totalFirestoreCustomers": 1606,
+    "matchedByAccountNumber": 0,
+    "matchedByAccountOrderId": 0,
+    "matchedByName": 0,
+    "unmatched": 0,
+    "errors": [],
+    "matchedRecords": []
+  },
+  "matchedRecords": [],
+  "errors": []
+}

@@ -1,0 +1,1320 @@
+{
+  "fileName": "Opportunities",
+  "totalRecords": 393,
+  "fields": [
+    {
+      "name": "Name",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 387,
+      "sampleValues": [
+        "Tango Mango B12 252306B12 (2 Barrels)",
+        "RAW V4",
+        "Bright Brands Distribution",
+        "Focus + Flow B74 Rework 250306B74",
+        "Panacea Distro PM"
+      ]
+    },
+    {
+      "name": "Details",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "16.5%",
+      "uniqueCount": 59,
+      "sampleValues": [
+        "Team with Josie on a reformulation of V3 to prevent fermentation.  ",
+        "Scale V1 to 20 Liters for strategic feedback",
+        "Scale up V2 to 200L",
+        "Create 1 Liter of Raw for evaluation",
+        "RAW V2 1% Poly20, 2% Poly 80"
+      ]
+    },
+    {
+      "name": "Company",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "66.7%",
+      "uniqueCount": 217,
+      "sampleValues": [
+        "Bright Brands Distribution",
+        "Panacea Distro PM",
+        "Ghost Vapors & Smoke Shop",
+        "SNJ GIFTS",
+        "PRICE & CO"
+      ]
+    },
+    {
+      "name": "Company Id",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "66.7%",
+      "uniqueCount": 217,
+      "sampleValues": [
+        73280795,
+        72252262,
+        72257014,
+        72341609,
+        72257308
+      ]
+    },
+    {
+      "name": "Primary Person Contact",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "58.8%",
+      "uniqueCount": 180,
+      "sampleValues": [
+        "Jassi Singh",
+        "Panacea Distro PM",
+        "Jacob Dijkstra",
+        "tokerzheadshop@gmail.com",
+        "Bilal Iqbal"
+      ]
+    },
+    {
+      "name": "Status",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "Won",
+        "Open",
+        "Lost",
+        "Abandoned"
+      ]
+    },
+    {
+      "name": "Priority",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "None",
+        "Medium",
+        "Low",
+        "High"
+      ]
+    },
+    {
+      "name": "Owner",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "94.7%",
+      "uniqueCount": 11,
+      "sampleValues": [
+        "Josie Landon",
+        "operations Operations",
+        "Ben Wallner",
+        "Jared Leuzinger",
+        "Derek Whitworth"
+      ]
+    },
+    {
+      "name": "Owner Id",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "94.7%",
+      "uniqueCount": 11,
+      "sampleValues": [
+        1190941,
+        1168896,
+        1198774,
+        1168902,
+        1168894
+      ]
+    },
+    {
+      "name": "Close Date",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "97.2%",
+      "uniqueCount": 149,
+      "sampleValues": [
+        "9/5/2025",
+        "8/8/2025",
+        "9/29/2025",
+        "7/17/2025",
+        "5/6/2025"
+      ]
+    },
+    {
+      "name": "Completed Date",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "51.1%",
+      "uniqueCount": 98,
+      "sampleValues": [
+        "9/5/2025",
+        "9/29/2025",
+        "7/17/2025",
+        "5/6/2025",
+        "4/29/2025"
+      ]
+    },
+    {
+      "name": "Value",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "56.2%",
+      "uniqueCount": 104,
+      "sampleValues": [
+        12500,
+        199,
+        299,
+        65,
+        13089.6
+      ]
+    },
+    {
+      "name": "Currency",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "56.2%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "USD"
+      ]
+    },
+    {
+      "name": "Converted Value",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "56.2%",
+      "uniqueCount": 104,
+      "sampleValues": [
+        12500,
+        199,
+        299,
+        65,
+        13089.6
+      ]
+    },
+    {
+      "name": "Converted Currency",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "USD"
+      ]
+    },
+    {
+      "name": "Exchange Rate",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "56.2%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        1
+      ]
+    },
+    {
+      "name": "Win Probability",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "67.2%",
+      "uniqueCount": 10,
+      "sampleValues": [
+        "0%",
+        "20%",
+        "75%",
+        "100%",
+        "1%"
+      ]
+    },
+    {
+      "name": "Pipeline",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 7,
+      "sampleValues": [
+        "Manufacturing>Production",
+        "R&D/Product Development",
+        "Sales Pipeline",
+        "Trade Show Sales Pipeline",
+        "Operations SWOT"
+      ]
+    },
+    {
+      "name": "Stage",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 30,
+      "sampleValues": [
+        "Assigned Location",
+        "Scoping/Concept",
+        "Closing Stage",
+        "Opportunity",
+        "Payment Received"
+      ]
+    },
+    {
+      "name": "Source",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "25.7%",
+      "uniqueCount": 6,
+      "sampleValues": [
+        "Referral",
+        "Cold Call",
+        "Tradeshow",
+        "Website Lead",
+        "Email"
+      ]
+    },
+    {
+      "name": "Loss Reason",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.8%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "Customer Says No To Kratom/Kava Category",
+        "Price"
+      ]
+    },
+    {
+      "name": "Tags",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "9.9%",
+      "uniqueCount": 12,
+      "sampleValues": [
+        "prospect reload-1750285540722",
+        "kanva website leads import-1745962038968",
+        "champs summer",
+        "shane leads import-1743112617434",
+        "west kanva website leads import-1746134773110"
+      ]
+    },
+    {
+      "name": "Last Contacted",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "45.0%",
+      "uniqueCount": 60,
+      "sampleValues": [
+        "8/19/2025",
+        "5/6/2025",
+        "9/5/2025",
+        "9/24/2025",
+        "6/13/2025"
+      ]
+    },
+    {
+      "name": "Inactive Days",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "45.0%",
+      "uniqueCount": 60,
+      "sampleValues": [
+        44,
+        148,
+        26,
+        7,
+        110
+      ]
+    },
+    {
+      "name": "Interaction Count",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 47,
+      "sampleValues": [
+        0,
+        27,
+        2,
+        10,
+        42
+      ]
+    },
+    {
+      "name": "Last Stage At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 98,
+      "sampleValues": [
+        "9/5/2025",
+        "7/1/2025",
+        "9/17/2025",
+        "7/17/2025",
+        "9/29/2025"
+      ]
+    },
+    {
+      "name": "Days in Stage",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 98,
+      "sampleValues": [
+        26,
+        92,
+        14,
+        76,
+        2
+      ]
+    },
+    {
+      "name": "Created At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 112,
+      "sampleValues": [
+        "6/24/2025",
+        "7/1/2025",
+        "6/16/2025",
+        "4/28/2025",
+        "4/29/2025"
+      ]
+    },
+    {
+      "name": "Updated At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 75,
+      "sampleValues": [
+        "9/5/2025",
+        "7/1/2025",
+        "9/29/2025",
+        "7/17/2025",
+        "4/29/2025"
+      ]
+    },
+    {
+      "name": "Lead Created At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "17.6%",
+      "uniqueCount": 49,
+      "sampleValues": [
+        "7/1/2025",
+        "4/28/2025",
+        "5/7/2025",
+        "5/19/2025",
+        "6/18/2025"
+      ]
+    },
+    {
+      "name": "Notes cf_675910",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "2.5%",
+      "uniqueCount": 9,
+      "sampleValues": [
+        "CA - Associations AMPM / 7-11 buying groups no willing to take on Kratom after Feel Free lawsuit - waiting on customer to prospect more business in the independent vertical. ",
+        "Web Lead",
+        "3 Stores",
+        "MA/NH distribution",
+        "5 locations"
+      ]
+    },
+    {
+      "name": "Account Type cf_675914",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "16.0%",
+      "uniqueCount": 8,
+      "sampleValues": [
+        "Distributor",
+        "Cash & Carry",
+        "Independent Store",
+        "Chain;Distributor",
+        "Chain"
+      ]
+    },
+    {
+      "name": "Region cf_680701",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "49.1%",
+      "uniqueCount": 8,
+      "sampleValues": [
+        "Pacific Northwest",
+        "Southeast",
+        "Mountain",
+        "South Central",
+        "Northeast"
+      ]
+    },
+    {
+      "name": "Customer Priority cf_698121",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "4.1%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        3,
+        4,
+        1,
+        5
+      ]
+    },
+    {
+      "name": "State cf_698130",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "30.0%",
+      "uniqueCount": 37,
+      "sampleValues": [
+        "CA",
+        "UT",
+        "MI",
+        "NJ",
+        "IN"
+      ]
+    },
+    {
+      "name": "Prospect Notes cf_698137",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "7.1%",
+      "uniqueCount": 28,
+      "sampleValues": [
+        "Follow up with Jassi",
+        "Empire Vape other store Galaxy Vape",
+        "Super nice. Docusign finished and sending kit.",
+        "DSD focused in Orange county",
+        "Owns 60 stores in the smoker friendly network. Met her at the SF conference. Approved for terms from Rob NET30 "
+      ]
+    },
+    {
+      "name": "Lead Temperature cf_698148",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "3.3%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "Warm",
+        "Hot"
+      ]
+    },
+    {
+      "name": "Segment cf_698149",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "7.4%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "Convenience",
+        "Smoke & Vape",
+        "Wellness",
+        "Vape"
+      ]
+    },
+    {
+      "name": "Account Opportunity cf_698259",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "2.8%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "High-Value",
+        "Standard",
+        "Core",
+        "Premium"
+      ]
+    },
+    {
+      "name": "Account Number cf_698260",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Business Model cf_698356",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "5.1%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "Wholesale Only",
+        "Retail + Wholesale",
+        "Retail Only",
+        "Multi-Branch"
+      ]
+    },
+    {
+      "name": "Organization Level cf_698362",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "3.3%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Corp HQ",
+        "Chain HQ",
+        "Independent"
+      ]
+    },
+    {
+      "name": "SO Number cf_698395",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Date Issued cf_698396",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Order Status cf_698397",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Payment Status cf_698399",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Special Offers cf_698400",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Order Notes cf_698401",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Reseller Permit cf_698402",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "3.6%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "NO",
+        "YES"
+      ]
+    },
+    {
+      "name": "Focus+Flow Single Bottles (KB-2000) cf_698411",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Focus+Flow 12PM (KB-3000) cf_698412",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Focus+Flow MC12 (KB-4000) cf_698413",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Mango Extract Single (KB-2003) cf_698420",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Mango Extract 12PK (KB-3003) cf_698421",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Mango Extract MC12 (KB-4003) cf_698422",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Acrylic Displays Black (Acrylic-008) cf_698423",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Acrylic Displays White (Acrylic-007) cf_698424",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Shipping Amount cf_698427",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_698427",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Processing Fees cf_698428",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_698428",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Special Bundles/Kits cf_698430",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Free Samples Included cf_698431",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Special Instructions cf_698432",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Tracking Number cf_698433",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Payment Terms cf_698434",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Shipping Method cf_698435",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Ship Date cf_698436",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Actual Delivery Date cf_698437",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Subtotal cf_698438",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_698438",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Tax Amount cf_698439",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_698439",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Discount Amount cf_698440",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_698440",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Order Total cf_698441",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_698441",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Fishbowl Status cf_698443",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Last Sync Date cf_698444",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Sync Status cf_698445",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Primary Products Ordered cf_698446",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Account Order ID cf_698467",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Parent Account cf_698475",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Work Email cf_698503",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.8%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "empirevapor99@gmail.com",
+        "hempgoodcbd@gmail.com",
+        "contact@sunnydazesmokeshop.com"
+      ]
+    },
+    {
+      "name": "Main Phone cf_699010",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "1.5%",
+      "uniqueCount": 6,
+      "sampleValues": [
+        9164306771,
+        "307-351-6039",
+        "408-429-0215",
+        "801-690-2530",
+        "443-739-5044"
+      ]
+    },
+    {
+      "name": "Secondary Contact cf_699414 people ids",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Secondary Contact cf_699414 people names",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Trade Show Name cf_699977",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "9.4%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Champs Summer",
+        "Smoker Friendly Conference",
+        "Champs Chicago"
+      ]
+    },
+    {
+      "name": "Project Category cf_705064",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "3.1%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "Retailer Support",
+        "Product Marketing",
+        "Sales Tools",
+        "Other"
+      ]
+    },
+    {
+      "name": "Priority Level cf_705065",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Target Completion Date cf_705066",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "2.8%",
+      "uniqueCount": 7,
+      "sampleValues": [
+        "8/20/2025",
+        "8/29/2025",
+        "9/1/2025",
+        "9/15/2025",
+        "8/15/2025"
+      ]
+    },
+    {
+      "name": "Estimated Budget cf_705067",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.8%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "USD"
+      ]
+    },
+    {
+      "name": "Value cf_705067",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.8%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        200,
+        0,
+        2500
+      ]
+    },
+    {
+      "name": "Project Owner cf_705068 user ids",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.3%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        1198774
+      ]
+    },
+    {
+      "name": "Project Owner cf_705068 user names",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.3%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "Ben Wallner"
+      ]
+    },
+    {
+      "name": "Products Involved cf_705070",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "2.3%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "All Products",
+        "Release+Relax"
+      ]
+    },
+    {
+      "name": "Executive Approval Required cf_705075",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "unchecked",
+        "checked"
+      ]
+    },
+    {
+      "name": "Executive Approval Status cf_705076",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "1.3%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Required",
+        "Pending Approval",
+        "Approved"
+      ]
+    },
+    {
+      "name": "ShipStation Order # cf_706512",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Carrier cf_706513",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Service cf_706514",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Tracking # cf_706515",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Delivery Date cf_706517",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Shipping Status cf_706518",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Lifetime Shipments cf_706519",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Lifetime Shipping Spend cf_706520",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_706520",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Company Mission Statement cf_710030",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.3%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "Operating in 6 states, The Odom Corporation's mission is to market and distribute premium beverages for the mutual reward and growth of our customers, suppliers and employees."
+      ]
+    },
+    {
+      "name": "Sale Type cf_710692",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "6.4%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Distribution",
+        "Wholesale",
+        "Direct-to-Consumer"
+      ]
+    },
+    {
+      "name": "Tax Included cf_712757",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "unchecked"
+      ]
+    },
+    {
+      "name": "Cost cf_712758",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Value cf_712758",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Date Completed cf_712759",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Date Created cf_712760",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Last Modified cf_712761",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Salesman cf_712762",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Salesman ID cf_712763",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Customer PO cf_712764",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Location cf_712765",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "QB Class cf_712766",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Ship To Name cf_712767",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Ship To Address cf_712768",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Ship To City cf_712769",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Ship To Zip cf_712770",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Residential Delivery cf_712771",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "unchecked"
+      ]
+    },
+    {
+      "name": "FOB Point cf_712772",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Copper ID",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 393,
+      "sampleValues": [
+        34723781,
+        34782536,
+        34783048,
+        34586201,
+        34216462
+      ]
+    },
+    {
+      "name": "Copper URL",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 393,
+      "sampleValues": [
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fdeal%2F34723781&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fdeal%2F34782536&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fdeal%2F34783048&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fdeal%2F34586201&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fdeal%2F34216462&use_active_session=1"
+      ]
+    }
+  ]
+}
