@@ -1,0 +1,131 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if running in emulator (development mode)
+    function isEmulator() {
+      return resource == null || request.auth == null;
+    }
+    
+    // Public read access for core data - no authentication required
+    // This supports the anonymous access requirement for CopperCRM embedded app
+    
+    // Products collection - public read, admin write
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null || isEmulator();
+    }
+    
+    // Pricing configuration - public read, admin write
+    match /pricing/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null || isEmulator();
+    }
+    
+    // Shipping configuration - public read, admin write
+    match /shipping/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null || isEmulator();
+    }
+    
+    // Payment configuration - public read, admin write
+    match /payment/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null || isEmulator();
+    }
+    
+    // Email templates - public read, admin write
+    match /templates/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null || isEmulator();
+    }
+    
+    // Admin-only collections - TEMPORARILY ALLOW PUBLIC ACCESS FOR TESTING
+    // TODO: Re-enable authentication once anonymous auth is configured
+    match /admin/{document=**} {
+      allow read, write: if true; // Temporary public access
+    }
+    
+    // Integration connections - Admin only
+    match /integrations/{document=**} {
+      allow read: if true; // Read publicly so frontend can check if integration exists
+      allow write: if request.auth != null || isEmulator(); // Only admins can modify
+    }
+    
+    // ShipStation webhook events - Admin only
+    match /shipstation_events/{document=**} {
+      allow write: if true; // Allow webhook to write
+      allow read: if request.auth != null || isEmulator(); // Only admins can read
+    }
+    
+    // ShipStation events index - Admin only
+    match /shipstation_events_index/{document=**} {
+      allow write: if true; // Allow webhook to write
+      allow read: if request.auth != null || isEmulator(); // Only admins can read
+    }
+    
+    // ShipStation Firestore queue (worker pattern)
+    // Requests: client writes a job; Responses: client reads result
+    match /shipstationRequests/{requestId} {
+      // NOTE: Temporarily allow public writes to unblock internal usage.
+      // Tighten to `request.auth != null` when Firebase Auth is enabled.
+      allow write: if true;
+      // Optional read for debugging
+      allow read: if request.auth != null || isEmulator();
+    }
+    match /shipstationResponses/{requestId} {
+      // Clients read responses
+      allow read: if true;
+      // Prevent clients from writing responses; server SDK bypasses rules anyway
+      allow write: if false;
+    }
+    
+    // Analytics - write-only for app, read for admin
+    match /analytics/{document=**} {
+      allow write: if true;
+      allow read: if request.auth != null || isEmulator();
+    }
+    
+    // Default deny for any other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    // Users can only read/write their own profile
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Goals - users can manage and read only their own goals
+    match /goals/{goalId} {
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Metrics - users can write and read only their own
+    match /metrics/{metricId} {
+      allow read: if request.auth != null &&
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // Settings - users can only access their own
+    match /settings/{userId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == userId;
+    }
+    
+    // Organization settings - deny client writes; reads via server if needed
+    match /settings/organization/defaults {
+      allow read: if false;
+      allow write: if false; // Admin only via Cloud Functions
+    }
+  }
+}

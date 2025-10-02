@@ -1,0 +1,1075 @@
+{
+  "fileName": "People",
+  "totalRecords": 75339,
+  "fields": [
+    {
+      "name": "First Name",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.7%",
+      "uniqueCount": 21512,
+      "sampleValues": [
+        "YOUSUF",
+        "GLORIA",
+        "Lucky",
+        "Ali",
+        "Sue"
+      ]
+    },
+    {
+      "name": "Middle Name",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 28,
+      "sampleValues": [
+        "Vape",
+        "R",
+        "Row",
+        "\"Sunny\"",
+        "Tasha"
+      ]
+    },
+    {
+      "name": "Last Name",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.5%",
+      "uniqueCount": 29378,
+      "sampleValues": [
+        "MAHAMMAD",
+        "MANTAS",
+        "Singh",
+        "Hantash",
+        "Wilburn"
+      ]
+    },
+    {
+      "name": "Prefix",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "4.9%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "Mr.",
+        "Mrs.",
+        "Ms.",
+        "Prof."
+      ]
+    },
+    {
+      "name": "Suffix",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "Sr."
+      ]
+    },
+    {
+      "name": "Title",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "6.1%",
+      "uniqueCount": 321,
+      "sampleValues": [
+        "Owner",
+        "Mngr",
+        "Store Manager",
+        "OWNER",
+        "owner"
+      ]
+    },
+    {
+      "name": "Details",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.1%",
+      "uniqueCount": 52,
+      "sampleValues": [
+        "Smoke Shop",
+        "cbd manufacturer",
+        "Shopify lead",
+        "distributor",
+        "buying through distro"
+      ]
+    },
+    {
+      "name": "Company",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.9%",
+      "uniqueCount": 61449,
+      "sampleValues": [
+        "ALEX'S III",
+        "ALFA AUTO FUEL",
+        "ALFAA MART BP",
+        "ALGIERS DISCOUNT",
+        "ALGONAC WINE AND LIQUOR LLC"
+      ]
+    },
+    {
+      "name": "Company Id",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.9%",
+      "uniqueCount": 61454,
+      "sampleValues": [
+        72903053,
+        72903060,
+        72903064,
+        72903087,
+        72903094
+      ]
+    },
+    {
+      "name": "Owned By",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "5.3%",
+      "uniqueCount": 9,
+      "sampleValues": [
+        "operations Operations",
+        "Joe Simmons",
+        "Derek Whitworth",
+        "Jared Leuzinger",
+        "Ben Wallner"
+      ]
+    },
+    {
+      "name": "Street",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "97.9%",
+      "uniqueCount": 71787,
+      "sampleValues": [
+        "3581 HWY 4 W",
+        "4139 WASHINGTON ST.",
+        "8039 BURLINGTON PK",
+        "3547 GEN MEYER",
+        "2851 PORTAGE TRAIL"
+      ]
+    },
+    {
+      "name": "City",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "98.5%",
+      "uniqueCount": 11426,
+      "sampleValues": [
+        "SARAH",
+        "ROSLINDALE",
+        "FLORENCE",
+        "ALGIERS",
+        "ROCHESTER"
+      ]
+    },
+    {
+      "name": "State",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "1.1%",
+      "uniqueCount": 101,
+      "sampleValues": [
+        "MO",
+        "MD",
+        "Wisconsin",
+        "Tennessee",
+        "California"
+      ]
+    },
+    {
+      "name": "Postal Code",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "97.9%",
+      "uniqueCount": 18483,
+      "sampleValues": [
+        38665,
+        2131,
+        41042,
+        70114,
+        48309
+      ]
+    },
+    {
+      "name": "Country",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.8%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "United States",
+        "Nigeria"
+      ]
+    },
+    {
+      "name": "Contact Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 6,
+      "sampleValues": [
+        "Uncategorized",
+        "Unqualified",
+        "Potential Customer",
+        "Current Customer",
+        "Tradeshow Lead"
+      ]
+    },
+    {
+      "name": "Tags",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.3%",
+      "uniqueCount": 33,
+      "sampleValues": [
+        "71k_contact_imports_linked_ra#-1750197013544",
+        "no account associate - need to link-1750198561635",
+        "brandon current accts-1736200218434,account",
+        "ac opened-1747075508785",
+        "contacts import - match accounts-1750106289667"
+      ]
+    },
+    {
+      "name": "Last Contacted",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "2.8%",
+      "uniqueCount": 140,
+      "sampleValues": [
+        "6/18/2025",
+        "8/1/2025",
+        "8/7/2025",
+        "6/10/2025",
+        "8/12/2025"
+      ]
+    },
+    {
+      "name": "Inactive Days",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "2.8%",
+      "uniqueCount": 140,
+      "sampleValues": [
+        105,
+        61,
+        55,
+        113,
+        50
+      ]
+    },
+    {
+      "name": "Interaction Count",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 93,
+      "sampleValues": [
+        0,
+        4,
+        6,
+        1,
+        5
+      ]
+    },
+    {
+      "name": "Created At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 145,
+      "sampleValues": [
+        "6/17/2025",
+        "7/14/2025",
+        "7/31/2025",
+        "8/7/2025",
+        "8/1/2025"
+      ]
+    },
+    {
+      "name": "Updated At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 103,
+      "sampleValues": [
+        "6/17/2025",
+        "6/18/2025",
+        "7/31/2025",
+        "8/1/2025",
+        "8/7/2025"
+      ]
+    },
+    {
+      "name": "Email",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.8%",
+      "uniqueCount": 75156,
+      "sampleValues": [
+        "mohammadyousuf700289@gmail.com",
+        "gmantas70@hotmail.com",
+        "cincityfoodmart@yahoo.com",
+        "alihantash70056@gmail.com",
+        "swilburn4334@aol.com"
+      ]
+    },
+    {
+      "name": "Email Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.8%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "work",
+        "personal"
+      ]
+    },
+    {
+      "name": "Email 2",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 16,
+      "sampleValues": [
+        "rhio@doubleupwholesale.com",
+        "syed314@hotmail.com",
+        "imran@dvash.us",
+        "smcneal@threebearsalaska.com",
+        "mightyquinnsales@gmail.com"
+      ]
+    },
+    {
+      "name": "Email 2 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "Email 3",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "mattj@cwlbrands.com"
+      ]
+    },
+    {
+      "name": "Email 3 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "Phone Number",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "98.2%",
+      "uniqueCount": 71919,
+      "sampleValues": [
+        "347-469-9543",
+        "617-327-6133",
+        "859-371-9762",
+        "504-368-6204",
+        "810-794-1001"
+      ]
+    },
+    {
+      "name": "Phone Number Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "98.2%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "work",
+        "mobile",
+        "other"
+      ]
+    },
+    {
+      "name": "Phone Number 2",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "96.9%",
+      "uniqueCount": 71580,
+      "sampleValues": [
+        "347-469-9543",
+        "617-327-6133",
+        "859-371-9762",
+        "504-368-6204",
+        "810-794-1001"
+      ]
+    },
+    {
+      "name": "Phone Number 2 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "96.9%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "mobile",
+        "work"
+      ]
+    },
+    {
+      "name": "Phone Number 3",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "4.2%",
+      "uniqueCount": 3098,
+      "sampleValues": [
+        "216-225-4222",
+        2019449536,
+        "615-738-6099",
+        "201-969-6767",
+        "470-824-2205"
+      ]
+    },
+    {
+      "name": "Phone Number 3 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "4.2%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "other",
+        "mobile",
+        "work"
+      ]
+    },
+    {
+      "name": "Phone Number 4",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "(916) 245-0628"
+      ]
+    },
+    {
+      "name": "Phone Number 4 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "Social",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "10.1%",
+      "uniqueCount": 7599,
+      "sampleValues": [
+        "https://www.linkedin.com/in/gloria-mantas-4a454676",
+        "https://www.linkedin.com/in/vishal-bansal-b7734347",
+        "https://www.linkedin.com/in/muntaser-arar-545b7985",
+        "https://www.linkedin.com/in/bharat-patel-75b8653a",
+        "https://www.linkedin.com/in/tiffany-alt-26b5a944"
+      ]
+    },
+    {
+      "name": "Social Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "10.1%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "linkedin",
+        "twitter",
+        "other"
+      ]
+    },
+    {
+      "name": "Social 2",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "1.3%",
+      "uniqueCount": 941,
+      "sampleValues": [
+        "https://twitter.com/kp90303",
+        "https://twitter.com/RonMackey",
+        "https://twitter.com/cpkalpatel",
+        "https://twitter.com/AshfaqurD",
+        "https://twitter.com/Fadi_amro_"
+      ]
+    },
+    {
+      "name": "Social 2 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "1.3%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "twitter",
+        "other",
+        "linkedin"
+      ]
+    },
+    {
+      "name": "Website",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.6%",
+      "uniqueCount": 461,
+      "sampleValues": [
+        "http://www.crestpointco.com/",
+        "http://www.RahimAli.com/",
+        "http://beveragedepot.biz/",
+        "http://picasaweb.google.com/lalopatel84",
+        "http://finone.com/"
+      ]
+    },
+    {
+      "name": "Website Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.6%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "Website 2",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "https://shopturningleaf.com/comments/feed",
+        "https://stashgifts.com/home/feed"
+      ]
+    },
+    {
+      "name": "Website 2 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "Website 3",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "https://shopturningleaf.com/feed",
+        "https://stashgifts.com"
+      ]
+    },
+    {
+      "name": "Website 3 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "Website 4",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "https://stashgifts.com/comments/feed"
+      ]
+    },
+    {
+      "name": "Website 4 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "Website 5",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "https://stashgifts.com/feed"
+      ]
+    },
+    {
+      "name": "Website 5 Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "work"
+      ]
+    },
+    {
+      "name": "PM Name cf_675906",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 18,
+      "sampleValues": [
+        "Harshdeep",
+        "Tom",
+        "Persaud",
+        "Imran",
+        "Hyeyeon JU"
+      ]
+    },
+    {
+      "name": "PM Hours cf_675909",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Notes cf_675910",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.1%",
+      "uniqueCount": 81,
+      "sampleValues": [
+        "payment from acrylic order",
+        "Lead, carries from distro. Hasnt responded",
+        "Distro Request to call - Goes through Distro. ",
+        "can no longer carry, label sent",
+        "emailed 10/4"
+      ]
+    },
+    {
+      "name": "Date cf_675913",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "4/16/2025",
+        "3/7/2025",
+        "3/6/2025"
+      ]
+    },
+    {
+      "name": "Account Type cf_675914",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.3%",
+      "uniqueCount": 6,
+      "sampleValues": [
+        "Independent Store",
+        "Chain",
+        "Distributor",
+        "Cash & Carry",
+        "Cash & Carry;Chain;Distributor"
+      ]
+    },
+    {
+      "name": "Region cf_680701",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "5.1%",
+      "uniqueCount": 8,
+      "sampleValues": [
+        "Pacific Northwest",
+        "South Central",
+        "Midwest",
+        "Mountain",
+        "Northeast"
+      ]
+    },
+    {
+      "name": "County cf_697979",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.6%",
+      "uniqueCount": 271,
+      "sampleValues": [
+        "MONTCALM",
+        "MUSKINGUM",
+        "MAURY",
+        "AUGUSTA",
+        "BARROW"
+      ]
+    },
+    {
+      "name": "State cf_698130",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "8.1%",
+      "uniqueCount": 51,
+      "sampleValues": [
+        "WA",
+        "CA",
+        "FL",
+        "NH",
+        "CT"
+      ]
+    },
+    {
+      "name": "Prospect Notes cf_698137",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 11,
+      "sampleValues": [
+        "40 Locations, MT, SD, ND, WY Etc.",
+        "DSD focused in Orange county",
+        "Met up at the Smoker Friendly Conference and connected with the buyer and VP that I have a relationship with. Left Samples of all sku's and had a good convo where they said they had many inquiries into Focus+Flow",
+        "Cannot carry Kratom - Cannabis License. ",
+        "Follow up with Jassi"
+      ]
+    },
+    {
+      "name": "Lead Temperature cf_698148",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Hot",
+        "Warm",
+        "Cold"
+      ]
+    },
+    {
+      "name": "Segment cf_698149",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 5,
+      "sampleValues": [
+        "Smoke & Vape",
+        "Convenience",
+        "Cannabis",
+        "Wellness",
+        "Vape"
+      ]
+    },
+    {
+      "name": "Account Notes cf_698219",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "has 5+ own stores, distributes ",
+        "Outskirts of Portland. Could be good for Ben"
+      ]
+    },
+    {
+      "name": "Start Time cf_698256",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 7,
+      "sampleValues": [
+        "7 AM",
+        "1 PM",
+        "2 PM",
+        "11 AM",
+        "10 AM"
+      ]
+    },
+    {
+      "name": "End Time cf_698257",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "5 PM",
+        "4 PM",
+        "1 PM",
+        "3 PM"
+      ]
+    },
+    {
+      "name": "Account Opportunity cf_698259",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "High-Value",
+        "Standard"
+      ]
+    },
+    {
+      "name": "Account Number cf_698260",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "99.0%",
+      "uniqueCount": 67530,
+      "sampleValues": [
+        "C124608",
+        "C124615",
+        "C124619",
+        "C124641",
+        "C124648"
+      ]
+    },
+    {
+      "name": "Organization Level cf_698362",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "Independent"
+      ]
+    },
+    {
+      "name": "Parent Account Number cf_698367",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 24,
+      "sampleValues": [
+        "HQ01477",
+        "HQ00346",
+        "HQ00350",
+        "HQ01001",
+        "HQ01404"
+      ]
+    },
+    {
+      "name": "Product Categories of Interest cf_698447",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Focus+Flow Products",
+        "Focus+Flow Products;Zoom Products;Mango Extract Products;Release+Relax Products;Acrylics Displays",
+        "Focus+Flow Products;Release+Relax Products"
+      ]
+    },
+    {
+      "name": "Tax Exempt Number cf_698460",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Account Order ID cf_698467",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        1853,
+        491
+      ]
+    },
+    {
+      "name": "Chain cf_698471 company ids",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        72196270,
+        72776261,
+        73317889
+      ]
+    },
+    {
+      "name": "Chain cf_698471 company names",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Cloud House Vaporz Inc",
+        "SMOKEY SMOKE SHOP | Chico HQ",
+        "Ben Wallner"
+      ]
+    },
+    {
+      "name": "Parent Account cf_698475",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.3%",
+      "uniqueCount": 25,
+      "sampleValues": [
+        "AMERICAN GAS & OIL",
+        "DOLLAR GENERAL",
+        "Independent",
+        "7-Eleven - RIS",
+        "EXTRAMILE CHQ"
+      ]
+    },
+    {
+      "name": "Work Email cf_698503",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 11,
+      "sampleValues": [
+        "honestinccorporation@gmail.com",
+        "Naaoum@hotmail.com",
+        "mr.smoke1942@gmail.com",
+        "nvccpurchasing@sandowholesale.com",
+        "united.distro2024@gmail.com"
+      ]
+    },
+    {
+      "name": "Main Phone cf_699010",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 34,
+      "sampleValues": [
+        6197720914,
+        "408-429-0215",
+        "(440) 832-1909",
+        5416017086,
+        "(616) 322-3454"
+      ]
+    },
+    {
+      "name": "2nd Contanct cf_699413",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "Danny Thompson"
+      ]
+    },
+    {
+      "name": "Secondary Contact cf_699414 people ids",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Secondary Contact cf_699414 people names",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Primary cf_699415 people ids",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 6,
+      "sampleValues": [
+        72791192,
+        73064253,
+        73623696,
+        72775535,
+        73063486
+      ]
+    },
+    {
+      "name": "Primary cf_699415 people names",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 6,
+      "sampleValues": [
+        "JB HAWKS",
+        "NORTH IDAHO DIST INC",
+        "Bio Evexia",
+        "7 eleven 17234",
+        "BRIGHT SIDE DISTRIBUTING - CRP ENTERPRISES"
+      ]
+    },
+    {
+      "name": "Trade Show Name cf_699977",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "Champs Summer",
+        "Smoker Friendly Conference"
+      ]
+    },
+    {
+      "name": "Target Completion Date cf_705066",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Primary Contact cf_712756 company ids",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Primary Contact cf_712756 company names",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Copper ID",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 75339,
+      "sampleValues": [
+        174226745,
+        174226750,
+        174226752,
+        174226761,
+        174226764
+      ]
+    },
+    {
+      "name": "Copper URL",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 75339,
+      "sampleValues": [
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fcontact%2F174226745&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fcontact%2F174226750&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fcontact%2F174226752&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fcontact%2F174226761&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Fcontact%2F174226764&use_active_session=1"
+      ]
+    }
+  ]
+}

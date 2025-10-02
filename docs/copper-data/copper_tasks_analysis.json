@@ -1,0 +1,291 @@
+{
+  "fileName": "Tasks",
+  "totalRecords": 1339,
+  "fields": [
+    {
+      "name": "Name",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 219,
+      "sampleValues": [
+        "First Touch",
+        "QAQC Follow up on COA",
+        "Prepare & source materials for the project",
+        "call for PM",
+        "Smokeline Distro Payment"
+      ]
+    },
+    {
+      "name": "Details",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "77.3%",
+      "uniqueCount": 39,
+      "sampleValues": [
+        "'-",
+        "Prepare & source materials for the project. Consult with Josie as needed.",
+        "Contact new lead",
+        "Update Filtering Progress",
+        "Assign CLOSED date to Batch Production record in Copper once the full btach has been processed."
+      ]
+    },
+    {
+      "name": "Status",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 2,
+      "sampleValues": [
+        "Completed",
+        "Open"
+      ]
+    },
+    {
+      "name": "Priority",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "High",
+        "None",
+        "Low",
+        "Medium"
+      ]
+    },
+    {
+      "name": "Owner",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "94.5%",
+      "uniqueCount": 12,
+      "sampleValues": [
+        "Brandon Good",
+        "Josie Landon",
+        "john Hale",
+        "Derek Whitworth",
+        "Joe Simmons"
+      ]
+    },
+    {
+      "name": "Owner Id",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "94.5%",
+      "uniqueCount": 12,
+      "sampleValues": [
+        1168899,
+        1190941,
+        1200908,
+        1168894,
+        1168901
+      ]
+    },
+    {
+      "name": "Due Date",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "97.8%",
+      "uniqueCount": 199,
+      "sampleValues": [
+        "5/16/2025",
+        "6/29/2025",
+        "7/14/2025",
+        "7/15/2025",
+        "8/12/2025"
+      ]
+    },
+    {
+      "name": "% Complete",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Tags",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "29.6%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "reassigned",
+        "email reminder,reassigned",
+        "brandon leads-1736199730257,reassigned"
+      ]
+    },
+    {
+      "name": "Completed At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "54.5%",
+      "uniqueCount": 730,
+      "sampleValues": [
+        45818.8342205175,
+        45833.8456240012,
+        45677.82595260469,
+        45827.67435038269,
+        45868.78600563197
+      ]
+    },
+    {
+      "name": "Reminder At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "35.7%",
+      "uniqueCount": 124,
+      "sampleValues": [
+        "5/15/2025",
+        "6/28/2025",
+        "1/15/2025",
+        "6/20/2025",
+        "7/20/2025"
+      ]
+    },
+    {
+      "name": "Created At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 160,
+      "sampleValues": [
+        "5/15/2025",
+        "6/24/2025",
+        "7/14/2025",
+        "7/15/2025",
+        "8/12/2025"
+      ]
+    },
+    {
+      "name": "Updated At",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 68,
+      "sampleValues": [
+        "7/7/2025",
+        "7/14/2025",
+        "7/15/2025",
+        "8/12/2025",
+        "8/26/2025"
+      ]
+    },
+    {
+      "name": "Activity Type",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 7,
+      "sampleValues": [
+        "Phone Call",
+        "To Do",
+        "Form - Reseller - Web Lead Form",
+        "Form - Store Locator",
+        "Form - Store Locator Signup - LIVE"
+      ]
+    },
+    {
+      "name": "Account Type cf_675914",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.7%",
+      "uniqueCount": 3,
+      "sampleValues": [
+        "Independent Store",
+        "Cash & Carry",
+        "Distributor"
+      ]
+    },
+    {
+      "name": "Region cf_680701",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "2.5%",
+      "uniqueCount": 4,
+      "sampleValues": [
+        "Northeast",
+        "South Central",
+        "Mountain",
+        "Southeast"
+      ]
+    },
+    {
+      "name": "State cf_698130",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.9%",
+      "uniqueCount": 8,
+      "sampleValues": [
+        "PA",
+        "NV",
+        "ID",
+        "FL",
+        "ME"
+      ]
+    },
+    {
+      "name": "Segment cf_698149",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "0.1%",
+      "uniqueCount": 1,
+      "sampleValues": [
+        "Smoke & Vape"
+      ]
+    },
+    {
+      "name": "Account Number cf_698260",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Account Order ID cf_698467",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Trade Show Name cf_699977",
+      "isCustomField": false,
+      "hasData": false,
+      "fillRate": "0.0%",
+      "uniqueCount": 0,
+      "sampleValues": []
+    },
+    {
+      "name": "Copper ID",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 1339,
+      "sampleValues": [
+        53922537,
+        54452134,
+        54702813,
+        54713721,
+        55384589
+      ]
+    },
+    {
+      "name": "Copper URL",
+      "isCustomField": false,
+      "hasData": true,
+      "fillRate": "100.0%",
+      "uniqueCount": 1339,
+      "sampleValues": [
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Ftasks%2Fdefault%2Ftask%2F53922537&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Ftasks%2Fdefault%2Ftask%2F54452134&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Ftasks%2Fdefault%2Ftask%2F54702813&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Ftasks%2Fdefault%2Ftask%2F54713721&use_active_session=1",
+        "https://app.copper.com/auth/auto_login?redirect_url=https%3A%2F%2Fapp.copper.com%2Fcompanies%2F562111%2Fapp%23%2Ftasks%2Fdefault%2Ftask%2F55384589&use_active_session=1"
+      ]
+    }
+  ]
+}

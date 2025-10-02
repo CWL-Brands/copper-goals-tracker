@@ -1,0 +1,645 @@
+{
+  "sourceName": "Fishbowl Sales Orders",
+  "fileName": "Fishbowl_SalesOrders.xlsx",
+  "sheetName": "FishBowl_SalesOrders",
+  "analyzedAt": "2025-10-02T14:54:30.390Z",
+  "totalRows": 20227,
+  "fields": [
+    {
+      "index": 1,
+      "name": "id",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "index": 2,
+      "name": "billToAddress",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 52,
+      "sampleValues": [
+        "4225 N Atlantic Blvd",
+        "2976 E State St Suite 120-322",
+        "4225 N Atlantic Blvd"
+      ]
+    },
+    {
+      "index": 3,
+      "name": "billToCity",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 47,
+      "sampleValues": [
+        "Auburn Hills",
+        "Boise",
+        "Auburn Hills"
+      ]
+    },
+    {
+      "index": 4,
+      "name": "billToName",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 50,
+      "sampleValues": [
+        "Ueg",
+        "Free River- Cust.",
+        "Ueg"
+      ]
+    },
+    {
+      "index": 5,
+      "name": "billToStateID",
+      "dataType": "integer",
+      "hasNulls": true,
+      "uniqueValues": 23,
+      "sampleValues": [
+        25,
+        15,
+        25
+      ]
+    },
+    {
+      "index": 6,
+      "name": "billToZip",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 47,
+      "sampleValues": [
+        48326,
+        83616,
+        48326
+      ]
+    },
+    {
+      "index": 7,
+      "name": "carriedID",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 4,
+      "sampleValues": [
+        3,
+        1,
+        3
+      ]
+    },
+    {
+      "index": 8,
+      "name": "carrierServiceId",
+      "dataType": "integer",
+      "hasNulls": true,
+      "uniqueValues": 3,
+      "sampleValues": [
+        1,
+        1,
+        5
+      ]
+    },
+    {
+      "index": 9,
+      "name": "cost",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 60,
+      "sampleValues": [
+        47600,
+        10198.25,
+        46338.73874
+      ]
+    },
+    {
+      "index": 10,
+      "name": "createdByUserId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 6,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 11,
+      "name": "currenyRate",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 12,
+      "name": "customerContact",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 50,
+      "sampleValues": [
+        "UEG",
+        "Free River- cust.",
+        "UEG"
+      ]
+    },
+    {
+      "index": 13,
+      "name": "customerId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 50,
+      "sampleValues": [
+        5,
+        9,
+        5
+      ]
+    },
+    {
+      "index": 14,
+      "name": "dateCalStart",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 59,
+      "sampleValues": [
+        44866.375,
+        44866.375,
+        44883.375
+      ]
+    },
+    {
+      "index": 15,
+      "name": "sateCalEnd",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 59,
+      "sampleValues": [
+        44866.385416666664,
+        44866.385416666664,
+        44883.385416666664
+      ]
+    },
+    {
+      "index": 16,
+      "name": "dateCompleted",
+      "dataType": "float",
+      "hasNulls": true,
+      "uniqueValues": 91,
+      "sampleValues": [
+        44867.84349537037,
+        44867.848969907405,
+        44883.940625
+      ]
+    },
+    {
+      "index": 17,
+      "name": "dateCreated",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 55,
+      "sampleValues": [
+        44866.375,
+        44866.375,
+        44883.375
+      ]
+    },
+    {
+      "index": 18,
+      "name": "dateFirstShip",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 59,
+      "sampleValues": [
+        44866.375,
+        44866.375,
+        44883.375
+      ]
+    },
+    {
+      "index": 19,
+      "name": "dateIssued",
+      "dataType": "float",
+      "hasNulls": true,
+      "uniqueValues": 99,
+      "sampleValues": [
+        44866.81453703704,
+        44866.848344907405,
+        44883.93341435185
+      ]
+    },
+    {
+      "index": 20,
+      "name": "dateLastModified",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        44867.8437037037,
+        44868.926770833335,
+        44883.940717592595
+      ]
+    },
+    {
+      "index": 21,
+      "name": "email",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 39,
+      "sampleValues": [
+        "tonyo@uegco.com, ap@lxrbiotech.com",
+        "wholesale@freeriverllc.com",
+        "tonyo@uegco.com, ap@lxrbiotech.com"
+      ]
+    },
+    {
+      "index": 22,
+      "name": "estimatedTax",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 23,
+      "name": "fobPointId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "index": 24,
+      "name": "locationGroupId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 25,
+      "name": "mcTotalTax",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 26,
+      "name": "Sales Order",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        1059,
+        1060,
+        1062
+      ]
+    },
+    {
+      "index": 27,
+      "name": "patmentTermsId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 5,
+      "sampleValues": [
+        8,
+        5,
+        8
+      ]
+    },
+    {
+      "index": 28,
+      "name": "priotryId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        30,
+        30,
+        30
+      ]
+    },
+    {
+      "index": 29,
+      "name": "qbClassId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 30,
+      "name": "shipToResidential",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "index": 31,
+      "name": "revisionNum",
+      "dataType": "integer",
+      "hasNulls": true,
+      "uniqueValues": 12,
+      "sampleValues": [
+        17,
+        5,
+        2
+      ]
+    },
+    {
+      "index": 32,
+      "name": "salesman",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 6,
+      "sampleValues": [
+        "admin",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "index": 33,
+      "name": "salesmanId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 6,
+      "sampleValues": [
+        "1",
+        "1",
+        "1"
+      ]
+    },
+    {
+      "index": 34,
+      "name": "salesmanInitials",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 5,
+      "sampleValues": [
+        "ADM",
+        "ADM",
+        "ADM"
+      ]
+    },
+    {
+      "index": 35,
+      "name": "shipTermsId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        20,
+        10,
+        20
+      ]
+    },
+    {
+      "index": 36,
+      "name": "shipToAddress",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 52,
+      "sampleValues": [
+        "4225 N Atlantic Blvd",
+        "2976 E State St Suite 120-322",
+        "4225 N Atlantic Blvd"
+      ]
+    },
+    {
+      "index": 37,
+      "name": "shipToCity",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 48,
+      "sampleValues": [
+        "Auburn Hills",
+        "Boise",
+        "Auburn Hills"
+      ]
+    },
+    {
+      "index": 38,
+      "name": "shipToName",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 50,
+      "sampleValues": [
+        "Ueg",
+        "Free River- Cust.",
+        "Ueg"
+      ]
+    },
+    {
+      "index": 39,
+      "name": "shipToStateId",
+      "dataType": "integer",
+      "hasNulls": true,
+      "uniqueValues": 23,
+      "sampleValues": [
+        25,
+        15,
+        25
+      ]
+    },
+    {
+      "index": 40,
+      "name": "shipToZip",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 48,
+      "sampleValues": [
+        48326,
+        83616,
+        48326
+      ]
+    },
+    {
+      "index": 41,
+      "name": "satusId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 3,
+      "sampleValues": [
+        60,
+        60,
+        60
+      ]
+    },
+    {
+      "index": 42,
+      "name": "taxRate",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 43,
+      "name": "TaxRateId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 44,
+      "name": "taxRateName",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        "None",
+        "None",
+        "None"
+      ]
+    },
+    {
+      "index": 45,
+      "name": "toBeEmailed",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        false,
+        true,
+        false
+      ]
+    },
+    {
+      "index": 46,
+      "name": "toBePrinted",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "index": 47,
+      "name": "totalIncludesTax",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "index": 48,
+      "name": "totalTax",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 49,
+      "name": "subTotal",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 66,
+      "sampleValues": [
+        62400,
+        12259.47,
+        62400
+      ]
+    },
+    {
+      "index": 50,
+      "name": "totalPrice",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 66,
+      "sampleValues": [
+        62400,
+        12259.47,
+        62400
+      ]
+    },
+    {
+      "index": 51,
+      "name": "typeId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "index": 52,
+      "name": "username",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 8,
+      "sampleValues": [
+        "admin",
+        "admin",
+        "admin"
+      ]
+    },
+    {
+      "index": 53,
+      "name": "customFields",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 7,
+      "sampleValues": [
+        "{\"1\": {\"name\": \"Shopify Order Identity 1\", \"type\": \"Long Text\", \"value\": \"\"}, \"18\": {\"name\": \"Reseller Permit Number\", \"type\": \"Text\"}, \"19\": {\"name\": \"Reseller Permit State\", \"type\": \"Text\"}, \"21\": {\"name\": \"Payment Pending\", \"type\": \"Checkbox\", \"value\": \"false\"}, \"28\": {\"name\": \"Acrylic QR Code Number\", \"type\": \"Long Text\"}}",
+        "{\"1\": {\"name\": \"Shopify Order Identity 1\", \"type\": \"Long Text\", \"value\": \"\"}, \"18\": {\"name\": \"Reseller Permit Number\", \"type\": \"Text\"}, \"19\": {\"name\": \"Reseller Permit State\", \"type\": \"Text\"}, \"21\": {\"name\": \"Payment Pending\", \"type\": \"Checkbox\", \"value\": \"false\"}, \"28\": {\"name\": \"Acrylic QR Code Number\", \"type\": \"Long Text\"}}",
+        "{\"1\": {\"name\": \"Shopify Order Identity 1\", \"type\": \"Long Text\", \"value\": \"\"}, \"18\": {\"name\": \"Reseller Permit Number\", \"type\": \"Text\"}, \"19\": {\"name\": \"Reseller Permit State\", \"type\": \"Text\"}, \"21\": {\"name\": \"Payment Pending\", \"type\": \"Checkbox\", \"value\": \"false\"}, \"28\": {\"name\": \"Acrylic QR Code Number\", \"type\": \"Long Text\"}}"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,249 @@
+{
+  "sourceName": "Fishbowl Customers",
+  "fileName": "FishBowl_Customers.xlsx",
+  "sheetName": "Sheet1",
+  "analyzedAt": "2025-10-02T14:54:24.427Z",
+  "totalRows": 1606,
+  "fields": [
+    {
+      "index": 1,
+      "name": "id",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "index": 2,
+      "name": "accountId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "index": 3,
+      "name": "activeFlag",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "index": 4,
+      "name": "creditLimit",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 5,
+      "name": "currencyRate",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "index": 6,
+      "name": "dateCreated",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        44672.17351861111,
+        44672.17351987268,
+        44672.17352096065
+      ]
+    },
+    {
+      "index": 7,
+      "name": "dateLastModified",
+      "dataType": "float",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        45831.62388907407,
+        45831.62388490741,
+        45841.440192905095
+      ]
+    },
+    {
+      "index": 8,
+      "name": "defaulPaymentTermsId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 5,
+      "sampleValues": [
+        1,
+        1,
+        6
+      ]
+    },
+    {
+      "index": 9,
+      "name": "defaultShipTermId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "index": 10,
+      "name": "jobDepth",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 11,
+      "name": "lastChangedUser",
+      "dataType": "string",
+      "hasNulls": true,
+      "uniqueValues": 14,
+      "sampleValues": [
+        "admin",
+        "admin",
+        "kevin"
+      ]
+    },
+    {
+      "index": 12,
+      "name": "name",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        "BTG Distro | TCC LLC",
+        "Exclusive Distributors",
+        "New Dawn"
+      ]
+    },
+    {
+      "index": 13,
+      "name": "number",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 100,
+      "sampleValues": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "index": 14,
+      "name": "qbClassId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 15,
+      "name": "statusId",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "index": 16,
+      "name": "sysUserId",
+      "dataType": "integer",
+      "hasNulls": true,
+      "uniqueValues": 1,
+      "sampleValues": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 17,
+      "name": "taxExempt",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "index": 18,
+      "name": "toBeEmailed",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "index": 19,
+      "name": "toBePrinted",
+      "dataType": "integer",
+      "hasNulls": false,
+      "uniqueValues": 2,
+      "sampleValues": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "index": 20,
+      "name": "customField",
+      "dataType": "string",
+      "hasNulls": false,
+      "uniqueValues": 1,
+      "sampleValues": [
+        "{\"25\": {\"name\": \"ACH ON FILE\", \"type\": \"Drop-Down List\"}, \"26\": {\"name\": \"ACCOUNT NUMBER\", \"type\": \"Text\"}, \"27\": {\"name\": \"Display ID\", \"type\": \"Text\"}}",
+        "{\"25\": {\"name\": \"ACH ON FILE\", \"type\": \"Drop-Down List\"}, \"26\": {\"name\": \"ACCOUNT NUMBER\", \"type\": \"Text\"}, \"27\": {\"name\": \"Display ID\", \"type\": \"Text\"}}",
+        "{\"25\": {\"name\": \"ACH ON FILE\", \"type\": \"Drop-Down List\"}, \"26\": {\"name\": \"ACCOUNT NUMBER\", \"type\": \"Text\"}, \"27\": {\"name\": \"Display ID\", \"type\": \"Text\"}}"
+      ]
+    }
+  ]
+}

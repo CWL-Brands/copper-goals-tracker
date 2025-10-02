@@ -1,0 +1,6 @@
+{
+  "/not-found": "app/not-found.js",
+  "/icon.svg/route": "app/icon.svg/route.js",
+  "/admin/tools/copper-import-all/page": "app/admin/tools/copper-import-all/page.js",
+  "/api/copper/import-opportunities/route": "app/api/copper/import-opportunities/route.js"
+}

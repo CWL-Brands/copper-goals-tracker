@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "copper-goals-tracker"
+location: "us-west1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "kanvaportal_goals_db"
+      cloudSql:
+        instanceId: "kanva-instance"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
