@@ -101,20 +101,24 @@ async function importCustomers(buffer: Buffer, stats: ImportStats): Promise<void
   
   for (const row of data) {
     try {
-      const customerId = String(row.id || '').trim();
-      if (!customerId) {
+      const originalId = String(row.id || '').trim();
+      if (!originalId) {
         stats.errors.push({ recordId: 'unknown', error: 'Missing customer ID' });
         continue;
       }
       
       stats.customersProcessed++;
       
-      // Reference to document (don't check if exists - just upsert)
-      const docRef = adminDb.collection('fishbowl_customers').doc(customerId);
+      // Create composite key with prefix
+      const compositeId = `fb_cust_${originalId}`;
+      
+      // Reference to document with composite ID
+      const docRef = adminDb.collection('fishbowl_customers').doc(compositeId);
       
       // Build customer document with ALL fields from Excel (like Copper import)
       const customerData: Record<string, any> = {
-        id: customerId,
+        id: compositeId,
+        fishbowlId: originalId,  // Store original Fishbowl ID
         
         // Sync tracking
         syncStatus: 'pending' as const,
@@ -210,21 +214,25 @@ async function importSalesOrders(buffer: Buffer, stats: ImportStats): Promise<vo
   
   for (const row of data) {
     try {
-      const soNumber = String(row.num || row.id || '').trim();
-      if (!soNumber) {
+      const originalNum = String(row.num || row.id || '').trim();
+      if (!originalNum) {
         stats.errors.push({ recordId: 'unknown', error: 'Missing SO number' });
         continue;
       }
       
       stats.ordersProcessed++;
       
-      // Reference to document (don't check if exists - just upsert)
-      const docRef = adminDb.collection('fishbowl_sales_orders').doc(soNumber);
+      // Create composite key with prefix
+      const compositeId = `fb_so_${originalNum}`;
+      
+      // Reference to document with composite ID
+      const docRef = adminDb.collection('fishbowl_sales_orders').doc(compositeId);
       
       // Build sales order document with ALL fields from Excel (like Copper/Customers import)
       const orderData: Record<string, any> = {
-        id: soNumber,
-        num: soNumber,
+        id: compositeId,
+        fishbowlNum: originalNum,  // Store original SO number
+        num: originalNum,  // Keep for compatibility
         
         // Sync tracking
         syncStatus: 'pending' as const,

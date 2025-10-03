@@ -78,9 +78,9 @@ async function matchCopperToFishbowl(): Promise<{
       
       if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
-          fishbowlCustomerId: fishbowl.id,
+          fishbowlCustomerId: String(fishbowl.id),  // fb_cust_1
           fishbowlCustomerName: fishbowl.name || '',
-          copperCompanyId: String(copper.id),
+          copperCompanyId: String(copper.id),  // Copper's simple ID
           copperCompanyName: copper.Name || copper.name || '',
           matchType: 'account_number',
           confidence: 'high',
@@ -99,7 +99,8 @@ async function matchCopperToFishbowl(): Promise<{
   for (const fishbowl of fishbowlCustomers) {
     if (matchedFishbowlIds.has(fishbowl.id)) continue; // Already matched
     
-    const fishbowlCustomerNum = fishbowl.id || fishbowl.customerNumber;
+    // Use original Fishbowl ID for matching (not composite ID)
+    const fishbowlCustomerNum = fishbowl.fishbowlId || fishbowl.id;
     
     if (fishbowlCustomerNum && String(fishbowlCustomerNum).trim() !== '') {
       // Find Copper company with matching Order ID field
@@ -110,9 +111,9 @@ async function matchCopperToFishbowl(): Promise<{
       
       if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
-          fishbowlCustomerId: fishbowl.id,
+          fishbowlCustomerId: String(fishbowl.id),  // fb_cust_1
           fishbowlCustomerName: fishbowl.name || '',
-          copperCompanyId: String(copper.id),
+          copperCompanyId: String(copper.id),  // Copper's simple ID
           copperCompanyName: copper.Name || copper.name || '',
           matchType: 'account_order_id',
           confidence: 'high',
