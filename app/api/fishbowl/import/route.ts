@@ -43,6 +43,12 @@ function parseDate(value: any): Date | undefined {
   
   // Handle string dates
   if (typeof value === 'string') {
+    // Skip time-only values like "37:46.7" or "09:52.0"
+    if (/^\d{1,2}:\d{2}\.\d$/.test(value.trim())) {
+      console.warn(`Skipping time-only value: ${value}`);
+      return undefined;
+    }
+    
     const parsed = new Date(value);
     if (!isNaN(parsed.getTime())) return parsed;
   }
@@ -131,7 +137,11 @@ async function importCustomers(buffer: Buffer, stats: ImportStats): Promise<void
           }
           
           // Handle booleans
-          if (key.toLowerCase().includes('flag') || key.toLowerCase().includes('active')) {
+          if (key.toLowerCase().includes('flag') || 
+              key.toLowerCase().includes('active') ||
+              key.toLowerCase().includes('exempt') ||
+              key.toLowerCase().includes('emailed') ||
+              key.toLowerCase().includes('printed')) {
             customerData[key] = parseBoolean(value);
             continue;
           }
@@ -243,7 +253,10 @@ async function importSalesOrders(buffer: Buffer, stats: ImportStats): Promise<vo
           if (key.toLowerCase().includes('flag') || 
               key.toLowerCase().includes('residential') ||
               key.toLowerCase().includes('tobe') ||
-              key.toLowerCase().includes('includes')) {
+              key.toLowerCase().includes('includes') ||
+              key.toLowerCase().includes('exempt') ||
+              key.toLowerCase().includes('emailed') ||
+              key.toLowerCase().includes('printed')) {
             orderData[key] = parseBoolean(value);
             continue;
           }
