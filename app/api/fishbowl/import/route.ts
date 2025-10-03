@@ -115,6 +115,10 @@ async function importCustomers(buffer: Buffer, stats: ImportStats): Promise<void
       // Reference to document with composite ID
       const docRef = adminDb.collection('fishbowl_customers').doc(compositeId);
       
+      // Check if document already exists
+      const existingDoc = await docRef.get();
+      const existingData = existingDoc.exists ? existingDoc.data() : null;
+      
       // Build customer document with ALL fields from Excel (like Copper import)
       const customerData: Record<string, any> = {
         id: compositeId,
@@ -161,15 +165,37 @@ async function importCustomers(buffer: Buffer, stats: ImportStats): Promise<void
         }
       }
       
-      // Use set with merge to upsert (create or update)
-      batch.set(docRef, {
-        ...customerData,
-        createdAt: Timestamp.now(),
-      }, { merge: true });
+      // Check if data actually changed
+      let hasChanges = false;
+      if (existingData) {
+        // Compare new data with existing (excluding metadata fields)
+        for (const [key, value] of Object.entries(customerData)) {
+          if (key !== 'updatedAt' && key !== 'syncStatus') {
+            if (JSON.stringify(existingData[key]) !== JSON.stringify(value)) {
+              hasChanges = true;
+              break;
+            }
+          }
+        }
+      }
       
-      stats.customersCreated++; // Count as created (will track updates later)
+      // Track stats
+      if (!existingData) {
+        stats.customersCreated++;
+      } else if (hasChanges) {
+        stats.customersUpdated++;
+      }
+      // If no changes, don't count as updated
       
-      batchCount++;
+      // Only write if new or changed
+      if (!existingData || hasChanges) {
+        batch.set(docRef, {
+          ...customerData,
+          createdAt: existingData?.createdAt || Timestamp.now(),
+        }, { merge: true });
+        
+        batchCount++;
+      }
       
       // Commit batch if we hit the limit
       if (batchCount >= BATCH_SIZE) {
@@ -227,6 +253,10 @@ async function importSalesOrders(buffer: Buffer, stats: ImportStats): Promise<vo
       
       // Reference to document with composite ID
       const docRef = adminDb.collection('fishbowl_sales_orders').doc(compositeId);
+      
+      // Check if document already exists
+      const existingDoc = await docRef.get();
+      const existingData = existingDoc.exists ? existingDoc.data() : null;
       
       // Build sales order document with ALL fields from Excel (like Copper/Customers import)
       const orderData: Record<string, any> = {
@@ -296,15 +326,37 @@ async function importSalesOrders(buffer: Buffer, stats: ImportStats): Promise<vo
         }
       }
       
-      // Use set with merge to upsert (create or update)
-      batch.set(docRef, {
-        ...orderData,
-        createdAt: Timestamp.now(),
-      }, { merge: true });
+      // Check if data actually changed
+      let hasChanges = false;
+      if (existingData) {
+        // Compare new data with existing (excluding metadata fields)
+        for (const [key, value] of Object.entries(orderData)) {
+          if (key !== 'updatedAt' && key !== 'syncStatus') {
+            if (JSON.stringify(existingData[key]) !== JSON.stringify(value)) {
+              hasChanges = true;
+              break;
+            }
+          }
+        }
+      }
       
-      stats.ordersCreated++; // Count as created (will track updates later)
+      // Track stats
+      if (!existingData) {
+        stats.ordersCreated++;
+      } else if (hasChanges) {
+        stats.ordersUpdated++;
+      }
+      // If no changes, don't count as updated
       
-      batchCount++;
+      // Only write if new or changed
+      if (!existingData || hasChanges) {
+        batch.set(docRef, {
+          ...orderData,
+          createdAt: existingData?.createdAt || Timestamp.now(),
+        }, { merge: true });
+        
+        batchCount++;
+      }
       
       // Commit batch if we hit the limit
       if (batchCount >= BATCH_SIZE) {
