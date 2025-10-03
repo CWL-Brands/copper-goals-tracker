@@ -106,22 +106,9 @@ async function importCustomers(buffer: Buffer, stats: ImportStats): Promise<void
       // Reference to document (don't check if exists - just upsert)
       const docRef = adminDb.collection('fishbowl_customers').doc(customerId);
       
-      // Parse custom fields JSON if present
-      let customFields: Record<string, any> | undefined;
-      if (row.customFields && typeof row.customFields === 'string') {
-        try {
-          customFields = JSON.parse(row.customFields);
-        } catch (e) {
-          console.warn(`Failed to parse customFields for customer ${customerId}`);
-        }
-      }
-      
-      // Build customer document (filter out undefined values)
+      // Build customer document with ALL fields from Excel (like Copper import)
       const customerData: Record<string, any> = {
         id: customerId,
-        accountId: String(row.accountId || ''),
-        name: String(row.name || ''),
-        activeFlag: parseBoolean(row.activeFlag),
         
         // Sync tracking
         syncStatus: 'pending' as const,
@@ -131,25 +118,34 @@ async function importCustomers(buffer: Buffer, stats: ImportStats): Promise<void
         source: 'fishbowl' as const,
       };
       
-      // Add optional fields only if they exist
-      if (row.email) customerData.email = String(row.email);
-      if (row.phone) customerData.phone = String(row.phone);
-      if (row.customerContact) customerData.customerContact = String(row.customerContact);
-      if (row.billToAddress) customerData.billToAddress = String(row.billToAddress);
-      if (row.billToCity) customerData.billToCity = String(row.billToCity);
-      if (row.billToStateID) customerData.billToStateID = String(row.billToStateID);
-      if (row.billToZip) customerData.billToZip = String(row.billToZip);
-      if (row.carrierServiceId) customerData.carrierServiceId = String(row.carrierServiceId);
-      if (customFields) customerData.customFields = customFields;
-      
-      const creditLimit = parseNumber(row.creditLimit);
-      if (creditLimit !== undefined) customerData.creditLimit = creditLimit;
-      
-      const dateCreated = parseDate(row.dateCreated);
-      if (dateCreated) customerData.dateCreated = Timestamp.fromDate(dateCreated);
-      
-      const dateLastModified = parseDate(row.dateLastModified);
-      if (dateLastModified) customerData.dateLastModified = Timestamp.fromDate(dateLastModified);
+      // Add ALL fields from the Excel row
+      for (const [key, value] of Object.entries(row)) {
+        if (key && value !== null && value !== undefined && String(value).trim() !== '') {
+          // Handle dates
+          if (key.toLowerCase().includes('date')) {
+            const parsedDate = parseDate(value);
+            if (parsedDate) {
+              customerData[key] = Timestamp.fromDate(parsedDate);
+              continue;
+            }
+          }
+          
+          // Handle booleans
+          if (key.toLowerCase().includes('flag') || key.toLowerCase().includes('active')) {
+            customerData[key] = parseBoolean(value);
+            continue;
+          }
+          
+          // Handle numbers
+          if (typeof value === 'number') {
+            customerData[key] = value;
+            continue;
+          }
+          
+          // Default: store as string
+          customerData[key] = String(value);
+        }
+      }
       
       // Use set with merge to upsert (create or update)
       batch.set(docRef, {
