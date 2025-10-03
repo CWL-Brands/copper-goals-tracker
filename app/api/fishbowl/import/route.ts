@@ -211,85 +211,10 @@ async function importSalesOrders(buffer: Buffer, stats: ImportStats): Promise<vo
       // Reference to document (don't check if exists - just upsert)
       const docRef = adminDb.collection('fishbowl_sales_orders').doc(soNumber);
       
-      // Parse custom fields JSON if present
-      let customFields: Record<string, any> | undefined;
-      if (row.customFields && typeof row.customFields === 'string') {
-        try {
-          customFields = JSON.parse(row.customFields);
-        } catch (e) {
-          console.warn(`Failed to parse customFields for SO ${soNumber}`);
-        }
-      }
-      
-      // Build sales order document
-      const orderData = {
+      // Build sales order document with ALL fields from Excel (like Copper/Customers import)
+      const orderData: Record<string, any> = {
         id: soNumber,
         num: soNumber,
-        
-        // Customer link
-        customerId: String(row.customerId || row.id || ''),
-        
-        // Order info
-        status: String(row.status || ''),
-        priorityId: row.priorityId ? String(row.priorityId) : undefined,
-        
-        // Financial
-        totalPrice: parseNumber(row.totalPrice) || 0,
-        subtotal: parseNumber(row.subtotal) || 0,
-        totalTax: parseNumber(row.totalTax) || 0,
-        totalIncludesTax: parseBoolean(row.totalIncludesTax),
-        cost: parseNumber(row.cost),
-        
-        // Dates
-        dateIssued: parseDate(row.dateIssued) ? Timestamp.fromDate(parseDate(row.dateIssued)!) : undefined,
-        dateCompleted: parseDate(row.dateCompleted) ? Timestamp.fromDate(parseDate(row.dateCompleted)!) : undefined,
-        dateCreated: parseDate(row.dateCreated) ? Timestamp.fromDate(parseDate(row.dateCreated)!) : undefined,
-        dateLastModified: parseDate(row.dateLastModified) ? Timestamp.fromDate(parseDate(row.dateLastModified)!) : undefined,
-        dateFirstShip: parseDate(row.dateFirstShip) ? Timestamp.fromDate(parseDate(row.dateFirstShip)!) : undefined,
-        dateCatStart: parseDate(row.dateCatStart) ? Timestamp.fromDate(parseDate(row.dateCatStart)!) : undefined,
-        dateCatEnd: parseDate(row.dateCatEnd) ? Timestamp.fromDate(parseDate(row.dateCatEnd)!) : undefined,
-        
-        // People
-        salesman: row.salesman ? String(row.salesman) : undefined,
-        salesmanId: row.salesmanId ? String(row.salesmanId) : undefined,
-        createdByUserId: row.createdByUserId ? String(row.createdByUserId) : undefined,
-        username: row.username ? String(row.username) : undefined,
-        
-        // Customer info
-        customerPO: row.customerPO ? String(row.customerPO) : undefined,
-        customerContact: row.customerContact ? String(row.customerContact) : undefined,
-        
-        // Location/QB
-        locationGroupId: row.locationGroupId ? String(row.locationGroupId) : undefined,
-        qbClassId: row.qbClassId ? String(row.qbClassId) : undefined,
-        
-        // Shipping
-        shipToName: row.shipToName ? String(row.shipToName) : undefined,
-        shipToAddress: row.shipToAddress ? String(row.shipToAddress) : undefined,
-        shipToCity: row.shipToCity ? String(row.shipToCity) : undefined,
-        shipToStateID: row.shipToStateID ? String(row.shipToStateID) : undefined,
-        shipToZip: row.shipToZip ? String(row.shipToZip) : undefined,
-        shipToResidential: row.shipToResidential ? parseBoolean(row.shipToResidential) : undefined,
-        carrierServiceId: row.carrierServiceId ? String(row.carrierServiceId) : undefined,
-        
-        // Payment
-        paymentTermsId: row.paymentTermsId ? String(row.paymentTermsId) : undefined,
-        fobPointId: row.fobPointId ? String(row.fobPointId) : undefined,
-        
-        // Tax
-        taxRate: parseNumber(row.taxRate),
-        taxRateName: row.taxRateName ? String(row.taxRateName) : undefined,
-        toBeEmailed: row.toBeEmailed ? parseBoolean(row.toBeEmailed) : undefined,
-        toBePrinted: row.toBePrinted ? parseBoolean(row.toBePrinted) : undefined,
-        
-        // Notes
-        note: row.note ? String(row.note) : undefined,
-        
-        // Status
-        statusId: parseNumber(row.statusId),
-        
-        // Custom fields
-        customFields,
         
         // Sync tracking
         syncStatus: 'pending' as const,
@@ -299,14 +224,60 @@ async function importSalesOrders(buffer: Buffer, stats: ImportStats): Promise<vo
         source: 'fishbowl' as const,
       };
       
-      // Filter out undefined values
-      const cleanOrderData = Object.fromEntries(
-        Object.entries(orderData).filter(([_, v]) => v !== undefined)
-      );
+      // Add ALL fields from the Excel row
+      for (const [key, value] of Object.entries(row)) {
+        if (key && value !== null && value !== undefined && String(value).trim() !== '') {
+          // Skip if already set
+          if (orderData[key]) continue;
+          
+          // Handle dates
+          if (key.toLowerCase().includes('date')) {
+            const parsedDate = parseDate(value);
+            if (parsedDate) {
+              orderData[key] = Timestamp.fromDate(parsedDate);
+              continue;
+            }
+          }
+          
+          // Handle booleans
+          if (key.toLowerCase().includes('flag') || 
+              key.toLowerCase().includes('residential') ||
+              key.toLowerCase().includes('tobe') ||
+              key.toLowerCase().includes('includes')) {
+            orderData[key] = parseBoolean(value);
+            continue;
+          }
+          
+          // Handle currency/numbers (price, cost, tax, total, subtotal, rate, etc.)
+          if (key.toLowerCase().includes('price') ||
+              key.toLowerCase().includes('cost') ||
+              key.toLowerCase().includes('tax') ||
+              key.toLowerCase().includes('total') ||
+              key.toLowerCase().includes('subtotal') ||
+              key.toLowerCase().includes('rate') ||
+              key.toLowerCase().includes('amount') ||
+              key.toLowerCase().includes('value')) {
+            const num = parseNumber(value);
+            if (num !== undefined) {
+              orderData[key] = num;
+              continue;
+            }
+          }
+          
+          // Handle numbers (IDs, counts, etc.)
+          if (typeof value === 'number') {
+            orderData[key] = value;
+            continue;
+          }
+          
+          // Default: store as string
+          orderData[key] = String(value);
+        }
+      }
       
       // Use set with merge to upsert (create or update)
       batch.set(docRef, {
-        ...cleanOrderData,
+        ...orderData,
         createdAt: Timestamp.now(),
       }, { merge: true });
       
