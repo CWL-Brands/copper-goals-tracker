@@ -75,9 +75,12 @@ async function importLeads(buffer: Buffer, filename: string): Promise<number> {
     // Use the Copper ID as the document ID (ensure it's valid)
     const docId = String(copperLeadId).trim();
     
-    // Skip if docId is still empty after trimming
-    if (!docId || docId === '') {
+    // Skip if docId is still empty after trimming or contains invalid characters
+    if (!docId || docId === '' || docId.includes('/')) {
       skipped++;
+      if (skipped <= 5) {
+        console.log(`⚠️  Skipping invalid ID: "${docId}" (original: "${copperLeadId}")`);
+      }
       continue;
     }
     
