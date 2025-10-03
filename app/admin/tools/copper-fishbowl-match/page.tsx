@@ -128,9 +128,11 @@ export default function CopperFishbowlMatchPage() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="text-sm font-semibold text-blue-900 mb-2">How Matching Works:</h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• <strong>Account Number:</strong> Matches Copper "Account Number cf_698260" to Fishbowl "accountId"</li>
-            <li>• <strong>Account Order ID:</strong> Matches Copper "Account Order ID cf_698467" to Fishbowl sales orders</li>
-            <li>• <strong>High Confidence:</strong> Exact match on account identifiers</li>
+            <li>• <strong>Strategy 1 - Account Number:</strong> Fishbowl "Account Number" (custom field) → Copper "Account Number cf_698260" (C, HQ, etc.)</li>
+            <li>• <strong>Strategy 2 - Customer Number:</strong> Fishbowl Customer ID → Copper "Account Order ID cf_698467"</li>
+            <li>• <strong>Strategy 3 - Address:</strong> Exact address match (for new Fishbowl customers without Copper link)</li>
+            <li>• <strong>High Confidence:</strong> Account Number or Customer Number match</li>
+            <li>• <strong>Medium Confidence:</strong> Address match only</li>
           </ul>
         </div>
 

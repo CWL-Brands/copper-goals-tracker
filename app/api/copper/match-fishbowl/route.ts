@@ -16,7 +16,20 @@ interface MatchResult {
 }
 
 /**
- * Match Copper companies to Fishbowl customers
+ * Normalize address for matching
+ */
+function normalizeAddress(address: string): string {
+  if (!address) return '';
+  return address
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '') // Remove punctuation
+    .replace(/\s+/g, ' ') // Normalize spaces
+    .replace(/\b(street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd)\b/g, '') // Remove street types
+    .trim();
+}
+
+/**
+ * Match Fishbowl customers to Copper companies
  */
 async function matchCopperToFishbowl(): Promise<{
   matches: MatchResult[];
@@ -27,14 +40,14 @@ async function matchCopperToFishbowl(): Promise<{
     unmatched: number;
   };
 }> {
-  console.log('🔗 Starting Copper ↔ Fishbowl matching...');
+  console.log('🔗 Starting Fishbowl → Copper matching...');
   
   // Get all Fishbowl customers
   const fishbowlSnapshot = await adminDb.collection('fishbowl_customers').get();
   const fishbowlCustomers = fishbowlSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
-  }));
+  })) as any[];
   
   console.log(`📊 Found ${fishbowlCustomers.length} Fishbowl customers`);
   
@@ -43,25 +56,27 @@ async function matchCopperToFishbowl(): Promise<{
   const copperCompanies = copperSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
-  }));
+  })) as any[];
   
   console.log(`📊 Found ${copperCompanies.length} Copper companies (first 10K)`);
   
   const matches: MatchResult[] = [];
   const matchedFishbowlIds = new Set<string>();
   
-  // Strategy 1: Match by Account Number
-  console.log('🔍 Matching by Account Number...');
-  for (const copper of copperCompanies) {
-    const accountNumber = copper['Account Number cf_698260'] || copper.accountNumber;
+  // Strategy 1: Match by Fishbowl Account Number → Copper Account Number
+  // Fishbowl "Account Number" (custom field) = Copper account number (starts with C, HQ, etc.)
+  console.log('🔍 Strategy 1: Matching by Account Number (Fishbowl → Copper)...');
+  for (const fishbowl of fishbowlCustomers) {
+    const fishbowlAccountNumber = fishbowl.accountNumber || fishbowl['Account Number'];
     
-    if (accountNumber && String(accountNumber).trim() !== '') {
-      const fishbowl = fishbowlCustomers.find(f => 
-        f.accountId === accountNumber || 
-        String(f.accountId) === String(accountNumber)
-      );
+    if (fishbowlAccountNumber && String(fishbowlAccountNumber).trim() !== '') {
+      // Find Copper company with matching Account Number field
+      const copper = copperCompanies.find(c => {
+        const copperAccountNum = c['Account Number cf_698260'] || c.accountNumber;
+        return copperAccountNum && String(copperAccountNum).trim() === String(fishbowlAccountNumber).trim();
+      });
       
-      if (fishbowl && !matchedFishbowlIds.has(fishbowl.id)) {
+      if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
           fishbowlCustomerId: fishbowl.id,
           fishbowlCustomerName: fishbowl.name || '',
@@ -69,7 +84,7 @@ async function matchCopperToFishbowl(): Promise<{
           copperCompanyName: copper.Name || copper.name || '',
           matchType: 'account_number',
           confidence: 'high',
-          accountNumber: String(accountNumber)
+          accountNumber: String(fishbowlAccountNumber)
         });
         matchedFishbowlIds.add(fishbowl.id);
       }
@@ -78,41 +93,70 @@ async function matchCopperToFishbowl(): Promise<{
   
   console.log(`✅ Matched ${matches.length} by Account Number`);
   
-  // Strategy 2: Match by Account Order ID (from sales orders)
-  console.log('🔍 Matching by Account Order ID...');
-  const ordersSnapshot = await adminDb.collection('fishbowl_sales_orders').limit(5000).get();
-  const orders = ordersSnapshot.docs.map(doc => doc.data());
-  
-  for (const copper of copperCompanies) {
-    const accountOrderId = copper['Account Order ID cf_698467'] || copper.accountOrderId;
+  // Strategy 2: Match by Fishbowl Customer Number → Copper Order ID field
+  // Fishbowl customer ID = Copper "Account Order ID cf_698467"
+  console.log('🔍 Strategy 2: Matching by Customer Number (Fishbowl ID → Copper Order ID)...');
+  for (const fishbowl of fishbowlCustomers) {
+    if (matchedFishbowlIds.has(fishbowl.id)) continue; // Already matched
     
-    if (accountOrderId && String(accountOrderId).trim() !== '') {
-      // Find order with this ID
-      const order = orders.find(o => 
-        String(o.id) === String(accountOrderId) ||
-        String(o.num) === String(accountOrderId)
-      );
+    const fishbowlCustomerNum = fishbowl.id || fishbowl.customerNumber;
+    
+    if (fishbowlCustomerNum && String(fishbowlCustomerNum).trim() !== '') {
+      // Find Copper company with matching Order ID field
+      const copper = copperCompanies.find(c => {
+        const copperOrderId = c['Account Order ID cf_698467'] || c.accountOrderId;
+        return copperOrderId && String(copperOrderId).trim() === String(fishbowlCustomerNum).trim();
+      });
       
-      if (order && order.customerId) {
-        const fishbowl = fishbowlCustomers.find(f => f.id === order.customerId);
-        
-        if (fishbowl && !matchedFishbowlIds.has(fishbowl.id)) {
-          matches.push({
-            fishbowlCustomerId: fishbowl.id,
-            fishbowlCustomerName: fishbowl.name || '',
-            copperCompanyId: String(copper.id),
-            copperCompanyName: copper.Name || copper.name || '',
-            matchType: 'account_order_id',
-            confidence: 'high',
-            accountOrderId: String(accountOrderId)
-          });
-          matchedFishbowlIds.add(fishbowl.id);
-        }
+      if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
+        matches.push({
+          fishbowlCustomerId: fishbowl.id,
+          fishbowlCustomerName: fishbowl.name || '',
+          copperCompanyId: String(copper.id),
+          copperCompanyName: copper.Name || copper.name || '',
+          matchType: 'account_order_id',
+          confidence: 'high',
+          accountOrderId: String(fishbowlCustomerNum)
+        });
+        matchedFishbowlIds.add(fishbowl.id);
       }
     }
   }
   
-  console.log(`✅ Total matched: ${matches.length}`);
+  console.log(`✅ Matched ${matches.length} total after Customer Number matching`);
+  
+  // Strategy 3: Match by Address (for new Fishbowl customers without Copper link)
+  console.log('🔍 Strategy 3: Matching by Address...');
+  for (const fishbowl of fishbowlCustomers) {
+    if (matchedFishbowlIds.has(fishbowl.id)) continue; // Already matched
+    
+    const fishbowlAddress = fishbowl.address || fishbowl.street || '';
+    const normalizedFishbowlAddress = normalizeAddress(fishbowlAddress);
+    
+    if (normalizedFishbowlAddress.length > 5) { // Minimum address length
+      // Find Copper company with matching address
+      const copper = copperCompanies.find(c => {
+        const copperAddress = c.Street || c.street || c.Address || c.address || '';
+        const normalizedCopperAddress = normalizeAddress(copperAddress);
+        return normalizedCopperAddress && normalizedCopperAddress === normalizedFishbowlAddress;
+      });
+      
+      if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
+        matches.push({
+          fishbowlCustomerId: fishbowl.id,
+          fishbowlCustomerName: fishbowl.name || '',
+          copperCompanyId: String(copper.id),
+          copperCompanyName: copper.Name || copper.name || '',
+          matchType: 'name',
+          confidence: 'medium',
+          accountNumber: `Address: ${fishbowlAddress.substring(0, 30)}...`
+        });
+        matchedFishbowlIds.add(fishbowl.id);
+      }
+    }
+  }
+  
+  console.log(`✅ Total matched: ${matches.length} (${matchedFishbowlIds.size} unique)`);
   
   return {
     matches,
