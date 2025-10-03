@@ -118,6 +118,31 @@ export default function AdminUtilitiesTab() {
         </div>
       </div>
 
+      {/* Copper ↔ Fishbowl Matching */}
+      <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+        <div className="flex items-start gap-3">
+          <Database className="w-5 h-5 text-purple-600 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="text-md font-medium text-purple-900 mb-2">🔗 Copper ↔ Fishbowl Matching</h3>
+            <p className="text-sm text-purple-700 mb-4">
+              Link Copper companies to Fishbowl customers for unified CRM data. Matches by Account Number and Order ID.
+            </p>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/admin/tools/copper-fishbowl-match"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+              >
+                <Database className="w-4 h-4" />
+                Match Data
+              </Link>
+              <span className="text-xs text-purple-600">
+                Link CRM to ERP
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Backfill Users */}
       <div className="border rounded-lg p-4">
         <h3 className="text-md font-medium mb-2">Backfill Users</h3>
