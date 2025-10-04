@@ -29,7 +29,7 @@
   "fieldOverrides": [
     {
       "collectionGroup": "copper_companies",
-      "fieldPath": "Account Number cf_698260",
+      "fieldPath": "`Account Number cf_698260`",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "DESCENDING", "queryScope": "COLLECTION" }
@@ -37,7 +37,7 @@
     },
     {
       "collectionGroup": "copper_companies",
-      "fieldPath": "Account Order ID cf_698467",
+      "fieldPath": "`Account Order ID cf_698467`",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "DESCENDING", "queryScope": "COLLECTION" }
@@ -45,7 +45,7 @@
     },
     {
       "collectionGroup": "fishbowl_customers",
-      "fieldPath": "Account Number cf_698260",
+      "fieldPath": "`Account Number cf_698260`",
       "indexes": [
         { "order": "ASCENDING", "queryScope": "COLLECTION" },
         { "order": "DESCENDING", "queryScope": "COLLECTION" }
