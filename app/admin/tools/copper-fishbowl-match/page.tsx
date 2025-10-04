@@ -39,25 +39,22 @@ export default function CopperFishbowlMatchPage() {
     setLoading(true);
     setError(null);
     setApplied(false);
-    setProgress({ stage: 'Starting...', current: 0, total: 0, matchCount: 0 });
-
+    
     try {
-      // Simulate progress updates (since we can't stream from API easily)
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (!prev) return prev;
-          const newCurrent = Math.min(prev.current + Math.random() * 1000, prev.total * 0.9);
-          return { ...prev, current: Math.floor(newCurrent) };
-        });
-      }, 100);
-
+      // Show realistic progress stages
+      setProgress({ stage: '📥 Loading Fishbowl customers...', current: 1, total: 5, matchCount: 0 });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setProgress({ stage: '📥 Loading Copper companies (270K records)...', current: 2, total: 5, matchCount: 0 });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setProgress({ stage: '🔍 Strategy 1: Matching by Account Number...', current: 3, total: 5, matchCount: 0 });
+      
       const response = await fetch('/api/copper/match-fishbowl', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'match' }),
       });
-
-      clearInterval(progressInterval);
 
       const data = await response.json();
 
@@ -178,28 +175,34 @@ export default function CopperFishbowlMatchPage() {
         {loading && progress && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">{progress.stage}</span>
-                <span className="text-sm text-gray-600">
-                  {progress.matchCount > 0 && `${progress.matchCount} matches found! 🎯`}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-lg font-semibold text-gray-800">{progress.stage}</span>
+                <span className="text-sm font-bold text-kanva-green">
+                  {progress.matchCount > 0 && `${progress.matchCount} matches! 🎯`}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden shadow-inner">
                 <div 
-                  className="bg-gradient-to-r from-kanva-green to-green-600 h-4 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
+                  className="bg-gradient-to-r from-kanva-green via-green-500 to-green-600 h-6 rounded-full transition-all duration-500 ease-out relative overflow-hidden"
                   style={{ width: progress.total > 0 ? `${(progress.current / progress.total) * 100}%` : '0%' }}
                 >
-                  <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-xs text-gray-500">
-                  {progress.current.toLocaleString()} / {progress.total.toLocaleString()} records
+              <div className="flex items-center justify-between mt-3">
+                <span className="text-sm text-gray-600 font-medium">
+                  Step {progress.current} of {progress.total}
                 </span>
-                <span className="text-xs font-semibold text-kanva-green">
+                <span className="text-lg font-bold text-kanva-green">
                   {progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0}%
                 </span>
               </div>
+              {progress.current === 3 && (
+                <div className="mt-3 text-xs text-gray-500 italic">
+                  ⏳ Processing large dataset... This may take 30-60 seconds
+                </div>
+              )}
             </div>
           </div>
         )}
