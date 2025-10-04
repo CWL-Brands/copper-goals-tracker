@@ -143,6 +143,31 @@ export default function AdminUtilitiesTab() {
         </div>
       </div>
 
+      {/* Create Missing Copper Companies */}
+      <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+        <div className="flex items-start gap-3">
+          <Database className="w-5 h-5 text-orange-600 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="text-md font-medium text-orange-900 mb-2">➕ Create Missing Copper Companies</h3>
+            <p className="text-sm text-orange-700 mb-4">
+              Create Copper companies for Fishbowl customers marked "NOT IN COPPER". Assigns account numbers automatically.
+            </p>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/admin/tools/copper-create-missing"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-colors"
+              >
+                <Database className="w-4 h-4" />
+                Create Companies
+              </Link>
+              <span className="text-xs text-orange-600">
+                Sync Fishbowl → Copper
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Backfill Users */}
       <div className="border rounded-lg p-4">
         <h3 className="text-md font-medium mb-2">Backfill Users</h3>
