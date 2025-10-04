@@ -128,18 +128,18 @@ async function matchCopperToFishbowl(): Promise<{
   
   console.log(`✅ Matched ${matches.length} by Account Number`);
   
-  // Strategy 2: Match by Fishbowl Customer Number → Copper Order ID field
-  // Fishbowl customer ID = Copper "Account Order ID cf_698467"
-  console.log('🔍 Strategy 2: Matching by Customer Number (Fishbowl ID → Copper Order ID)...');
+  // Strategy 2: Match by Fishbowl Account ID → Copper Order ID field
+  // Fishbowl accountId = Copper "Account Order ID cf_698467"
+  console.log('🔍 Strategy 2: Matching by Fishbowl Account ID (accountId → Copper Order ID)...');
   for (const fishbowl of fishbowlCustomers) {
     if (matchedFishbowlIds.has(fishbowl.id)) continue; // Already matched
     
-    // Use original Fishbowl ID for matching (not composite ID)
-    const fishbowlCustomerNum = fishbowl.fishbowlId || fishbowl.id;
+    // Use Fishbowl's accountId (NOT fishbowlId!)
+    const fishbowlAccountId = fishbowl.accountId;
     
-    if (fishbowlCustomerNum && String(fishbowlCustomerNum).trim() !== '') {
+    if (fishbowlAccountId && String(fishbowlAccountId).trim() !== '') {
       // FAST lookup using Map
-      const copper = copperByOrderId.get(String(fishbowlCustomerNum).trim());
+      const copper = copperByOrderId.get(String(fishbowlAccountId).trim());
       
       if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
@@ -149,7 +149,7 @@ async function matchCopperToFishbowl(): Promise<{
           copperCompanyName: copper.Name || copper.name || '',
           matchType: 'account_order_id',
           confidence: 'high',
-          accountOrderId: String(fishbowlCustomerNum)
+          accountOrderId: String(fishbowlAccountId)
         });
         matchedFishbowlIds.add(fishbowl.id);
       }
