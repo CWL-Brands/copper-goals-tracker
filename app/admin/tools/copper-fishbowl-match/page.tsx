@@ -34,6 +34,13 @@ export default function CopperFishbowlMatchPage() {
     total: number;
     matchCount: number;
   } | null>(null);
+  
+  // Filters and pagination
+  const [filterMatchType, setFilterMatchType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'matched' | 'unmatched'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   const findMatches = async () => {
     setLoading(true);
@@ -127,9 +134,54 @@ export default function CopperFishbowlMatchPage() {
     const colors = {
       high: 'bg-green-100 text-green-800',
       medium: 'bg-yellow-100 text-yellow-800',
-      low: 'bg-red-100 text-red-800'
+      low: 'bg-red-100 text-red-800',
     };
     return colors[confidence as keyof typeof colors] || colors.low;
+  };
+
+  // Filter and paginate matches
+  const filteredMatches = matches.filter(match => {
+    // Filter by match type
+    if (filterMatchType !== 'all' && match.matchType !== filterMatchType) {
+      return false;
+    }
+    
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        match.fishbowlCustomerName.toLowerCase().includes(query) ||
+        match.copperCompanyName.toLowerCase().includes(query) ||
+        match.fishbowlCustomerId.toLowerCase().includes(query)
+      );
+    }
+    
+    return true;
+  });
+
+  // Calculate unmatched count
+  const unmatchedCount = stats ? stats.unmatched : 0;
+
+  // Pagination
+  const totalPages = Math.ceil(filteredMatches.length / itemsPerPage);
+  const paginatedMatches = filteredMatches.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (type: string) => {
+    setFilterMatchType(type);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -291,10 +343,93 @@ export default function CopperFishbowlMatchPage() {
         {/* Matches Table */}
         {matches.length > 0 && (
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Match Results ({matches.length})
-              </h2>
+            {/* Filters and Search */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Match Results ({filteredMatches.length} of {matches.length})
+                </h2>
+                <button
+                  onClick={() => {
+                    const csv = [
+                      ['Fishbowl Customer', 'Fishbowl ID', 'Copper Company', 'Copper ID', 'Match Type', 'Confidence', 'Identifier'],
+                      ...filteredMatches.map(m => [
+                        m.fishbowlCustomerName,
+                        m.fishbowlCustomerId,
+                        m.copperCompanyName,
+                        m.copperCompanyId,
+                        getMatchTypeLabel(m.matchType),
+                        m.confidence,
+                        m.accountNumber || m.accountOrderId || ''
+                      ])
+                    ].map(row => row.join(',')).join('\n');
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `fishbowl-copper-matches-${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                >
+                  📥 Export CSV
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Search */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    placeholder="Search by name or ID..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kanva-green focus:border-transparent"
+                  />
+                </div>
+
+                {/* Match Type Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Match Type</label>
+                  <select
+                    value={filterMatchType}
+                    onChange={(e) => handleFilterChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kanva-green focus:border-transparent"
+                  >
+                    <option value="all">All Types ({matches.length})</option>
+                    <option value="account_number">Account Number ({matches.filter(m => m.matchType === 'account_number').length})</option>
+                    <option value="account_order_id">Account Order ID ({matches.filter(m => m.matchType === 'account_order_id').length})</option>
+                    <option value="name">Address/Name ({matches.filter(m => m.matchType === 'name').length})</option>
+                  </select>
+                </div>
+
+                {/* Confidence Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Confidence</label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kanva-green focus:border-transparent"
+                  >
+                    <option value="all">All Confidence</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Results Summary */}
+              <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+                <div>
+                  Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, filteredMatches.length)} of {filteredMatches.length} matches
+                </div>
+                {stats && (
+                  <div className="flex gap-4">
+                    <span className="text-green-600 font-semibold">{stats.matched} Matched</span>
+                    <span className="text-orange-600 font-semibold">{stats.unmatched} Unmatched</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -308,7 +443,7 @@ export default function CopperFishbowlMatchPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {matches.slice(0, 100).map((match, idx) => (
+                  {paginatedMatches.map((match, idx) => (
                     <tr key={idx} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{match.fishbowlCustomerName}</div>
@@ -334,11 +469,54 @@ export default function CopperFishbowlMatchPage() {
                 </tbody>
               </table>
             </div>
-            {matches.length > 100 && (
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
-                  Showing first 100 of {matches.length} matches
-                </p>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ← Previous
+                </button>
+                
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 7) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 4) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 3) {
+                      pageNum = totalPages - 6 + i;
+                    } else {
+                      pageNum = currentPage - 3 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                          currentPage === pageNum
+                            ? 'bg-kanva-green text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next →
+                </button>
               </div>
             )}
           </div>
