@@ -51,28 +51,29 @@ async function matchCopperToFishbowl(): Promise<{
   
   console.log(`📊 Found ${fishbowlCustomers.length} Fishbowl customers`);
   
-  // Get all Copper companies (with pagination if needed)
-  const copperSnapshot = await adminDb.collection('copper_companies').limit(10000).get();
+  // Get ALL Copper companies (no limit - we need all 270K)
+  const copperSnapshot = await adminDb.collection('copper_companies').get();
   const copperCompanies = copperSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   })) as any[];
   
-  console.log(`📊 Found ${copperCompanies.length} Copper companies (first 10K)`);
+  console.log(`📊 Found ${copperCompanies.length} Copper companies`);
   
   const matches: MatchResult[] = [];
   const matchedFishbowlIds = new Set<string>();
   
   // Strategy 1: Match by Fishbowl Account Number → Copper Account Number
-  // Fishbowl "Account Number" (custom field) = Copper account number (starts with C, HQ, etc.)
+  // Both use the same field: "Account Number cf_698260"
   console.log('🔍 Strategy 1: Matching by Account Number (Fishbowl → Copper)...');
   for (const fishbowl of fishbowlCustomers) {
-    const fishbowlAccountNumber = fishbowl.accountNumber || fishbowl['Account Number'];
+    // Get Fishbowl's Account Number (stored in same field as Copper)
+    const fishbowlAccountNumber = fishbowl['Account Number cf_698260'] || fishbowl.accountNumber;
     
     if (fishbowlAccountNumber && String(fishbowlAccountNumber).trim() !== '') {
       // Find Copper company with matching Account Number field
       const copper = copperCompanies.find(c => {
-        const copperAccountNum = c['Account Number cf_698260'] || c.accountNumber;
+        const copperAccountNum = c['Account Number cf_698260'];
         return copperAccountNum && String(copperAccountNum).trim() === String(fishbowlAccountNumber).trim();
       });
       

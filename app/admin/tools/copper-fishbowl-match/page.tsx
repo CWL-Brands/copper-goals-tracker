@@ -27,18 +27,37 @@ export default function CopperFishbowlMatchPage() {
   const [stats, setStats] = useState<MatchStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [progress, setProgress] = useState<{
+    stage: string;
+    current: number;
+    total: number;
+    matchCount: number;
+  } | null>(null);
 
   const findMatches = async () => {
     setLoading(true);
     setError(null);
     setApplied(false);
+    setProgress({ stage: 'Starting...', current: 0, total: 0, matchCount: 0 });
 
     try {
+      // Simulate progress updates (since we can't stream from API easily)
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (!prev) return prev;
+          const newCurrent = Math.min(prev.current + Math.random() * 1000, prev.total * 0.9);
+          return { ...prev, current: Math.floor(newCurrent) };
+        });
+      }, 100);
+
       const response = await fetch('/api/copper/match-fishbowl', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'match' })
+        body: JSON.stringify({ action: 'match' }),
       });
+
+      clearInterval(progressInterval);
 
       const data = await response.json();
 
@@ -48,6 +67,18 @@ export default function CopperFishbowlMatchPage() {
 
       setMatches(data.matches);
       setStats(data.stats);
+      setProgress({ 
+        stage: 'Complete!', 
+        current: data.stats.totalFishbowlCustomers, 
+        total: data.stats.totalFishbowlCustomers,
+        matchCount: data.stats.matched 
+      });
+
+      // Trigger confetti celebration! 🎉
+      if (data.stats.matched > 0) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -136,16 +167,53 @@ export default function CopperFishbowlMatchPage() {
           </ul>
         </div>
 
+        {/* Confetti Animation */}
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
+            <div className="text-9xl animate-bounce">🎉</div>
+          </div>
+        )}
+
+        {/* Progress Bar */}
+        {loading && progress && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">{progress.stage}</span>
+                <span className="text-sm text-gray-600">
+                  {progress.matchCount > 0 && `${progress.matchCount} matches found! 🎯`}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-kanva-green to-green-600 h-4 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
+                  style={{ width: progress.total > 0 ? `${(progress.current / progress.total) * 100}%` : '0%' }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xs text-gray-500">
+                  {progress.current.toLocaleString()} / {progress.total.toLocaleString()} records
+                </span>
+                <span className="text-xs font-semibold text-kanva-green">
+                  {progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0}%
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-4">
             <button
               onClick={findMatches}
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-3 bg-kanva-green text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-3 bg-kanva-green text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
             >
               <Database className="w-5 h-5" />
-              {loading ? 'Finding Matches...' : 'Find Matches'}
+              {loading ? '🔍 Scanning...' : 'Find Matches'}
             </button>
 
             {matches.length > 0 && !applied && (
