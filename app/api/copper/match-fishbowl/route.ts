@@ -63,6 +63,37 @@ async function matchCopperToFishbowl(): Promise<{
   const matches: MatchResult[] = [];
   const matchedFishbowlIds = new Set<string>();
   
+  // Build lookup maps for FAST matching (O(1) instead of O(n))
+  console.log('🗺️  Building lookup maps for fast matching...');
+  const copperByAccountNumber = new Map<string, any>();
+  const copperByOrderId = new Map<string, any>();
+  const copperByAddress = new Map<string, any>();
+  
+  for (const copper of copperCompanies) {
+    // Map by Account Number
+    const accountNum = copper['Account Number cf_698260'];
+    if (accountNum && String(accountNum).trim() !== '') {
+      copperByAccountNumber.set(String(accountNum).trim(), copper);
+    }
+    
+    // Map by Order ID
+    const orderId = copper['Account Order ID cf_698467'] || copper.accountOrderId;
+    if (orderId && String(orderId).trim() !== '') {
+      copperByOrderId.set(String(orderId).trim(), copper);
+    }
+    
+    // Map by normalized address
+    const address = copper.Street || copper.street || copper.Address || copper.address || '';
+    if (address) {
+      const normalized = normalizeAddress(address);
+      if (normalized.length > 5) {
+        copperByAddress.set(normalized, copper);
+      }
+    }
+  }
+  
+  console.log(`✅ Built maps: ${copperByAccountNumber.size} account numbers, ${copperByOrderId.size} order IDs, ${copperByAddress.size} addresses`);
+  
   // Strategy 1: Match by Fishbowl Account Number → Copper Account Number
   // Both use the same field: "Account Number cf_698260"
   console.log('🔍 Strategy 1: Matching by Account Number (Fishbowl → Copper)...');
@@ -71,11 +102,8 @@ async function matchCopperToFishbowl(): Promise<{
     const fishbowlAccountNumber = fishbowl['Account Number cf_698260'] || fishbowl.accountNumber;
     
     if (fishbowlAccountNumber && String(fishbowlAccountNumber).trim() !== '') {
-      // Find Copper company with matching Account Number field
-      const copper = copperCompanies.find(c => {
-        const copperAccountNum = c['Account Number cf_698260'];
-        return copperAccountNum && String(copperAccountNum).trim() === String(fishbowlAccountNumber).trim();
-      });
+      // FAST lookup using Map
+      const copper = copperByAccountNumber.get(String(fishbowlAccountNumber).trim());
       
       if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
@@ -104,11 +132,8 @@ async function matchCopperToFishbowl(): Promise<{
     const fishbowlCustomerNum = fishbowl.fishbowlId || fishbowl.id;
     
     if (fishbowlCustomerNum && String(fishbowlCustomerNum).trim() !== '') {
-      // Find Copper company with matching Order ID field
-      const copper = copperCompanies.find(c => {
-        const copperOrderId = c['Account Order ID cf_698467'] || c.accountOrderId;
-        return copperOrderId && String(copperOrderId).trim() === String(fishbowlCustomerNum).trim();
-      });
+      // FAST lookup using Map
+      const copper = copperByOrderId.get(String(fishbowlCustomerNum).trim());
       
       if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
@@ -136,12 +161,8 @@ async function matchCopperToFishbowl(): Promise<{
     const normalizedFishbowlAddress = normalizeAddress(fishbowlAddress);
     
     if (normalizedFishbowlAddress.length > 5) { // Minimum address length
-      // Find Copper company with matching address
-      const copper = copperCompanies.find(c => {
-        const copperAddress = c.Street || c.street || c.Address || c.address || '';
-        const normalizedCopperAddress = normalizeAddress(copperAddress);
-        return normalizedCopperAddress && normalizedCopperAddress === normalizedFishbowlAddress;
-      });
+      // FAST lookup using Map
+      const copper = copperByAddress.get(normalizedFishbowlAddress);
       
       if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
