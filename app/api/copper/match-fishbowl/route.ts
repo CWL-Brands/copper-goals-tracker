@@ -43,22 +43,26 @@ async function matchCopperToFishbowl(): Promise<{
   console.log('🔗 Starting Fishbowl → Copper matching...');
   
   // Get all Fishbowl customers
+  console.log('📥 Loading Fishbowl customers...');
   const fishbowlSnapshot = await adminDb.collection('fishbowl_customers').get();
   const fishbowlCustomers = fishbowlSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   })) as any[];
   
-  console.log(`📊 Found ${fishbowlCustomers.length} Fishbowl customers`);
+  console.log(`✅ Found ${fishbowlCustomers.length} Fishbowl customers`);
   
   // Get ALL Copper companies (no limit - we need all 270K)
+  console.log('📥 Loading Copper companies (this takes 20-30 seconds for 270K records)...');
+  const startLoad = Date.now();
   const copperSnapshot = await adminDb.collection('copper_companies').get();
   const copperCompanies = copperSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   })) as any[];
+  const loadTime = ((Date.now() - startLoad) / 1000).toFixed(1);
   
-  console.log(`📊 Found ${copperCompanies.length} Copper companies`);
+  console.log(`✅ Loaded ${copperCompanies.length} Copper companies in ${loadTime}s`);
   
   const matches: MatchResult[] = [];
   const matchedFishbowlIds = new Set<string>();
@@ -92,11 +96,13 @@ async function matchCopperToFishbowl(): Promise<{
     }
   }
   
-  console.log(`✅ Built maps: ${copperByAccountNumber.size} account numbers, ${copperByOrderId.size} order IDs, ${copperByAddress.size} addresses`);
+  const mapTime = ((Date.now() - startLoad) / 1000).toFixed(1);
+  console.log(`✅ Built maps in ${mapTime}s: ${copperByAccountNumber.size} account numbers, ${copperByOrderId.size} order IDs, ${copperByAddress.size} addresses`);
   
   // Strategy 1: Match by Fishbowl Account Number → Copper Account Number
   // Both use the same field: "Account Number cf_698260"
   console.log('🔍 Strategy 1: Matching by Account Number (Fishbowl → Copper)...');
+  const startMatch = Date.now();
   for (const fishbowl of fishbowlCustomers) {
     // Get Fishbowl's Account Number (stored in same field as Copper)
     const fishbowlAccountNumber = fishbowl['Account Number cf_698260'] || fishbowl.accountNumber;
@@ -179,7 +185,10 @@ async function matchCopperToFishbowl(): Promise<{
     }
   }
   
+  const matchTime = ((Date.now() - startMatch) / 1000).toFixed(1);
+  const totalTime = ((Date.now() - startLoad) / 1000).toFixed(1);
   console.log(`✅ Total matched: ${matches.length} (${matchedFishbowlIds.size} unique)`);
+  console.log(`⏱️  Matching completed in ${matchTime}s (total: ${totalTime}s)`);
   
   return {
     matches,
