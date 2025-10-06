@@ -78,13 +78,16 @@ export default function SyncFishbowlCopperPage() {
   };
 
   const syncToCopper = async () => {
-    if (!confirm(`Sync ${customers.length} customers to Copper? This will update custom fields in Copper CRM.`)) {
+    const customersWithMetrics = customers.filter(c => c.metrics);
+    
+    if (customersWithMetrics.length === 0) {
+      setError('No customers with metrics to sync. Run Step 1 first.');
       return;
     }
 
     setSyncing(true);
     setError(null);
-    setProgress({ current: 0, total: customers.length });
+    setProgress({ current: 0, total: customersWithMetrics.length });
     
     try {
       const response = await fetch('/api/fishbowl/sync-to-copper', {

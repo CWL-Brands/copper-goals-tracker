@@ -8,16 +8,18 @@ export async function POST(request: NextRequest) {
     console.log('🔄 Starting sync to Copper...');
 
     // Get customers with metrics
+    // Note: Firestore only allows one != filter, so we filter in memory
     const customersSnapshot = await adminDb
       .collection('fishbowl_customers')
       .where('copperCompanyId', '!=', null)
-      .where('metrics', '!=', null)
       .get();
 
-    const customers = customersSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as any[];
+    const customers = customersSnapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+      .filter((customer: any) => customer.metrics) as any[];
 
     console.log(`📊 Found ${customers.length} customers with metrics`);
 
