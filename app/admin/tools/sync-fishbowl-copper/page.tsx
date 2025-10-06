@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Upload, RefreshCw, CheckCircle, AlertCircle, TrendingUp } from 'lucide-react';
-import Confetti from 'react-confetti';
 
 interface CustomerWithMetrics {
   id: string;
@@ -29,7 +28,6 @@ export default function SyncFishbowlCopperPage() {
   const [customers, setCustomers] = useState<CustomerWithMetrics[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
 
   const calculateMetrics = async () => {
@@ -99,9 +97,6 @@ export default function SyncFishbowlCopperPage() {
 
       const data = await response.json();
       
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 5000);
-      
       // Reload to show sync status
       await loadCustomers();
       
@@ -119,8 +114,6 @@ export default function SyncFishbowlCopperPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      {showConfetti && <Confetti recycle={false} numberOfPieces={500} />}
-      
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
