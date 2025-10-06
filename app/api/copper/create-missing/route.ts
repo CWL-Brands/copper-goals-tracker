@@ -126,7 +126,7 @@ async function getNextAccountNumber(type: 'C' | 'HQ' | 'DIST'): Promise<string> 
  */
 async function createCopperCompany(company: MissingCompany, accountNumber: string): Promise<{ id: string; accountNumber: string }> {
   const copperApiKey = process.env.COPPER_API_KEY;
-  const copperEmail = process.env.COPPER_EMAIL;
+  const copperEmail = process.env.COPPER_USER_EMAIL;
   
   if (!copperApiKey || !copperEmail) {
     throw new Error('Copper API credentials not configured');
