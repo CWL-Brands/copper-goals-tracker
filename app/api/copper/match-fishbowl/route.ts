@@ -261,21 +261,22 @@ export async function POST(req: NextRequest) {
         ...result
       });
     } else if (action === 'apply') {
-      // Apply matches passed from the client (already found)
-      if (!matches || !Array.isArray(matches)) {
-        return NextResponse.json(
-          { error: 'Matches array required for apply action' },
-          { status: 400 }
-        );
+      // Apply matches - either from client or re-match
+      let matchesToApply = matches;
+      
+      if (!matchesToApply || !Array.isArray(matchesToApply) || matchesToApply.length === 0) {
+        console.log('⚠️  No matches provided, running fresh match...');
+        const result = await matchCopperToFishbowl();
+        matchesToApply = result.matches;
       }
       
-      console.log(`📝 Applying ${matches.length} matches from client...`);
-      const updated = await applyMatches(matches);
+      console.log(`📝 Applying ${matchesToApply.length} matches...`);
+      const updated = await applyMatches(matchesToApply);
       
       return NextResponse.json({
         success: true,
         updated,
-        total: matches.length
+        total: matchesToApply.length
       });
     } else {
       return NextResponse.json(
