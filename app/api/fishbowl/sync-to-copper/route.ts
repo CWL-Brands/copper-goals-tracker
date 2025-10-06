@@ -47,6 +47,13 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
+        // Skip if copperCompanyId is invalid
+        if (!customer.copperCompanyId || customer.copperCompanyId === 'NaN' || isNaN(Number(customer.copperCompanyId))) {
+          console.log(`⚠️  Skipping ${customer.copperCompanyName} - invalid Copper ID: ${customer.copperCompanyId}`);
+          failed++;
+          continue;
+        }
+
         // Map metrics to Copper custom field IDs
         const custom_fields = [
           { custom_field_definition_id: 698403, value: metrics.totalOrders },
