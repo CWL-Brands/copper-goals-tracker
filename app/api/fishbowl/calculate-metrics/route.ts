@@ -58,10 +58,18 @@ export async function POST(request: NextRequest) {
     let batchCount = 0;
 
     console.log(`🔄 Processing ${matchedCustomers.length} customers...`);
+    
+    // Log first customer to see structure
+    if (matchedCustomers.length > 0) {
+      console.log('📋 Sample customer structure:', JSON.stringify(matchedCustomers[0], null, 2));
+    }
 
     for (const customer of matchedCustomers) {
-      const customerId = customer.accountId || customer.fishbowlId;
+      // Try multiple field names for customer ID
+      const customerId = customer.accountId || customer.fishbowlId || customer.id;
+      
       if (!customerId) {
+        console.log(`⚠️  Skipping customer - no ID found:`, customer.name || 'Unknown');
         skipped++;
         continue;
       }
