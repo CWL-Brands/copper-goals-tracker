@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebaseAdmin';
+import { adminDb } from '@/lib/firebase/admin';
 
 export const maxDuration = 300; // 5 minutes for large datasets
 
@@ -53,8 +53,11 @@ export async function POST(request: NextRequest) {
     // Calculate metrics for each customer
     let updated = 0;
     let skipped = 0;
-    const batch = adminDb.batch();
     const batchSize = 500; // Firestore batch limit
+    let currentBatch = adminDb.batch();
+    let batchCount = 0;
+
+    console.log(`🔄 Processing ${matchedCustomers.length} customers...`);
 
     for (const customer of matchedCustomers) {
       const customerId = customer.accountId || customer.fishbowlId;
@@ -77,11 +80,20 @@ export async function POST(request: NextRequest) {
         };
 
         const docRef = adminDb.collection('fishbowl_customers').doc(customer.id);
-        batch.update(docRef, {
+        currentBatch.update(docRef, {
           metrics,
           metricsCalculatedAt: new Date().toISOString(),
         });
         updated++;
+        batchCount++;
+        
+        // Commit batch if we hit the limit
+        if (batchCount >= batchSize) {
+          await currentBatch.commit();
+          console.log(`✅ Committed batch: ${updated} customers processed...`);
+          currentBatch = adminDb.batch();
+          batchCount = 0;
+        }
         continue;
       }
 
@@ -119,22 +131,26 @@ export async function POST(request: NextRequest) {
       };
 
       const docRef = adminDb.collection('fishbowl_customers').doc(customer.id);
-      batch.update(docRef, {
+      currentBatch.update(docRef, {
         metrics,
         metricsCalculatedAt: new Date().toISOString(),
       });
       updated++;
+      batchCount++;
 
       // Commit batch if we hit the limit
-      if (updated % batchSize === 0) {
-        await batch.commit();
-        console.log(`✅ Updated ${updated} customers...`);
+      if (batchCount >= batchSize) {
+        await currentBatch.commit();
+        console.log(`✅ Committed batch: ${updated} customers processed...`);
+        currentBatch = adminDb.batch();
+        batchCount = 0;
       }
     }
 
     // Commit remaining updates
-    if (updated % batchSize !== 0) {
-      await batch.commit();
+    if (batchCount > 0) {
+      await currentBatch.commit();
+      console.log(`✅ Final batch committed: ${updated} total customers processed`);
     }
 
     console.log(`✅ Metrics calculation complete!`);

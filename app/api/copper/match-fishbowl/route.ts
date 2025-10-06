@@ -214,13 +214,14 @@ async function applyMatches(matches: MatchResult[]): Promise<number> {
   for (const match of matches) {
     const fishbowlRef = adminDb.collection('fishbowl_customers').doc(match.fishbowlCustomerId);
     
-    batch.update(fishbowlRef, {
+    // Use set with merge to avoid errors if document doesn't exist
+    batch.set(fishbowlRef, {
       copperCompanyId: match.copperCompanyId,
       copperCompanyName: match.copperCompanyName,
       matchType: match.matchType,
       matchConfidence: match.confidence,
       matchedAt: new Date().toISOString()
-    });
+    }, { merge: true });
     
     batchCount++;
     
