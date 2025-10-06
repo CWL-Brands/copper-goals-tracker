@@ -28,6 +28,7 @@ export default function CopperFishbowlMatchPage() {
   const [error, setError] = useState<string | null>(null);
   const [applied, setApplied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [progress, setProgress] = useState<{
     stage: string;
     current: number;
@@ -91,12 +92,9 @@ export default function CopperFishbowlMatchPage() {
   };
 
   const applyMatches = async () => {
-    if (!window.confirm(`Apply ${matches.length} matches to Firestore? This will update fishbowl_customers with Copper links.`)) {
-      return;
-    }
-
     setLoading(true);
     setError(null);
+    setToast({ message: `Applying ${matches.length} matches to Firestore...`, type: 'info' });
 
     try {
       const response = await fetch('/api/copper/match-fishbowl', {
@@ -114,8 +112,18 @@ export default function CopperFishbowlMatchPage() {
       setMatches(data.matches);
       setStats(data.stats);
       setApplied(true);
+      setToast({ message: `✅ Successfully applied ${matches.length} matches!`, type: 'success' });
+      
+      // Show confetti
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000);
+      
+      // Hide toast after 5 seconds
+      setTimeout(() => setToast(null), 5000);
     } catch (err: any) {
       setError(err.message);
+      setToast({ message: `❌ Error: ${err.message}`, type: 'error' });
+      setTimeout(() => setToast(null), 5000);
     } finally {
       setLoading(false);
     }
@@ -186,6 +194,24 @@ export default function CopperFishbowlMatchPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-in">
+          <div className={`rounded-lg shadow-lg p-4 min-w-[300px] ${
+            toast.type === 'success' ? 'bg-green-500 text-white' :
+            toast.type === 'error' ? 'bg-red-500 text-white' :
+            'bg-blue-500 text-white'
+          }`}>
+            <div className="flex items-center gap-3">
+              {toast.type === 'success' && <CheckCircle className="w-5 h-5" />}
+              {toast.type === 'error' && <AlertCircle className="w-5 h-5" />}
+              {toast.type === 'info' && <Database className="w-5 h-5 animate-pulse" />}
+              <p className="font-medium">{toast.message}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
