@@ -69,11 +69,13 @@ export default function AdminUtilitiesTab() {
       {/* Fishbowl Import */}
       <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
         <div className="flex items-start gap-3">
-          <Database className="w-5 h-5 text-blue-600 mt-0.5" />
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+            1
+          </div>
           <div className="flex-1">
             <h3 className="text-md font-medium text-blue-900 mb-2">🐟 Fishbowl Data Import</h3>
             <p className="text-sm text-blue-700 mb-4">
-              Import customer and sales order data from Fishbowl Excel files into Firestore. 
+              <strong>Step 1:</strong> Import customer and sales order data from Fishbowl Excel files into Firestore. 
               This creates the data warehouse for syncing with Copper CRM.
             </p>
             <div className="flex items-center gap-3">
@@ -95,11 +97,13 @@ export default function AdminUtilitiesTab() {
       {/* Copper Import - ALL Entities */}
       <div className="border border-green-200 rounded-lg p-4 bg-green-50">
         <div className="flex items-start gap-3">
-          <Database className="w-5 h-5 text-green-600 mt-0.5" />
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-sm">
+            2
+          </div>
           <div className="flex-1">
             <h3 className="text-md font-medium text-green-900 mb-2">📥 Import All Copper Data</h3>
             <p className="text-sm text-green-700 mb-4">
-              Import all Copper entities: Companies (270K), People (75K), Opportunities, Leads, and Tasks. 
+              <strong>Step 2:</strong> Import all Copper entities: Companies (270K), People (75K), Opportunities, Leads, and Tasks. 
               One-time bulk import with live progress tracking.
             </p>
             <div className="flex items-center gap-3">
@@ -121,11 +125,13 @@ export default function AdminUtilitiesTab() {
       {/* Copper ↔ Fishbowl Matching */}
       <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
         <div className="flex items-start gap-3">
-          <Database className="w-5 h-5 text-purple-600 mt-0.5" />
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-sm">
+            3
+          </div>
           <div className="flex-1">
             <h3 className="text-md font-medium text-purple-900 mb-2">🔗 Copper ↔ Fishbowl Matching</h3>
             <p className="text-sm text-purple-700 mb-4">
-              Link Copper companies to Fishbowl customers for unified CRM data. Matches by Account Number and Order ID.
+              <strong>Step 3:</strong> Link Copper companies to Fishbowl customers for unified CRM data. Matches by Account Number and Order ID.
             </p>
             <div className="flex items-center gap-3">
               <Link
@@ -143,14 +149,43 @@ export default function AdminUtilitiesTab() {
         </div>
       </div>
 
+      {/* Sync Fishbowl Metrics to Copper */}
+      <div className="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-sm">
+            4
+          </div>
+          <div className="flex-1">
+            <h3 className="text-md font-medium text-indigo-900 mb-2">📊 Sync Fishbowl Metrics → Copper</h3>
+            <p className="text-sm text-indigo-700 mb-4">
+              <strong>Step 4:</strong> Calculate customer metrics from Fishbowl sales orders (Total Orders, Lifetime Value, etc.) and push to Copper CRM custom fields.
+            </p>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/admin/tools/sync-fishbowl-copper"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+              >
+                <Database className="w-4 h-4" />
+                Sync Metrics
+              </Link>
+              <span className="text-xs text-indigo-600">
+                Calculate & Push to Copper
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Create Missing Copper Companies */}
       <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
         <div className="flex items-start gap-3">
-          <Database className="w-5 h-5 text-orange-600 mt-0.5" />
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-sm">
+            5
+          </div>
           <div className="flex-1">
             <h3 className="text-md font-medium text-orange-900 mb-2">➕ Create Missing Copper Companies</h3>
             <p className="text-sm text-orange-700 mb-4">
-              Create Copper companies for Fishbowl customers marked "NOT IN COPPER". Assigns account numbers automatically.
+              <strong>Step 5:</strong> Create Copper companies for Fishbowl customers marked "NOT IN COPPER". Assigns account numbers automatically.
             </p>
             <div className="flex items-center gap-3">
               <Link
