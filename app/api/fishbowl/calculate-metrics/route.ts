@@ -36,19 +36,25 @@ export async function POST(request: NextRequest) {
     
     console.log(`📦 Found ${allOrders.length} sales orders`);
 
+    // Log first order to see structure
+    if (allOrders.length > 0) {
+      console.log('📋 Sample order structure:', JSON.stringify(allOrders[0], null, 2));
+    }
+
     // Group orders by customer ID for fast lookup
     const ordersByCustomer = new Map<string, any[]>();
     for (const order of allOrders) {
-      const customerId = order.customerId || order.customerNum;
+      const customerId = order.customerId || order.customerNum || order.customerID;
       if (!customerId) continue;
       
-      if (!ordersByCustomer.has(customerId)) {
-        ordersByCustomer.set(customerId, []);
+      if (!ordersByCustomer.has(String(customerId))) {
+        ordersByCustomer.set(String(customerId), []);
       }
-      ordersByCustomer.get(customerId)!.push(order);
+      ordersByCustomer.get(String(customerId))!.push(order);
     }
 
     console.log(`🗺️  Grouped orders for ${ordersByCustomer.size} customers`);
+    console.log(`🔑 Sample customer IDs from orders:`, Array.from(ordersByCustomer.keys()).slice(0, 5));
 
     // Calculate metrics for each customer
     let updated = 0;
@@ -65,16 +71,28 @@ export async function POST(request: NextRequest) {
     }
 
     for (const customer of matchedCustomers) {
-      // Try multiple field names for customer ID
-      const customerId = customer.accountId || customer.fishbowlId || customer.id;
+      // Extract the numeric customer ID from the document ID
+      // Document ID might be like "1001" or "fb_cust_1001"
+      let customerId = customer.id;
+      
+      // If it starts with "fb_cust_", extract the number
+      if (customerId && customerId.startsWith('fb_cust_')) {
+        customerId = customerId.replace('fb_cust_', '');
+      }
       
       if (!customerId) {
-        console.log(`⚠️  Skipping customer - no ID found:`, customer.name || 'Unknown');
+        console.log(`⚠️  Skipping customer - no ID found:`, customer);
         skipped++;
         continue;
       }
 
       const customerOrders = ordersByCustomer.get(String(customerId)) || [];
+      
+      if (customerOrders.length > 0) {
+        console.log(`✅ Customer ${customerId}: Found ${customerOrders.length} orders`);
+      } else {
+        console.log(`⚠️  Customer ${customerId}: No orders found`);
+      }
       
       if (customerOrders.length === 0) {
         // No orders - set zeros
