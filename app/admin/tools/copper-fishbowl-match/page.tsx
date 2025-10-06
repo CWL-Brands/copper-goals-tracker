@@ -100,7 +100,10 @@ export default function CopperFishbowlMatchPage() {
       const response = await fetch('/api/copper/match-fishbowl', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'apply' })
+        body: JSON.stringify({ 
+          action: 'apply',
+          matches: matches  // Pass the already-found matches
+        })
       });
 
       const data = await response.json();
@@ -109,8 +112,6 @@ export default function CopperFishbowlMatchPage() {
         throw new Error(data.error || 'Failed to apply matches');
       }
 
-      setMatches(data.matches);
-      setStats(data.stats);
       setApplied(true);
       setToast({ message: `✅ Successfully applied ${matches.length} matches!`, type: 'success' });
       

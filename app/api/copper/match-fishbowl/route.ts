@@ -250,7 +250,7 @@ async function applyMatches(matches: MatchResult[]): Promise<number> {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action } = body;
+    const { action, matches } = body;
     
     if (action === 'match') {
       // Just find matches, don't apply
@@ -261,14 +261,21 @@ export async function POST(req: NextRequest) {
         ...result
       });
     } else if (action === 'apply') {
-      // Find and apply matches
-      const result = await matchCopperToFishbowl();
-      const updated = await applyMatches(result.matches);
+      // Apply matches passed from the client (already found)
+      if (!matches || !Array.isArray(matches)) {
+        return NextResponse.json(
+          { error: 'Matches array required for apply action' },
+          { status: 400 }
+        );
+      }
+      
+      console.log(`📝 Applying ${matches.length} matches from client...`);
+      const updated = await applyMatches(matches);
       
       return NextResponse.json({
         success: true,
-        ...result,
-        updated
+        updated,
+        total: matches.length
       });
     } else {
       return NextResponse.json(
