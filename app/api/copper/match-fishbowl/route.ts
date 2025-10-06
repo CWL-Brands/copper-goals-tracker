@@ -56,10 +56,14 @@ async function matchCopperToFishbowl(): Promise<{
   console.log('📥 Loading Copper companies (this takes 20-30 seconds for 270K records)...');
   const startLoad = Date.now();
   const copperSnapshot = await adminDb.collection('copper_companies').get();
-  const copperCompanies = copperSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as any[];
+  const copperCompanies = copperSnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      firestoreId: doc.id,  // Firestore document ID
+      id: data.id,          // Actual Copper company ID
+      ...data
+    };
+  }) as any[];
   const loadTime = ((Date.now() - startLoad) / 1000).toFixed(1);
   
   console.log(`✅ Loaded ${copperCompanies.length} Copper companies in ${loadTime}s`);
