@@ -130,22 +130,12 @@ export async function POST(request: NextRequest) {
         return sum + price;
       }, 0);
 
-      const orderDates = customerOrders
-        .map(order => order.dateIssued || order.date)
-        .filter(date => date)
-        .sort();
-
-      const firstOrderDate = orderDates[0] || null;
-      const lastOrderDate = orderDates[orderDates.length - 1] || null;
+      // TODO: Fix date parsing - Excel serial dates need conversion
+      // For now, set dates to null until we fix the import
+      const firstOrderDate = null;
+      const lastOrderDate = null;
       const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-
-      let daysSinceLastOrder: number | null = null;
-      if (lastOrderDate) {
-        const lastDate = new Date(lastOrderDate);
-        const today = new Date();
-        const diffTime = Math.abs(today.getTime() - lastDate.getTime());
-        daysSinceLastOrder = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      }
+      const daysSinceLastOrder: number | null = null;
 
       const metrics: CustomerMetrics = {
         totalOrders,
