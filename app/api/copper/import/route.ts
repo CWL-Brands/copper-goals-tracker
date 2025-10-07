@@ -98,6 +98,17 @@ async function importCompanies(buffer: Buffer, filename: string): Promise<number
     
     const docRef = adminDb.collection('copper_companies').doc(docId);
     
+    // Check if already exists (for resume capability)
+    const existingDoc = await docRef.get();
+    if (existingDoc.exists) {
+      // Skip already imported
+      skipped++;
+      if (skipped <= 5) {
+        console.log(`⏭️  Skipping already imported: ${docId}`);
+      }
+      continue;
+    }
+    
     // Create document with ALL fields from CSV (even if blank)
     // This ensures schema is ready for future data
     const companyData: any = {
