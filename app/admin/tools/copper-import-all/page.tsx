@@ -45,6 +45,74 @@ export default function CopperImportAllPage() {
     tasks: null
   });
 
+  const handleImportStream = async (type: ImportType) => {
+    const file = files[type];
+    if (!file) {
+      setErrors({ ...errors, [type]: 'Please select a file first' });
+      return;
+    }
+
+    setLoading({ ...loading, [type]: true });
+    setErrors({ ...errors, [type]: null });
+    setProgress({ ...progress, [type]: { current: 0, total: 0, message: 'Starting...' } });
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/copper/import-stream', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) throw new Error('No response stream');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.slice(6));
+            
+            if (data.status === 'processing' || data.status === 'batch_committed') {
+              setProgress({
+                ...progress,
+                [type]: {
+                  current: data.processed,
+                  total: data.total,
+                  message: `${data.processed} of ${data.total} (${data.percent}%) - Imported: ${data.imported}, Updated: ${data.updated || 0}, Skipped: ${data.skipped}`
+                }
+              });
+            } else if (data.status === 'complete') {
+              setResults({ ...results, [type]: data });
+              setProgress({
+                ...progress,
+                [type]: {
+                  current: data.processed,
+                  total: data.processed,
+                  message: data.message
+                }
+              });
+            } else if (data.status === 'error') {
+              throw new Error(data.error);
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      setErrors({ ...errors, [type]: err.message });
+    } finally {
+      setLoading({ ...loading, [type]: false });
+    }
+  };
+
   const handleImport = async (type: ImportType, endpoint: string, fileKey: string) => {
     const file = files[type];
     if (!file) {
@@ -136,11 +204,11 @@ export default function CopperImportAllPage() {
         )}
         
         <button
-          onClick={() => handleImport(type, endpoint, fileKey)}
+          onClick={() => type === 'companies' ? handleImportStream(type) : handleImport(type, endpoint, fileKey)}
           disabled={loading[type] || !files[type]}
           className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {loading[type] ? '⏳ Importing...' : '📥 Import'}
+          {loading[type] ? '⏳ Importing...' : '📥 Import with Real-time Progress'}
         </button>
         
         {loading[type] && (

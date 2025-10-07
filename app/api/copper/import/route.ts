@@ -67,8 +67,16 @@ async function importCompanies(buffer: Buffer, filename: string): Promise<number
   let batchCount = 0;
   let totalImported = 0;
   let skipped = 0;
+  let processed = 0;
+  const totalRows = data.length;
   
   for (const row of data) {
+    processed++;
+    
+    // Log progress every 100 rows
+    if (processed % 100 === 0) {
+      console.log(`📊 Progress: ${processed} of ${totalRows} (${((processed/totalRows)*100).toFixed(1)}%) - Imported: ${totalImported}, Skipped: ${skipped}`);
+    }
     // Get Copper ID directly from the "Copper ID" column
     const copperCompanyId = row['Copper ID'];
     
@@ -98,15 +106,26 @@ async function importCompanies(buffer: Buffer, filename: string): Promise<number
     
     const docRef = adminDb.collection('copper_companies').doc(docId);
     
-    // Check if already exists (for resume capability)
+    // Smart delta import: Check if needs update
     const existingDoc = await docRef.get();
     if (existingDoc.exists) {
-      // Skip already imported
-      skipped++;
-      if (skipped <= 5) {
-        console.log(`⏭️  Skipping already imported: ${docId}`);
+      const existingData = existingDoc.data();
+      const csvUpdatedAt = row['Updated At'] || '';
+      const firestoreUpdatedAt = existingData?.['Updated At'] || '';
+      
+      // Skip if CSV data is not newer
+      if (csvUpdatedAt && firestoreUpdatedAt && csvUpdatedAt <= firestoreUpdatedAt) {
+        skipped++;
+        if (skipped <= 5) {
+          console.log(`⏭️  Skipping unchanged: ${docId} (last updated: ${firestoreUpdatedAt})`);
+        }
+        continue;
       }
-      continue;
+      
+      // If CSV is newer or no timestamp, update it
+      if (skipped <= 5 && csvUpdatedAt > firestoreUpdatedAt) {
+        console.log(`🔄 Updating changed record: ${docId} (${firestoreUpdatedAt} → ${csvUpdatedAt})`);
+      }
     }
     
     // Create document with ALL fields from CSV (even if blank)
