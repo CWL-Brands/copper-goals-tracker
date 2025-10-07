@@ -82,7 +82,19 @@ async function importCompanies(buffer: Buffer, filename: string): Promise<number
     }
     
     // Use the Copper ID as the document ID
-    const docId = String(copperCompanyId).trim();
+    // Clean it: remove slashes, spaces, and invalid characters
+    const docId = String(copperCompanyId)
+      .trim()
+      .replace(/\//g, '_')  // Replace slashes with underscores
+      .replace(/\s+/g, '_') // Replace spaces with underscores
+      .replace(/[^a-zA-Z0-9_-]/g, ''); // Remove other invalid chars
+    
+    // Final validation - must not be empty after cleaning
+    if (!docId || docId === '') {
+      skipped++;
+      console.log(`⚠️  Skipping row with invalid Copper ID after cleaning: "${copperCompanyId}"`);
+      continue;
+    }
     
     const docRef = adminDb.collection('copper_companies').doc(docId);
     
