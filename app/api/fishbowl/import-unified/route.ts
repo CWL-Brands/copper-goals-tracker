@@ -102,9 +102,9 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         const customerRef = adminDb.collection('fishbowl_customers').doc(customerDocId);
         
         const customerData: any = {
-          id: customerDocId,
-          name: row['Customer'] || row['Customer name'] || '',
-          accountNumber: row['Account Number'] || '',
+          id: customerDocId,  // Fishbowl Customer ID (matches Copper Account Order ID)
+          name: row['Customer'] || '',  // Customer Name
+          accountNumber: row['Account Number'] || '',  // Customer Account Number in Fishbowl
           accountType: row['Account Type'] || '',
           companyId: row['Company id'] || '',
           companyName: row['Company name'] || '',
@@ -167,22 +167,26 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         }
         
         const orderData: any = {
-          id: orderDocId,
-          num: String(salesOrderNum),
+          id: orderDocId,  // fb_so_{Sales order Number}
+          num: String(salesOrderNum),  // Sales Order Number (external customer-facing)
           fishbowlNum: String(salesOrderNum),
-          salesOrderId: String(salesOrderId), // Internal Fishbowl SO ID
-          customerId: sanitizedCustomerId, // Link to customer!
-          customerName: row['Customer'] || '',
-          salesPerson: row['Sales person'] || row['Sales Rep'] || '',
+          salesOrderId: String(salesOrderId), // Sales Order ID (Fishbowl assigned ID)
+          customerId: sanitizedCustomerId, // Customer ID (Fishbowl) = Copper Account Order ID
+          customerName: row['Customer'] || '',  // Customer Name
+          salesPerson: row['Sales person'] || '',  // Sales Person (long name)
+          salesRep: row['Sales Rep'] || '',  // Sales Rep (short name)
           
           // Commission tracking fields
           postingDate: postingDate ? Timestamp.fromDate(postingDate) : null,
-          postingDateStr: postingDateStr, // Keep original string
+          postingDateStr: postingDateStr,
           commissionDate: postingDate ? Timestamp.fromDate(postingDate) : null, // COMMISSION DATE = POSTING DATE
-          commissionMonth: commissionMonth, // For grouping by month
-          commissionYear: commissionYear, // For filtering by year
+          commissionMonth: commissionMonth, // For grouping: "2025-10"
+          commissionYear: commissionYear, // For filtering: 2025
           
-          orderValue: parseFloat(row['Order value'] || 0),
+          // Financial totals
+          revenue: parseFloat(row['Revenue'] || 0),  // Total amount of Sales Order
+          orderValue: parseFloat(row['Order value'] || 0),  // Total amount of Sales Order
+          
           updatedAt: Timestamp.now(),
           source: 'fishbowl_unified',
           syncStatus: 'pending',
@@ -243,45 +247,53 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
       }
       
       const itemData: any = {
-        id: itemDocId,
-        salesOrderId: String(salesOrderId), // Internal Fishbowl SO ID
-        salesOrderNum: String(salesOrderNum), // SO number
-        soId: `fb_so_${salesOrderNum}`, // Link to fishbowl_sales_orders
-        customerId: sanitizedCustomerId, // Denormalized for fast queries!
-        customerName: row['Customer'] || '',
+        id: itemDocId,  // soitem_{Sales Order Product ID}
         
-        // Commission tracking (denormalized from SO for fast queries)
+        // Sales Order Links
+        salesOrderId: String(salesOrderId), // Sales Order ID (Fishbowl assigned ID)
+        salesOrderNum: String(salesOrderNum), // Sales Order Number (customer-facing)
+        soId: `fb_so_${salesOrderNum}`, // Link to fishbowl_sales_orders collection
+        
+        // Customer Info (denormalized for fast queries)
+        customerId: sanitizedCustomerId, // Customer ID (Fishbowl) = Copper Account Order ID
+        customerName: row['Customer'] || '',  // Customer Name
+        accountNumber: row['Account Number'] || '',  // Customer Account Number
+        
+        // Sales Person
+        salesPerson: row['Sales person'] || '',  // Sales Person (long name)
+        salesRep: row['Sales Rep'] || '',  // Sales Rep (short name)
+        
+        // Commission Tracking (denormalized for fast queries)
         postingDate: postingDate ? Timestamp.fromDate(postingDate) : null,
         postingDateStr: postingDateStr,
         commissionDate: postingDate ? Timestamp.fromDate(postingDate) : null, // COMMISSION DATE = POSTING DATE
         commissionMonth: commissionMonth, // For grouping: "2025-10"
         commissionYear: commissionYear, // For filtering: 2025
         
-        // Product info
-        productId: row['Sales Order Product ID'] || row['Part id'] || '',
-        productNum: row['Sales Order Product Number'] || row['Part Number'] || '',
-        product: row['Product'] || '',
-        productC1: row['Product c1'] || '',
-        productC2: row['Product c2'] || '',
-        productC3: row['Product c3'] || '',
-        productC4: row['Product c4'] || '',
-        productC5: row['Product c5'] || '',
-        productDesc: row['Product desc'] || '',
-        description: row['Sales Order Item Description'] || row['Part description'] || '',
-        itemType: row['Sales Order Item Type'] || '',
-        partNumber: row['Part Number'] || '',
-        partId: row['Part id'] || '',
-        partDescription: row['Part description'] || '',
+        // Line Item Identification
+        lineItemId: String(productLineId), // Sales Order Product ID (unique line item ID)
         
-        // Financial data
-        revenue: parseFloat(row['Revenue'] || 0),
-        unitPrice: parseFloat(row['Unit Price'] || 0),
-        invoicedCost: parseFloat(row['Invoiced cost'] || 0),
-        margin: parseFloat(row['Margin'] || 0),
-        quantity: parseFloat(row['Shipped Quantity'] || 0),
+        // Product Info
+        partNumber: row['Part Number'] || '',  // Name of the SKU in Fishbowl
+        partId: row['Part id'] || '',  // ID associated to the part number
+        product: row['Product'] || '',
+        productC1: row['Product c1'] || '',  // Product category 1
+        productC2: row['Product c2'] || '',  // Product category 2
+        productC3: row['Product c3'] || '',  // Product category 3
+        productC4: row['Product c4'] || '',  // Product category 4
+        productC5: row['Product c5'] || '',  // Product category 5
+        productDesc: row['Product desc'] || '',
+        description: row['Sales Order Item Description'] || '',
+        itemType: row['Sales Order Item Type'] || '',
+        
+        // Financial Data (LINE ITEM LEVEL)
+        revenue: parseFloat(row['Revenue'] || 0),  // Line item revenue
+        unitPrice: parseFloat(row['Unit Price'] || 0),  // Price customer pays per unit
+        invoicedCost: parseFloat(row['Invoiced cost'] || 0),  // Cost of the product/line item
+        margin: parseFloat(row['Margin'] || 0),  // Dollar amount of margin from line item
+        quantity: parseFloat(row['Shipped Quantity'] || 0),  // Unit quantity of line item
         
         // Metadata
-        salesPerson: row['Sales person'] || row['Sales Rep'] || '',
         shippingItemId: row['Shipping Item ID'] || '',
         
         // Import metadata
