@@ -64,16 +64,20 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
   let batch = adminDb.batch();
   let batchCount = 0;
   
+  let rowIndex = 0;
+  const totalRows = data.length;
   for (const row of data) {
+    rowIndex++;
     stats.processed++;
     
     // Log progress every 1000 rows
     if (stats.processed % 1000 === 0) {
-      console.log(`📊 Progress: ${stats.processed} of ${data.length} (${((stats.processed/data.length)*100).toFixed(1)}%)`);
+      console.log(`📊 Progress: ${stats.processed} of ${totalRows} (${((stats.processed/totalRows)*100).toFixed(1)}%)`);
       console.log(`   Customers: ${stats.customersCreated} created, ${stats.customersUpdated} updated`);
       console.log(`   Orders: ${stats.ordersCreated} created, ${stats.ordersUpdated} updated`);
       console.log(`   Items: ${stats.itemsCreated} created, Skipped: ${stats.skipped}`);
     }
+    
     
     try {
       // Extract key fields
@@ -200,7 +204,14 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
       
       // === 3. CREATE SOITEM (LINE ITEM) ===
       // Each row is a unique line item
-      const itemDocId = `${salesOrderId}_${row['Sales Order Product ID'] || stats.itemsCreated}`;
+      // Sales Order Product ID is the unique line item ID from Fishbowl
+      const productLineId = row['Sales Order Product ID'];
+      if (!productLineId) {
+        stats.skipped++;
+        continue;
+      }
+      
+      const itemDocId = `soitem_${productLineId}`;
       const itemRef = adminDb.collection('fishbowl_soitems').doc(itemDocId);
       
       // Sanitize customer ID for consistency
