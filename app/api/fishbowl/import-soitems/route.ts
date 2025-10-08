@@ -47,13 +47,16 @@ async function importSOItems(buffer: Buffer, filename: string): Promise<number> 
       console.log(`📊 Progress: ${processed} of ${totalRows} (${((processed/totalRows)*100).toFixed(1)}%) - Imported: ${totalImported}, Skipped: ${skipped}`);
     }
     
-    // Get SOItem ID
-    const soItemId = row['id'];
-    const soNum = row['soNum']; // Links to Sales Order
+    // Get SOItem ID - try multiple possible column names
+    const soItemId = row['id'] || row['ID'] || row['soItemId'] || row['SOItemID'];
+    const soNum = row['soNum'] || row['SO Num'] || row['soNumber'] || row['SO Number'] || row['salesOrderNum'];
     
     // Skip if no valid ID or SO number
     if (!soItemId || !soNum) {
       skipped++;
+      if (skipped <= 3) {
+        console.log(`⚠️  Skipping row - missing ID or SO number. Available columns:`, Object.keys(row).slice(0, 10));
+      }
       continue;
     }
     
