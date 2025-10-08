@@ -89,7 +89,12 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
       
       // === 1. CREATE/UPDATE CUSTOMER ===
       if (!processedCustomers.has(String(customerId))) {
-        const customerDocId = String(customerId);
+        // Sanitize customer ID - remove slashes and invalid Firestore path characters
+        const customerDocId = String(customerId)
+          .replace(/\//g, '_')  // Replace / with _
+          .replace(/\\/g, '_')  // Replace \ with _
+          .trim();
+        
         const customerRef = adminDb.collection('fishbowl_customers').doc(customerDocId);
         
         const customerData: any = {
@@ -128,12 +133,18 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         const orderDocId = `fb_so_${salesOrderNum}`;
         const orderRef = adminDb.collection('fishbowl_sales_orders').doc(orderDocId);
         
+        // Sanitize customer ID for consistency
+        const sanitizedCustomerId = String(customerId)
+          .replace(/\//g, '_')
+          .replace(/\\/g, '_')
+          .trim();
+        
         const orderData: any = {
           id: orderDocId,
           num: String(salesOrderNum),
           fishbowlNum: String(salesOrderNum),
           salesOrderId: String(salesOrderId), // Internal Fishbowl SO ID
-          customerId: String(customerId), // Link to customer!
+          customerId: sanitizedCustomerId, // Link to customer!
           customerName: row['Customer'] || '',
           salesPerson: row['Sales person'] || row['Sales Rep'] || '',
           postingDate: row['Posting Date'] || '',
@@ -162,12 +173,18 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
       const itemDocId = `${salesOrderId}_${row['Sales Order Product ID'] || stats.itemsCreated}`;
       const itemRef = adminDb.collection('fishbowl_soitems').doc(itemDocId);
       
+      // Sanitize customer ID for consistency
+      const sanitizedCustomerId = String(customerId)
+        .replace(/\//g, '_')
+        .replace(/\\/g, '_')
+        .trim();
+      
       const itemData: any = {
         id: itemDocId,
         salesOrderId: String(salesOrderId), // Internal Fishbowl SO ID
         salesOrderNum: String(salesOrderNum), // SO number
         soId: `fb_so_${salesOrderNum}`, // Link to fishbowl_sales_orders
-        customerId: String(customerId), // Denormalized for fast queries!
+        customerId: sanitizedCustomerId, // Denormalized for fast queries!
         customerName: row['Customer'] || '',
         
         // Product info
