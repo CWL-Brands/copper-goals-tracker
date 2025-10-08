@@ -14,10 +14,14 @@ export default function FishbowlImportPage() {
   const [copperResult, setCopperResult] = useState<any>(null);
   const [soItemsLoading, setSOItemsLoading] = useState(false);
   const [soItemsResult, setSOItemsResult] = useState<any>(null);
+  const [unifiedFile, setUnifiedFile] = useState<File | null>(null);
+  const [unifiedLoading, setUnifiedLoading] = useState(false);
+  const [unifiedResult, setUnifiedResult] = useState<any>(null);
   
   const customersInputRef = useRef<HTMLInputElement>(null);
   const ordersInputRef = useRef<HTMLInputElement>(null);
   const soItemsInputRef = useRef<HTMLInputElement>(null);
+  const unifiedInputRef = useRef<HTMLInputElement>(null);
 
   const handleImport = async () => {
     if (!customersFile && !ordersFile) {
@@ -98,6 +102,43 @@ export default function FishbowlImportPage() {
     }
   };
 
+  const handleUnifiedImport = async () => {
+    if (!unifiedFile) {
+      setError('Please select the unified Conversight export file');
+      return;
+    }
+
+    setUnifiedLoading(true);
+    setUnifiedResult(null);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', unifiedFile);
+
+      const response = await fetch('/api/fishbowl/import-unified', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unified import failed');
+      }
+
+      setUnifiedResult(data);
+      setUnifiedFile(null);
+      if (unifiedInputRef.current) {
+        unifiedInputRef.current.value = '';
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setUnifiedLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -113,8 +154,102 @@ export default function FishbowlImportPage() {
           </a>
         </div>
 
+        {/* UNIFIED IMPORT - NEW! */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-300 rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-3xl">🚀</span>
+            <div>
+              <h2 className="text-2xl font-bold text-purple-900">Unified Fishbowl Import (RECOMMENDED)</h2>
+              <p className="text-sm text-purple-700">Import Conversight report - Creates Customers, Orders, AND Line Items in one go!</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-green-50 border border-green-300 rounded-lg">
+              <p className="text-sm text-green-900 font-semibold">
+                ✨ <strong>ONE UPLOAD = EVERYTHING!</strong>
+              </p>
+              <ul className="mt-2 text-sm text-green-800 space-y-1">
+                <li>✅ Creates/updates Customers (deduplicated by Customer id)</li>
+                <li>✅ Creates/updates Sales Orders (with Customer link)</li>
+                <li>✅ Creates Line Items (with Product, Revenue, Cost data)</li>
+                <li>✅ All properly linked together!</li>
+                <li>✅ ~60K rows in 2-3 minutes</li>
+              </ul>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📊 Conversight Export (Fishbowl_SalesOrder_export_10.8.2025.csv)
+              </label>
+              <input
+                ref={unifiedInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={(e) => setUnifiedFile(e.target.files?.[0] || null)}
+                disabled={unifiedLoading}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 disabled:opacity-50"
+              />
+              {unifiedFile && (
+                <p className="mt-2 text-sm text-green-600">
+                  ✅ Selected: {unifiedFile.name} ({(unifiedFile.size / 1024 / 1024).toFixed(1)} MB)
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={handleUnifiedImport}
+              disabled={unifiedLoading || !unifiedFile}
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-4 rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-bold text-lg shadow-lg"
+            >
+              {unifiedLoading ? '⏳ Importing All Data...' : '🚀 Import Everything (Unified)'}
+            </button>
+          </div>
+
+          {unifiedResult && (
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-green-900 mb-3">
+                ✅ Unified Import Complete!
+              </h3>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">Customers</p>
+                  <p className="text-xl font-bold text-blue-600">
+                    {(unifiedResult.stats.customersCreated + unifiedResult.stats.customersUpdated).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {unifiedResult.stats.customersCreated} new, {unifiedResult.stats.customersUpdated} updated
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Sales Orders</p>
+                  <p className="text-xl font-bold text-green-600">
+                    {(unifiedResult.stats.ordersCreated + unifiedResult.stats.ordersUpdated).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {unifiedResult.stats.ordersCreated} new, {unifiedResult.stats.ordersUpdated} updated
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Line Items</p>
+                  <p className="text-xl font-bold text-purple-600">
+                    {unifiedResult.stats.itemsCreated.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-gray-500">Product-level data</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-6">
+          <p className="text-sm text-yellow-900">
+            <strong>⚠️ Legacy Import Methods Below:</strong> Use these only if you have separate Fishbowl exports. The Unified Import above is recommended!
+          </p>
+        </div>
+
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Upload Excel Files</h2>
+          <h2 className="text-xl font-semibold mb-4">Upload Excel Files (Legacy)</h2>
           
           <div className="space-y-6">
             {/* Customers File Upload */}

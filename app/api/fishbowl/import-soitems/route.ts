@@ -47,15 +47,15 @@ async function importSOItems(buffer: Buffer, filename: string): Promise<number> 
       console.log(`📊 Progress: ${processed} of ${totalRows} (${((processed/totalRows)*100).toFixed(1)}%) - Imported: ${totalImported}, Skipped: ${skipped}`);
     }
     
-    // Get SOItem ID - try multiple possible column names
-    const soItemId = row['id'] || row['ID'] || row['soItemId'] || row['SOItemID'];
-    const soNum = row['soNum'] || row['SO Num'] || row['soNumber'] || row['SO Number'] || row['salesOrderNum'];
+    // Get SOItem ID and soLineItem (which contains the SO number)
+    const soItemId = row['id'];
+    const soLineItem = row['soLineItem']; // This is the SO number!
     
-    // Skip if no valid ID or SO number
-    if (!soItemId || !soNum) {
+    // Skip if no valid ID or SO line item
+    if (!soItemId || !soLineItem) {
       skipped++;
       if (skipped <= 3) {
-        console.log(`⚠️  Skipping row - missing ID or SO number. Available columns:`, Object.keys(row).slice(0, 10));
+        console.log(`⚠️  Skipping row - missing id or soLineItem. Row:`, row);
       }
       continue;
     }
@@ -74,31 +74,33 @@ async function importSOItems(buffer: Buffer, filename: string): Promise<number> 
     // Create document with ALL fields from CSV
     const soItemData: any = {
       id: soItemId,
-      soNum: String(soNum), // Link to sales order
-      soId: `fb_so_${soNum}`, // Reference to fishbowl_sales_orders collection
+      soLineItem: String(soLineItem), // SO number from soLineItem field
+      soId: `fb_so_${soLineItem}`, // Reference to fishbowl_sales_orders collection
       
       // Import metadata
       importedAt: Timestamp.now(),
       source: 'fishbowl',
     };
     
-    // Add ALL CSV columns as fields
+    // Add ALL CSV columns as fields (preserving exact field names)
     for (const [key, value] of Object.entries(row)) {
       if (key) {
         soItemData[key] = value || '';
       }
     }
     
-    // Add computed fields for easier querying
-    soItemData.productId = row['productId'] || row['productID'] || '';
-    soItemData.productNum = row['productNum'] || row['productNumber'] || '';
-    soItemData.description = row['description'] || row['Description'] || '';
-    soItemData.quantity = parseFloat(row['qtyOrdered'] || row['quantity'] || 0);
-    soItemData.unitPrice = parseFloat(row['unitPrice'] || row['price'] || 0);
-    soItemData.totalPrice = parseFloat(row['totalPrice'] || row['total'] || 0);
-    soItemData.lineNum = parseInt(row['lineNum'] || row['lineNumber'] || 0);
+    // Add computed/cleaned fields for easier querying
+    soItemData.productId = row['productId'] || '';
+    soItemData.productNum = row['productNum'] || '';
+    soItemData.description = row['description'] || '';
+    soItemData.quantity = parseFloat(row['qtyToFullfill'] || row['qtyFullfilled'] || 0);
+    soItemData.unitPrice = parseFloat(row['unitPrice'] || 0);
+    soItemData.totalPrice = parseFloat(row['totalPrice'] || 0);
+    soItemData.totalCost = parseFloat(row['totalCost'] || 0);
+    soItemData.markupCost = parseFloat(row['markupCost'] || 0);
+    soItemData.taxRate = parseFloat(row['taxRate'] || 0);
     
-    // Calculate revenue if not provided
+    // Calculate total if not provided
     if (!soItemData.totalPrice && soItemData.quantity && soItemData.unitPrice) {
       soItemData.totalPrice = soItemData.quantity * soItemData.unitPrice;
     }
