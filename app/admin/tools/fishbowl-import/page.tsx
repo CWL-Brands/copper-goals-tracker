@@ -8,12 +8,16 @@ export default function FishbowlImportPage() {
   const [error, setError] = useState<string | null>(null);
   const [customersFile, setCustomersFile] = useState<File | null>(null);
   const [ordersFile, setOrdersFile] = useState<File | null>(null);
+  const [soItemsFile, setSOItemsFile] = useState<File | null>(null);
   const [copperFile, setCopperFile] = useState<File | null>(null);
   const [copperLoading, setCopperLoading] = useState(false);
   const [copperResult, setCopperResult] = useState<any>(null);
+  const [soItemsLoading, setSOItemsLoading] = useState(false);
+  const [soItemsResult, setSOItemsResult] = useState<any>(null);
   
   const customersInputRef = useRef<HTMLInputElement>(null);
   const ordersInputRef = useRef<HTMLInputElement>(null);
+  const soItemsInputRef = useRef<HTMLInputElement>(null);
 
   const handleImport = async () => {
     if (!customersFile && !ordersFile) {
@@ -55,6 +59,42 @@ export default function FishbowlImportPage() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSOItemsImport = async () => {
+    if (!soItemsFile) {
+      setError('Please select a SOItems file');
+      return;
+    }
+
+    setSOItemsLoading(true);
+    setSOItemsResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', soItemsFile);
+
+      const response = await fetch('/api/fishbowl/import-soitems', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'SOItems import failed');
+      }
+
+      setSOItemsResult(data);
+      setSOItemsFile(null);
+      if (soItemsInputRef.current) {
+        soItemsInputRef.current.value = '';
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSOItemsLoading(false);
     }
   };
 
@@ -125,6 +165,76 @@ export default function FishbowlImportPage() {
             >
               {loading ? '⏳ Importing...' : '🚀 Import Files'}
             </button>
+          </div>
+
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>💡 Tip:</strong> You can upload one or both files. The import will process whatever you select.
+            </p>
+          </div>
+        </div>
+
+        {/* SOItems Import Section */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">📋 Sales Order Line Items (SOItems)</h2>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>⚠️ Important:</strong> Import Sales Orders first, then import SOItems. This ensures line items can link to their parent orders.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📊 SOItems File (Fishbowl_SoItem.xlsx) - ~60K line items
+              </label>
+              <input
+                ref={soItemsInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={(e) => setSOItemsFile(e.target.files?.[0] || null)}
+                disabled={soItemsLoading}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 disabled:opacity-50"
+              />
+              {soItemsFile && (
+                <p className="mt-2 text-sm text-green-600">
+                  ✅ Selected: {soItemsFile.name} ({(soItemsFile.size / 1024 / 1024).toFixed(1)} MB)
+                </p>
+              )}
+            </div>
+
+            <button
+              onClick={handleSOItemsImport}
+              disabled={soItemsLoading || !soItemsFile}
+              className="w-full bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-lg"
+            >
+              {soItemsLoading ? '⏳ Importing Line Items...' : '🚀 Import SOItems'}
+            </button>
+          </div>
+
+          {soItemsResult && (
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-green-900 mb-2">
+                ✅ SOItems Import Complete!
+              </h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">Total Imported</p>
+                  <p className="text-2xl font-bold text-green-600">{soItemsResult.count?.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Message</p>
+                  <p className="text-sm text-gray-700">{soItemsResult.message}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>📊 What this enables:</strong> Product mix analysis, revenue breakdown by SKU, commission calculations, and customer product performance metrics.
+            </p>
           </div>
 
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
