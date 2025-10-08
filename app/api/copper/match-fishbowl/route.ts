@@ -73,12 +73,19 @@ async function matchCopperToFishbowl(): Promise<{
   
   // Build lookup maps for FAST matching (O(1) instead of O(n))
   console.log('🗺️  Building lookup maps for fast matching...');
-  const copperByAccountNumber = new Map<string, any>();
+  const copperByAccountId = new Map<string, any>();  // NEW: Copper's Account ID field
+  const copperByAccountNumber = new Map<string, any>();  // OLD: Keep for backward compatibility
   const copperByOrderId = new Map<string, any>();
   const copperByAddress = new Map<string, any>();
   
   for (const copper of copperCompanies) {
-    // Map by Account Number
+    // Map by Account ID (NEW - Primary matching field)
+    const accountId = copper['Account ID'] || copper.accountId;
+    if (accountId && String(accountId).trim() !== '') {
+      copperByAccountId.set(String(accountId).trim(), copper);
+    }
+    
+    // Map by Account Number (OLD - Keep for backward compatibility)
     const accountNum = copper['Account Number cf_698260'];
     if (accountNum && String(accountNum).trim() !== '') {
       copperByAccountNumber.set(String(accountNum).trim(), copper);
@@ -101,28 +108,54 @@ async function matchCopperToFishbowl(): Promise<{
   }
   
   const mapTime = ((Date.now() - startLoad) / 1000).toFixed(1);
-  console.log(`✅ Built maps in ${mapTime}s: ${copperByAccountNumber.size} account numbers, ${copperByOrderId.size} order IDs, ${copperByAddress.size} addresses`);
+  console.log(`✅ Built maps in ${mapTime}s: ${copperByAccountId.size} account IDs, ${copperByAccountNumber.size} account numbers, ${copperByOrderId.size} order IDs, ${copperByAddress.size} addresses`);
   
-  // Strategy 1: Match by Fishbowl Account Number → Copper Account Number
-  // Both use the same field: "Account Number cf_698260"
-  console.log('🔍 Strategy 1: Matching by Account Number (Fishbowl → Copper)...');
+  // Strategy 1: Match by Fishbowl accountId → Copper Account ID (NEW PRIMARY MATCH)
+  console.log('🔍 Strategy 1: Matching by Account ID (Fishbowl accountId → Copper Account ID)...');
   const startMatch = Date.now();
   for (const fishbowl of fishbowlCustomers) {
-    // Get Fishbowl's Account Number (stored in same field as Copper)
-    const fishbowlAccountNumber = fishbowl['Account Number cf_698260'] || fishbowl.accountNumber;
+    // Use Fishbowl's accountId to match Copper's Account ID field
+    const fishbowlAccountId = fishbowl.accountId;
     
-    if (fishbowlAccountNumber && String(fishbowlAccountNumber).trim() !== '') {
+    if (fishbowlAccountId && String(fishbowlAccountId).trim() !== '') {
       // FAST lookup using Map
-      const copper = copperByAccountNumber.get(String(fishbowlAccountNumber).trim());
+      const copper = copperByAccountId.get(String(fishbowlAccountId).trim());
       
       if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
         matches.push({
           fishbowlCustomerId: String(fishbowl.id),  // fb_cust_1
           fishbowlCustomerName: fishbowl.name || '',
-          copperCompanyId: String(copper.id),  // Copper's simple ID
+          copperCompanyId: String(copper.id),  // Copper's system ID
           copperCompanyName: copper.Name || copper.name || '',
-          matchType: 'account_number',
+          matchType: 'account_id',
           confidence: 'high',
+          accountId: String(fishbowlAccountId)
+        });
+        matchedFishbowlIds.add(fishbowl.id);
+      }
+    }
+  }
+  
+  console.log(`✅ Matched ${matches.length} by Account ID`);
+  
+  // Strategy 2: FALLBACK - Match by Account Number (OLD field for backward compatibility)
+  console.log('🔍 Strategy 2: Matching by Account Number (Fishbowl → Copper - FALLBACK)...');
+  for (const fishbowl of fishbowlCustomers) {
+    if (matchedFishbowlIds.has(fishbowl.id)) continue; // Already matched
+    
+    const fishbowlAccountNumber = fishbowl['Account Number cf_698260'] || fishbowl.accountNumber;
+    
+    if (fishbowlAccountNumber && String(fishbowlAccountNumber).trim() !== '') {
+      const copper = copperByAccountNumber.get(String(fishbowlAccountNumber).trim());
+      
+      if (copper && !matchedFishbowlIds.has(fishbowl.id)) {
+        matches.push({
+          fishbowlCustomerId: String(fishbowl.id),
+          fishbowlCustomerName: fishbowl.name || '',
+          copperCompanyId: String(copper.id),
+          copperCompanyName: copper.Name || copper.name || '',
+          matchType: 'account_number_fallback',
+          confidence: 'medium',
           accountNumber: String(fishbowlAccountNumber)
         });
         matchedFishbowlIds.add(fishbowl.id);
@@ -130,11 +163,10 @@ async function matchCopperToFishbowl(): Promise<{
     }
   }
   
-  console.log(`✅ Matched ${matches.length} by Account Number`);
+  console.log(`✅ Matched ${matches.length} total after Account Number fallback`);
   
-  // Strategy 2: Match by Fishbowl Account ID → Copper Order ID field
-  // Fishbowl accountId = Copper "Account Order ID cf_698467"
-  console.log('🔍 Strategy 2: Matching by Fishbowl Account ID (accountId → Copper Order ID)...');
+  // Strategy 3: Match by Order ID (keep as additional fallback)
+  console.log('🔍 Strategy 3: Matching by Order ID (Fishbowl accountId → Copper Order ID - FALLBACK)...');
   for (const fishbowl of fishbowlCustomers) {
     if (matchedFishbowlIds.has(fishbowl.id)) continue; // Already matched
     
