@@ -138,25 +138,50 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
           .trim();
         
         // Parse posting date for commission tracking
-        const postingDateStr = row['Posting Date'] || '';
+        const postingDateRaw = row['Posting Date'];
         let postingDate = null;
+        let postingDateStr = '';
         let commissionMonth = '';
         let commissionYear = 0;
         
-        if (postingDateStr) {
+        if (postingDateRaw) {
           try {
-            // Parse date (format: MM/DD/YYYY or similar)
-            const dateParts = postingDateStr.split('/');
-            if (dateParts.length === 3) {
-              const month = parseInt(dateParts[0]);
-              const day = parseInt(dateParts[1]);
-              const year = parseInt(dateParts[2]);
-              postingDate = new Date(year, month - 1, day);
-              commissionMonth = `${year}-${String(month).padStart(2, '0')}`; // e.g., "2025-10"
+            // Check if it's an Excel serial number (numeric)
+            if (typeof postingDateRaw === 'number') {
+              // Convert Excel serial date to JavaScript Date
+              // Excel dates are days since 1/1/1900
+              const excelEpoch = new Date(1899, 11, 30); // Excel epoch (Dec 30, 1899)
+              postingDate = new Date(excelEpoch.getTime() + postingDateRaw * 86400000);
+              
+              const month = postingDate.getMonth() + 1;
+              const day = postingDate.getDate();
+              const year = postingDate.getFullYear();
+              
+              postingDateStr = `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
+              commissionMonth = `${year}-${String(month).padStart(2, '0')}`;
               commissionYear = year;
+            } else {
+              // String format: MM-DD-YYYY or MM/DD/YYYY
+              const dateStr = String(postingDateRaw);
+              postingDateStr = dateStr;
+              
+              // Try splitting by dash first, then slash
+              let dateParts = dateStr.split('-');
+              if (dateParts.length !== 3) {
+                dateParts = dateStr.split('/');
+              }
+              
+              if (dateParts.length === 3) {
+                const month = parseInt(dateParts[0]);
+                const day = parseInt(dateParts[1]);
+                const year = parseInt(dateParts[2]);
+                postingDate = new Date(year, month - 1, day);
+                commissionMonth = `${year}-${String(month).padStart(2, '0')}`;
+                commissionYear = year;
+              }
             }
           } catch (e) {
-            console.warn(`Failed to parse posting date: ${postingDateStr}`);
+            // Silently ignore parse errors
           }
         }
         
@@ -219,21 +244,45 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         .trim();
       
       // Parse posting date for commission tracking (denormalized for fast queries)
-      const postingDateStr = row['Posting Date'] || '';
-      let postingDate = null;
-      let commissionMonth = '';
-      let commissionYear = 0;
+      const postingDateRaw2 = row['Posting Date'];
+      let postingDate2 = null;
+      let postingDateStr2 = '';
+      let commissionMonth2 = '';
+      let commissionYear2 = 0;
       
-      if (postingDateStr) {
+      if (postingDateRaw2) {
         try {
-          const dateParts = postingDateStr.split('/');
-          if (dateParts.length === 3) {
-            const month = parseInt(dateParts[0]);
-            const day = parseInt(dateParts[1]);
-            const year = parseInt(dateParts[2]);
-            postingDate = new Date(year, month - 1, day);
-            commissionMonth = `${year}-${String(month).padStart(2, '0')}`;
-            commissionYear = year;
+          // Check if it's an Excel serial number (numeric)
+          if (typeof postingDateRaw2 === 'number') {
+            const excelEpoch = new Date(1899, 11, 30);
+            postingDate2 = new Date(excelEpoch.getTime() + postingDateRaw2 * 86400000);
+            
+            const month = postingDate2.getMonth() + 1;
+            const day = postingDate2.getDate();
+            const year = postingDate2.getFullYear();
+            
+            postingDateStr2 = `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
+            commissionMonth2 = `${year}-${String(month).padStart(2, '0')}`;
+            commissionYear2 = year;
+          } else {
+            // String format: MM-DD-YYYY or MM/DD/YYYY
+            const dateStr = String(postingDateRaw2);
+            postingDateStr2 = dateStr;
+            
+            // Try splitting by dash first, then slash
+            let dateParts = dateStr.split('-');
+            if (dateParts.length !== 3) {
+              dateParts = dateStr.split('/');
+            }
+            
+            if (dateParts.length === 3) {
+              const month = parseInt(dateParts[0]);
+              const day = parseInt(dateParts[1]);
+              const year = parseInt(dateParts[2]);
+              postingDate2 = new Date(year, month - 1, day);
+              commissionMonth2 = `${year}-${String(month).padStart(2, '0')}`;
+              commissionYear2 = year;
+            }
           }
         } catch (e) {
           // Ignore parse errors
@@ -258,11 +307,11 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         salesRep: row['Sales Rep'] || '',  // Sales Rep (short name)
         
         // Commission Tracking (denormalized for fast queries)
-        postingDate: postingDate ? Timestamp.fromDate(postingDate) : null,
-        postingDateStr: postingDateStr,
-        commissionDate: postingDate ? Timestamp.fromDate(postingDate) : null, // COMMISSION DATE = POSTING DATE
-        commissionMonth: commissionMonth, // For grouping: "2025-10"
-        commissionYear: commissionYear, // For filtering: 2025
+        postingDate: postingDate2 ? Timestamp.fromDate(postingDate2) : null,
+        postingDateStr: postingDateStr2,
+        commissionDate: postingDate2 ? Timestamp.fromDate(postingDate2) : null, // COMMISSION DATE = POSTING DATE
+        commissionMonth: commissionMonth2, // For grouping: "2025-10"
+        commissionYear: commissionYear2, // For filtering: 2025
         
         // Line Item Identification
         lineItemId: String(productLineId), // Sales Order Product ID (unique line item ID)
