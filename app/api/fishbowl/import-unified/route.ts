@@ -32,18 +32,12 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
   
   let data: Record<string, any>[];
   
-  // Parse file
-  if (filename.toLowerCase().endsWith('.csv')) {
-    console.log('📄 Parsing CSV file...');
-    const text = buffer.toString('utf-8');
-    data = parseCSV(text);
-  } else {
-    console.log('📊 Parsing Excel file...');
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    data = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
-  }
+  // Parse file - use XLSX for both CSV and Excel for consistent parsing
+  console.log('📄 Parsing file...');
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  data = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
   
   console.log(`✅ Found ${data.length} rows to process`);
   
@@ -334,29 +328,6 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
   return stats;
 }
 
-/**
- * Parse CSV data
- */
-function parseCSV(text: string): Record<string, any>[] {
-  const lines = text.split('\n').filter(line => line.trim());
-  if (lines.length === 0) return [];
-  
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  const data: Record<string, any>[] = [];
-  
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-    const row: Record<string, any> = {};
-    
-    for (let j = 0; j < headers.length; j++) {
-      row[headers[j]] = values[j] || '';
-    }
-    
-    data.push(row);
-  }
-  
-  return data;
-}
 
 export async function POST(req: NextRequest) {
   try {
