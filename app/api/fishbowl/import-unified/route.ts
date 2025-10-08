@@ -139,6 +139,29 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
           .replace(/\\/g, '_')
           .trim();
         
+        // Parse posting date for commission tracking
+        const postingDateStr = row['Posting Date'] || '';
+        let postingDate = null;
+        let commissionMonth = '';
+        let commissionYear = 0;
+        
+        if (postingDateStr) {
+          try {
+            // Parse date (format: MM/DD/YYYY or similar)
+            const dateParts = postingDateStr.split('/');
+            if (dateParts.length === 3) {
+              const month = parseInt(dateParts[0]);
+              const day = parseInt(dateParts[1]);
+              const year = parseInt(dateParts[2]);
+              postingDate = new Date(year, month - 1, day);
+              commissionMonth = `${year}-${String(month).padStart(2, '0')}`; // e.g., "2025-10"
+              commissionYear = year;
+            }
+          } catch (e) {
+            console.warn(`Failed to parse posting date: ${postingDateStr}`);
+          }
+        }
+        
         const orderData: any = {
           id: orderDocId,
           num: String(salesOrderNum),
@@ -147,7 +170,14 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
           customerId: sanitizedCustomerId, // Link to customer!
           customerName: row['Customer'] || '',
           salesPerson: row['Sales person'] || row['Sales Rep'] || '',
-          postingDate: row['Posting Date'] || '',
+          
+          // Commission tracking fields
+          postingDate: postingDate ? Timestamp.fromDate(postingDate) : null,
+          postingDateStr: postingDateStr, // Keep original string
+          commissionDate: postingDate ? Timestamp.fromDate(postingDate) : null, // COMMISSION DATE = POSTING DATE
+          commissionMonth: commissionMonth, // For grouping by month
+          commissionYear: commissionYear, // For filtering by year
+          
           orderValue: parseFloat(row['Order value'] || 0),
           updatedAt: Timestamp.now(),
           source: 'fishbowl_unified',
@@ -179,6 +209,28 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         .replace(/\\/g, '_')
         .trim();
       
+      // Parse posting date for commission tracking (denormalized for fast queries)
+      const postingDateStr = row['Posting Date'] || '';
+      let postingDate = null;
+      let commissionMonth = '';
+      let commissionYear = 0;
+      
+      if (postingDateStr) {
+        try {
+          const dateParts = postingDateStr.split('/');
+          if (dateParts.length === 3) {
+            const month = parseInt(dateParts[0]);
+            const day = parseInt(dateParts[1]);
+            const year = parseInt(dateParts[2]);
+            postingDate = new Date(year, month - 1, day);
+            commissionMonth = `${year}-${String(month).padStart(2, '0')}`;
+            commissionYear = year;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+      
       const itemData: any = {
         id: itemDocId,
         salesOrderId: String(salesOrderId), // Internal Fishbowl SO ID
@@ -186,6 +238,13 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         soId: `fb_so_${salesOrderNum}`, // Link to fishbowl_sales_orders
         customerId: sanitizedCustomerId, // Denormalized for fast queries!
         customerName: row['Customer'] || '',
+        
+        // Commission tracking (denormalized from SO for fast queries)
+        postingDate: postingDate ? Timestamp.fromDate(postingDate) : null,
+        postingDateStr: postingDateStr,
+        commissionDate: postingDate ? Timestamp.fromDate(postingDate) : null, // COMMISSION DATE = POSTING DATE
+        commissionMonth: commissionMonth, // For grouping: "2025-10"
+        commissionYear: commissionYear, // For filtering: 2025
         
         // Product info
         productId: row['Sales Order Product ID'] || row['Part id'] || '',
@@ -211,7 +270,6 @@ async function importUnifiedReport(buffer: Buffer, filename: string): Promise<Im
         quantity: parseFloat(row['Shipped Quantity'] || 0),
         
         // Metadata
-        postingDate: row['Posting Date'] || '',
         salesPerson: row['Sales person'] || row['Sales Rep'] || '',
         shippingItemId: row['Shipping Item ID'] || '',
         
