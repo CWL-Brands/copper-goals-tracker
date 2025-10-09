@@ -297,7 +297,7 @@ export default function CopperImportAllPage() {
         {results[type] && (
           <div className="p-3 bg-green-50 border border-green-200 rounded">
             <p className="text-sm text-green-800 font-semibold">
-              ✅ Imported {results[type].count.toLocaleString()} records
+              ✅ Imported {(results[type].count || results[type].imported || 0).toLocaleString()} records
             </p>
           </div>
         )}
