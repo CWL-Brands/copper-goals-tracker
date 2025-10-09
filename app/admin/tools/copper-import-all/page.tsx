@@ -392,42 +392,6 @@ export default function CopperImportAllPage() {
             icon="✅"
           />
         </div>
-
-        <div className="mt-8 bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">📊 Import Status</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Companies:</span>
-              <span className={results.companies ? 'text-green-600 font-semibold' : 'text-gray-400'}>
-                {results.companies ? `✅ ${results.companies.count.toLocaleString()}` : 'Pending'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>People:</span>
-              <span className={results.people ? 'text-green-600 font-semibold' : 'text-gray-400'}>
-                {results.people ? `✅ ${results.people.count.toLocaleString()}` : 'Pending'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Opportunities:</span>
-              <span className={results.opportunities ? 'text-green-600 font-semibold' : 'text-gray-400'}>
-                {results.opportunities ? `✅ ${results.opportunities.count.toLocaleString()}` : 'Pending'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Leads:</span>
-              <span className={results.leads ? 'text-green-600 font-semibold' : 'text-gray-400'}>
-                {results.leads ? `✅ ${results.leads.count.toLocaleString()}` : 'Pending'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tasks:</span>
-              <span className={results.tasks ? 'text-green-600 font-semibold' : 'text-gray-400'}>
-                {results.tasks ? `✅ ${results.tasks.count.toLocaleString()}` : 'Pending'}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
