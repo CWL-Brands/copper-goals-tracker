@@ -85,9 +85,11 @@ export async function POST(req: NextRequest) {
           // Assumes collection is empty or you want to overwrite
           
           // Create/update document
+          const now = Timestamp.now();
           const companyData: any = {
             id: Number(copperCompanyId),
-            importedAt: Timestamp.now(),
+            importedAt: now,
+            updatedAt: now, // Add this for stats tracking
             source: 'copper_export',
             copperUrl: row['Copper URL'] || ''
           };

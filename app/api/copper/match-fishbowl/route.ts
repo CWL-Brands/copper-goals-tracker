@@ -9,7 +9,7 @@ interface MatchResult {
   fishbowlCustomerName: string;
   copperCompanyId: string;
   copperCompanyName: string;
-  matchType: 'account_number' | 'account_order_id' | 'name';
+  matchType: 'account_number' | 'account_order_id' | 'account_id' | 'account_number_fallback' | 'name';
   confidence: 'high' | 'medium' | 'low';
   accountNumber?: string;
   accountOrderId?: string;
@@ -18,8 +18,8 @@ interface MatchResult {
 /**
  * Normalize address for matching
  */
-function normalizeAddress(address: string): string {
-  if (!address) return '';
+function normalizeAddress(address: any): string {
+  if (!address || typeof address !== 'string') return '';
   return address
     .toLowerCase()
     .replace(/[^\w\s]/g, '') // Remove punctuation
