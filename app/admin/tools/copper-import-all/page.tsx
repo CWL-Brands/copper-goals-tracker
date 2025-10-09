@@ -1,10 +1,19 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 type ImportType = 'companies' | 'people' | 'opportunities' | 'leads' | 'tasks';
 
+interface CollectionStats {
+  totalDocs: number;
+  lastUpdated: string | null;
+  sampleDoc: any;
+}
+
 export default function CopperImportAllPage() {
+  const [stats, setStats] = useState<Record<string, CollectionStats>>({});
+  const [loadingStats, setLoadingStats] = useState(true);
+  
   const [loading, setLoading] = useState<Record<ImportType, boolean>>({
     companies: false,
     people: false,
@@ -12,6 +21,28 @@ export default function CopperImportAllPage() {
     leads: false,
     tasks: false
   });
+  
+  // Fetch collection stats on mount and every 30 seconds
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/admin/collection-stats');
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.stats);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // Refresh every 30s
+    
+    return () => clearInterval(interval);
+  }, []);
   
   const [progress, setProgress] = useState<Record<ImportType, { current: number; total: number; message: string }>>({
     companies: { current: 0, total: 0, message: '' },
@@ -180,12 +211,44 @@ export default function CopperImportAllPage() {
     endpoint: string;
     fileKey: string;
     icon: string;
-  }) => (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-2">{icon} {title}</h3>
-      <p className="text-sm text-gray-600 mb-4">{description}</p>
-      
-      <div className="space-y-4">
+  }) => {
+    // Get collection name for stats
+    const collectionMap: Record<ImportType, string> = {
+      companies: 'copper_companies',
+      people: 'copper_people',
+      opportunities: 'copper_opportunities',
+      leads: 'copper_leads',
+      tasks: 'copper_tasks'
+    };
+    const collectionName = collectionMap[type];
+    const collectionStats = stats[collectionName];
+    
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold mb-2">{icon} {title}</h3>
+        <p className="text-sm text-gray-600 mb-2">{description}</p>
+        
+        {/* Collection Stats */}
+        {!loadingStats && collectionStats && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-gray-500">Total Loaded:</span>
+                <p className="font-bold text-lg text-blue-600">{collectionStats.totalDocs.toLocaleString()}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Last Import:</span>
+                <p className="font-semibold text-sm">
+                  {collectionStats.lastUpdated 
+                    ? new Date(collectionStats.lastUpdated).toLocaleString()
+                    : 'Never'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="space-y-4">
         <input
           type="file"
           accept=".xlsx,.xls,.csv"
@@ -246,7 +309,8 @@ export default function CopperImportAllPage() {
         )}
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
