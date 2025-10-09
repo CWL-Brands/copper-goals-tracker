@@ -10,6 +10,7 @@ interface CustomerMetrics {
   lastOrderDate: string | null;
   averageOrderValue: number;
   daysSinceLastOrder: number | null;
+  topProducts: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -29,32 +30,32 @@ export async function POST(request: NextRequest) {
 
     console.log(`📊 Found ${matchedCustomers.length} matched customers`);
 
-    // Get all sales orders
-    console.log('📥 Loading sales orders...');
-    const ordersSnapshot = await adminDb.collection('fishbowl_sales_orders').get();
-    const allOrders = ordersSnapshot.docs.map(doc => doc.data()) as any[];
+    // Get all line items (fishbowl_soitems) - this is where the REAL data is!
+    console.log('📥 Loading line items from fishbowl_soitems...');
+    const lineItemsSnapshot = await adminDb.collection('fishbowl_soitems').get();
+    const allLineItems = lineItemsSnapshot.docs.map(doc => doc.data()) as any[];
     
-    console.log(`📦 Found ${allOrders.length} sales orders`);
+    console.log(`📦 Found ${allLineItems.length} line items`);
 
-    // Log first order to see structure
-    if (allOrders.length > 0) {
-      console.log('📋 Sample order structure:', JSON.stringify(allOrders[0], null, 2));
+    // Log first line item to see structure
+    if (allLineItems.length > 0) {
+      console.log('📋 Sample line item structure:', JSON.stringify(allLineItems[0], null, 2));
     }
 
-    // Group orders by customer ID for fast lookup
-    const ordersByCustomer = new Map<string, any[]>();
-    for (const order of allOrders) {
-      const customerId = order.customerId || order.customerNum || order.customerID;
+    // Group line items by customer ID for fast lookup
+    const lineItemsByCustomer = new Map<string, any[]>();
+    for (const item of allLineItems) {
+      const customerId = item.customerId || item.customerNum || item.customerID;
       if (!customerId) continue;
       
-      if (!ordersByCustomer.has(String(customerId))) {
-        ordersByCustomer.set(String(customerId), []);
+      if (!lineItemsByCustomer.has(String(customerId))) {
+        lineItemsByCustomer.set(String(customerId), []);
       }
-      ordersByCustomer.get(String(customerId))!.push(order);
+      lineItemsByCustomer.get(String(customerId))!.push(item);
     }
 
-    console.log(`🗺️  Grouped orders for ${ordersByCustomer.size} customers`);
-    console.log(`🔑 Sample customer IDs from orders:`, Array.from(ordersByCustomer.keys()).slice(0, 5));
+    console.log(`🗺️  Grouped line items for ${lineItemsByCustomer.size} customers`);
+    console.log(`🔑 Sample customer IDs from line items:`, Array.from(lineItemsByCustomer.keys()).slice(0, 5));
 
     // Calculate metrics for each customer
     let updated = 0;
@@ -86,16 +87,16 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const customerOrders = ordersByCustomer.get(String(customerId)) || [];
+      const customerLineItems = lineItemsByCustomer.get(String(customerId)) || [];
       
-      if (customerOrders.length > 0) {
-        console.log(`✅ Customer ${customerId}: Found ${customerOrders.length} orders`);
+      if (customerLineItems.length > 0) {
+        console.log(`✅ Customer ${customerId}: Found ${customerLineItems.length} line items`);
       } else {
-        console.log(`⚠️  Customer ${customerId}: No orders found`);
+        console.log(`⚠️  Customer ${customerId}: No line items found`);
       }
       
-      if (customerOrders.length === 0) {
-        // No orders - set zeros
+      if (customerLineItems.length === 0) {
+        // No line items - set zeros
         const metrics: CustomerMetrics = {
           totalOrders: 0,
           totalSpent: 0,
@@ -103,6 +104,7 @@ export async function POST(request: NextRequest) {
           lastOrderDate: null,
           averageOrderValue: 0,
           daysSinceLastOrder: null,
+          topProducts: '',
         };
 
         const docRef = adminDb.collection('fishbowl_customers').doc(customer.id);
@@ -123,27 +125,75 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Calculate metrics
-      const totalOrders = customerOrders.length;
-      const totalSpent = customerOrders.reduce((sum, order) => {
-        const price = parseFloat(order.totalPrice || order.total || 0);
-        return sum + price;
+      // Calculate metrics from LINE ITEMS using REVENUE
+      // Get unique order numbers
+      const uniqueOrderNums = new Set(customerLineItems.map((item: any) => item.salesOrderNum).filter(Boolean));
+      const totalOrders = uniqueOrderNums.size;
+      
+      // Sum revenue from all line items
+      const totalSpent = customerLineItems.reduce((sum: number, item: any) => {
+        const revenue = parseFloat(item.revenue || 0);
+        return sum + revenue;
       }, 0);
 
-      // TODO: Fix date parsing - Excel serial dates need conversion
-      // For now, set dates to null until we fix the import
-      const firstOrderDate = null;
-      const lastOrderDate = null;
+      // Get dates from commissionDate field
+      const dates = customerLineItems
+        .map((item: any) => item.commissionDate)
+        .filter(Boolean)
+        .map((d: any) => {
+          // Handle Firestore Timestamp
+          if (d && d.toDate) return d.toDate();
+          // Handle ISO string
+          if (typeof d === 'string') return new Date(d);
+          // Handle Date object
+          if (d instanceof Date) return d;
+          return null;
+        })
+        .filter((d: any) => d && !isNaN(d.getTime()));
+
+      const firstOrderDate = dates.length > 0 
+        ? new Date(Math.min(...dates.map((d: Date) => d.getTime()))).toISOString()
+        : null;
+      
+      const lastOrderDate = dates.length > 0
+        ? new Date(Math.max(...dates.map((d: Date) => d.getTime()))).toISOString()
+        : null;
+
+      // Calculate days since last order
+      const daysSinceLastOrder = lastOrderDate
+        ? Math.floor((Date.now() - new Date(lastOrderDate).getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+
       const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-      const daysSinceLastOrder: number | null = null;
+
+      // Calculate top 3 products by revenue
+      const productRevenue = new Map<string, { name: string; revenue: number }>();
+      for (const item of customerLineItems) {
+        const partNumber = item.partNumber || item.productNum || 'Unknown';
+        const productName = item.product || partNumber;
+        const revenue = parseFloat(item.revenue || 0);
+        
+        if (!productRevenue.has(partNumber)) {
+          productRevenue.set(partNumber, { name: productName, revenue: 0 });
+        }
+        const prod = productRevenue.get(partNumber)!;
+        prod.revenue += revenue;
+      }
+
+      const topProducts = Array.from(productRevenue.values())
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 3)
+        .map(p => `${p.name} ($${p.revenue.toFixed(2)})`)
+        .join(', ');
 
       const metrics: CustomerMetrics = {
         totalOrders,
-        totalSpent: Math.round(totalSpent * 100) / 100, // Round to 2 decimals
+        totalSpent: Math.round(totalSpent * 100) / 100,
         firstOrderDate,
         lastOrderDate,
         averageOrderValue: Math.round(averageOrderValue * 100) / 100,
         daysSinceLastOrder,
+        topProducts,
       };
 
       const docRef = adminDb.collection('fishbowl_customers').doc(customer.id);
@@ -179,7 +229,7 @@ export async function POST(request: NextRequest) {
         totalCustomers: matchedCustomers.length,
         updated,
         skipped,
-        totalOrders: allOrders.length,
+        totalLineItems: allLineItems.length,
       },
     });
 

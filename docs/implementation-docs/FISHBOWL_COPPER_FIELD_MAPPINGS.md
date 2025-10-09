@@ -11,6 +11,7 @@ Map Fishbowl ERP data to existing Copper CRM custom fields for automatic data sy
 ## 📋 **COPPER OBJECT TYPES**
 
 Copper uses these object types for custom fields:
+
 - **👤 Contacts** - Individual people
 - **🏢 Accounts** - Companies/Organizations
 - **🔍 Prospects** - Potential customers (leads)
@@ -23,34 +24,34 @@ Copper uses these object types for custom fields:
 
 ### **Existing Copper Account Custom Fields:**
 
-| Fishbowl Field | Copper Field Name | Copper Field ID | Object Type | Status |
-|---|---|---|---|---|
-| `id` | Account Order ID | 698467 | Account | ✅ EXISTS |
-| `name` | Name | (native) | Account | ✅ NATIVE |
-| `billToAddress` | Address | (native) | Account | ✅ NATIVE |
-| `billToCity` | City | (native) | Account | ✅ NATIVE |
-| `billToStateID` | State | (native) | Account | ✅ NATIVE |
-| `billToZip` | Postal Code | (native) | Account | ✅ NATIVE |
-| `email` | Email | (native) | Account | ✅ NATIVE |
-| `phone` | Phone | (native) | Account | ✅ NATIVE |
-| `accountId` | Account Number | 698260 | Account | ✅ EXISTS |
-| (calculated) | Total Orders | 698403 | Account | ✅ EXISTS |
-| (calculated) | Total Spent | 698404 | Account | ✅ EXISTS |
-| (calculated) | First Order Date | 698405 | Account | ✅ EXISTS |
-| (calculated) | Last Order Date | 698406 | Account | ✅ EXISTS |
-| (calculated) | Average Order Value | 698407 | Account | ✅ EXISTS |
+| Fishbowl Field    | Copper Field Name   | Copper Field ID | Object Type | Status    |
+| ----------------- | ------------------- | --------------- | ----------- | --------- |
+| `id`            | Account Order ID    | 698467          | Account     | ✅ EXISTS |
+| `name`          | Name                | (native)        | Account     | ✅ NATIVE |
+| `billToAddress` | Address             | (native)        | Account     | ✅ NATIVE |
+| `billToCity`    | City                | (native)        | Account     | ✅ NATIVE |
+| `billToStateID` | State               | (native)        | Account     | ✅ NATIVE |
+| `billToZip`     | Postal Code         | (native)        | Account     | ✅ NATIVE |
+| `email`         | Email               | (native)        | Account     | ✅ NATIVE |
+| `phone`         | Phone               | (native)        | Account     | ✅ NATIVE |
+| `accountId`     | Account Number      | 698260          | Account     | ✅ EXISTS |
+| (calculated)      | Total Orders        | 698403          | Account     | ✅ EXISTS |
+| (calculated)      | Total Spent         | 698404          | Account     | ✅ EXISTS |
+| (calculated)      | First Order Date    | 698405          | Account     | ✅ EXISTS |
+| (calculated)      | Last Order Date     | 698406          | Account     | ✅ EXISTS |
+| (calculated)      | Average Order Value | 698407          | Account     | ✅ EXISTS |
 
 ### **New Fields Needed for Accounts:**
 
-| Fishbowl Field | Suggested Copper Field | Data Type | Priority |
-|---|---|---|---|
-| `activeFlag` | Active Customer | Checkbox | HIGH |
-| `creditLimit` | Credit Limit | Currency | MEDIUM |
-| `dateCreated` | Customer Since | Date | MEDIUM |
-| `dateLastModified` | Last Modified Date | Date | LOW |
-| `customerContact` | Primary Contact Name | String | MEDIUM |
-| `carrierServiceId` | Preferred Carrier | Dropdown | LOW |
-| `customFields` | (parse JSON) | Multiple | LOW |
+| Fishbowl Field       | Suggested Copper Field | Data Type | Priority |
+| -------------------- | ---------------------- | --------- | -------- |
+| `activeFlag`       | Active Customer        | Checkbox  | HIGH     |
+| `creditLimit`      | Credit Limit           | Currency  | MEDIUM   |
+| `dateCreated`      | Customer Since         | Date      | MEDIUM   |
+| `dateLastModified` | Last Modified Date     | Date      | LOW      |
+| `customerContact`  | Primary Contact Name   | String    | MEDIUM   |
+| `carrierServiceId` | Preferred Carrier      | Dropdown  | LOW      |
+| `customFields`     | (parse JSON)           | Multiple  | LOW      |
 
 ---
 
@@ -58,44 +59,44 @@ Copper uses these object types for custom fields:
 
 ### **Existing Copper Pipeline Record Custom Fields:**
 
-| Fishbowl Field | Copper Field Name | Copper Field ID | Object Type | Status |
-|---|---|---|---|---|
-| `num` | SO Number | 698395 | Pipeline Record | ✅ EXISTS |
-| `status` | Order Status | 698397 | Pipeline Record | ✅ EXISTS |
-| `totalPrice` | Order Total | 698441 | Pipeline Record | ✅ EXISTS |
-| `subtotal` | Subtotal | 698438 | Pipeline Record | ✅ EXISTS |
-| `totalTax` | Tax Amount | 698439 | Pipeline Record | ✅ EXISTS |
-| `totalIncludesTax` | Tax Included | (new) | Pipeline Record | ❌ NEW |
-| `cost` | Cost | (new) | Pipeline Record | ❌ NEW |
-| `dateIssued` | Date Issued | 698396 | Pipeline Record | ✅ EXISTS |
-| `dateCompleted` | Date Completed | (new) | Pipeline Record | ❌ NEW |
-| `dateCreated` | Date Created | (new) | Pipeline Record | ❌ NEW |
-| `dateLastModified` | Last Modified | (new) | Pipeline Record | ❌ NEW |
-| `salesman` | Salesman | (new) | Pipeline Record | ❌ NEW |
-| `salesmanId` | Salesman ID | (new) | Pipeline Record | ❌ NEW |
-| `customerPO` | Customer PO | (new) | Pipeline Record | ❌ NEW |
-| `locationGroupId` | Location | (new) | Pipeline Record | ❌ NEW |
-| `priorityId` | Priority | (new) | Pipeline Record | ❌ NEW |
-| `qbClassId` | QB Class | (new) | Pipeline Record | ❌ NEW |
-| `shipToName` | Ship To Name | (new) | Pipeline Record | ❌ NEW |
-| `shipToAddress` | Ship To Address | (new) | Pipeline Record | ❌ NEW |
-| `shipToCity` | Ship To City | (new) | Pipeline Record | ❌ NEW |
-| `shipToStateID` | Ship To State | (new) | Pipeline Record | ❌ NEW |
-| `shipToZip` | Ship To Zip | (new) | Pipeline Record | ❌ NEW |
-| `shipToResidential` | Residential Delivery | (new) | Pipeline Record | ❌ NEW |
-| `carrierServiceId` | Shipping Method | (new) | Pipeline Record | ❌ NEW |
-| `taxRate` | Tax Rate | (new) | Pipeline Record | ❌ NEW |
-| `taxRateName` | Tax Rate Name | (new) | Pipeline Record | ❌ NEW |
-| `paymentTermsId` | Payment Terms | (new) | Pipeline Record | ❌ NEW |
-| `fobPointId` | FOB Point | (new) | Pipeline Record | ❌ NEW |
-| `note` | Order Notes | (new) | Pipeline Record | ❌ NEW |
-| `customFields` | (parse JSON) | Multiple | ❌ NEW |
+| Fishbowl Field        | Copper Field Name    | Copper Field ID | Object Type     | Status    |
+| --------------------- | -------------------- | --------------- | --------------- | --------- |
+| `num`               | SO Number            | 698395          | Pipeline Record | ✅ EXISTS |
+| `status`            | Order Status         | 698397          | Pipeline Record | ✅ EXISTS |
+| `totalPrice`        | Order Total          | 698441          | Pipeline Record | ✅ EXISTS |
+| `subtotal`          | Subtotal             | 698438          | Pipeline Record | ✅ EXISTS |
+| `totalTax`          | Tax Amount           | 698439          | Pipeline Record | ✅ EXISTS |
+| `totalIncludesTax`  | Tax Included         | (new)           | Pipeline Record | ❌ NEW    |
+| `cost`              | Cost                 | (new)           | Pipeline Record | ❌ NEW    |
+| `dateIssued`        | Date Issued          | 698396          | Pipeline Record | ✅ EXISTS |
+| `dateCompleted`     | Date Completed       | (new)           | Pipeline Record | ❌ NEW    |
+| `dateCreated`       | Date Created         | (new)           | Pipeline Record | ❌ NEW    |
+| `dateLastModified`  | Last Modified        | (new)           | Pipeline Record | ❌ NEW    |
+| `salesman`          | Salesman             | (new)           | Pipeline Record | ❌ NEW    |
+| `salesmanId`        | Salesman ID          | (new)           | Pipeline Record | ❌ NEW    |
+| `customerPO`        | Customer PO          | (new)           | Pipeline Record | ❌ NEW    |
+| `locationGroupId`   | Location             | (new)           | Pipeline Record | ❌ NEW    |
+| `priorityId`        | Priority             | (new)           | Pipeline Record | ❌ NEW    |
+| `qbClassId`         | QB Class             | (new)           | Pipeline Record | ❌ NEW    |
+| `shipToName`        | Ship To Name         | (new)           | Pipeline Record | ❌ NEW    |
+| `shipToAddress`     | Ship To Address      | (new)           | Pipeline Record | ❌ NEW    |
+| `shipToCity`        | Ship To City         | (new)           | Pipeline Record | ❌ NEW    |
+| `shipToStateID`     | Ship To State        | (new)           | Pipeline Record | ❌ NEW    |
+| `shipToZip`         | Ship To Zip          | (new)           | Pipeline Record | ❌ NEW    |
+| `shipToResidential` | Residential Delivery | (new)           | Pipeline Record | ❌ NEW    |
+| `carrierServiceId`  | Shipping Method      | (new)           | Pipeline Record | ❌ NEW    |
+| `taxRate`           | Tax Rate             | (new)           | Pipeline Record | ❌ NEW    |
+| `taxRateName`       | Tax Rate Name        | (new)           | Pipeline Record | ❌ NEW    |
+| `paymentTermsId`    | Payment Terms        | (new)           | Pipeline Record | ❌ NEW    |
+| `fobPointId`        | FOB Point            | (new)           | Pipeline Record | ❌ NEW    |
+| `note`              | Order Notes          | (new)           | Pipeline Record | ❌ NEW    |
+| `customFields`      | (parse JSON)         | Multiple        | ❌ NEW          |           |
 
 ### **Shipping Amount:**
 
-| Fishbowl Field | Copper Field Name | Copper Field ID | Object Type | Status |
-|---|---|---|---|---|
-| (calculated from items) | Shipping Amount | 698427 | Pipeline Record | ✅ EXISTS |
+| Fishbowl Field          | Copper Field Name | Copper Field ID | Object Type     | Status    |
+| ----------------------- | ----------------- | --------------- | --------------- | --------- |
+| (calculated from items) | Shipping Amount   | 698427          | Pipeline Record | ✅ EXISTS |
 
 ---
 
@@ -200,6 +201,7 @@ await updateCompanyCustomFields(company.id, [
 ### **1. Fishbowl customFields (JSON String):**
 
 Fishbowl stores custom fields as JSON:
+
 ```json
 {
   "1": {"name": "Shopify Order Identity 1", "type": "Long Text", "value": ""},
@@ -210,6 +212,7 @@ Fishbowl stores custom fields as JSON:
 ```
 
 **Strategy:**
+
 - Parse JSON
 - Map important fields to dedicated Copper custom fields
 - Store full JSON in a "Fishbowl Custom Data" text field for reference
@@ -231,6 +234,7 @@ const STATUS_TO_STAGE = {
 ### **3. Sale Type Detection:**
 
 Determine sale type from Fishbowl data:
+
 ```typescript
 function determineSaleType(fishbowlSO) {
   // Check customer type, order attributes, etc.
@@ -245,20 +249,23 @@ function determineSaleType(fishbowlSO) {
 ## ✅ **IMPLEMENTATION CHECKLIST**
 
 ### **Phase 1: Create Missing Copper Fields**
+
 - [ ] Create 7 new Company custom fields
 - [ ] Create 25+ new Opportunity custom fields
 - [ ] Document new field IDs
 - [ ] Update `lib/copper/field-mappings.ts`
 
 ### **Phase 2: Build Sync Logic**
-- [ ] Create `lib/fishbowl/client.ts` (Fishbowl API client)
-- [ ] Create `lib/fishbowl/field-mappings.ts` (field mapping logic)
-- [ ] Create `app/api/fishbowl/sync/route.ts` (sync endpoint)
+
+- [X] Create `lib/fishbowl/client.ts` (Fishbowl API client)
+- [X] Create `lib/fishbowl/field-mappings.ts` (field mapping logic)
+- [X] Create `app/api/fishbowl/sync/route.ts` (sync endpoint)
 - [ ] Implement customer → company sync
 - [ ] Implement sales order → opportunity sync
 - [ ] Calculate aggregate fields
 
 ### **Phase 3: Test & Validate**
+
 - [ ] Test with sample Fishbowl data
 - [ ] Verify company linking works
 - [ ] Verify opportunity linking works
@@ -266,6 +273,7 @@ function determineSaleType(fishbowlSO) {
 - [ ] Test duplicate prevention
 
 ### **Phase 4: Production**
+
 - [ ] Schedule automated syncs
 - [ ] Add error handling & logging
 - [ ] Monitor sync performance

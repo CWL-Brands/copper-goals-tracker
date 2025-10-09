@@ -61,12 +61,20 @@ export async function POST(request: NextRequest) {
           { custom_field_definition_id: 698407, value: metrics.averageOrderValue },
         ];
 
-        // Add dates if they exist (currently null)
+        // Add dates if they exist
         if (metrics.firstOrderDate) {
           custom_fields.push({ custom_field_definition_id: 698405, value: metrics.firstOrderDate });
         }
         if (metrics.lastOrderDate) {
           custom_fields.push({ custom_field_definition_id: 698406, value: metrics.lastOrderDate });
+        }
+
+        // Add new fields: Days Since Last Order and Top Products
+        if (metrics.daysSinceLastOrder !== null && metrics.daysSinceLastOrder !== undefined) {
+          custom_fields.push({ custom_field_definition_id: 713846, value: metrics.daysSinceLastOrder });
+        }
+        if (metrics.topProducts) {
+          custom_fields.push({ custom_field_definition_id: 713845, value: metrics.topProducts });
         }
 
         // Call Copper API to update company
