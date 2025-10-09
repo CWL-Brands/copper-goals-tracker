@@ -43,12 +43,13 @@ export async function POST(req: NextRequest) {
         let totalUpdated = 0;
         let skipped = 0;
         let processed = 0;
+        const BATCH_SIZE = 1000; // Increased from 500 for speed
 
         for (const row of data) {
           processed++;
 
-          // Send progress update every 50 rows
-          if (processed % 50 === 0) {
+          // Send progress update every 5000 rows (less frequent for speed)
+          if (processed % 5000 === 0) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               status: 'processing',
               processed,
@@ -80,23 +81,9 @@ export async function POST(req: NextRequest) {
 
           const docRef = adminDb.collection('copper_companies').doc(docId);
           
-          // Check if exists and compare timestamps
-          const existingDoc = await docRef.get();
-          let isUpdate = false;
+          // SPEED OPTIMIZATION: Skip duplicate check on fresh import
+          // Assumes collection is empty or you want to overwrite
           
-          if (existingDoc.exists) {
-            const existingData = existingDoc.data();
-            const csvUpdatedAt = row['Updated At'] || '';
-            const firestoreUpdatedAt = existingData?.['Updated At'] || '';
-            
-            if (csvUpdatedAt && firestoreUpdatedAt && csvUpdatedAt <= firestoreUpdatedAt) {
-              skipped++;
-              continue;
-            }
-            
-            isUpdate = true;
-          }
-
           // Create/update document
           const companyData: any = {
             id: Number(copperCompanyId),
@@ -120,16 +107,11 @@ export async function POST(req: NextRequest) {
           companyData.zip = row['Postal Code'] || '';
           companyData.country = row['Country'] || '';
 
-          batch.set(docRef, companyData, { merge: true });
+          batch.set(docRef, companyData);
           batchCount++;
-          
-          if (isUpdate) {
-            totalUpdated++;
-          } else {
-            totalImported++;
-          }
+          totalImported++;
 
-          if (batchCount >= 500) {
+          if (batchCount >= BATCH_SIZE) {
             await batch.commit();
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
               status: 'batch_committed',
