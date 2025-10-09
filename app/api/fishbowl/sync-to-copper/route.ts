@@ -61,12 +61,14 @@ export async function POST(request: NextRequest) {
           { custom_field_definition_id: 698407, value: metrics.averageOrderValue },
         ];
 
-        // Add dates if they exist
+        // Add dates if they exist - Convert ISO to Unix timestamp (seconds)
         if (metrics.firstOrderDate) {
-          custom_fields.push({ custom_field_definition_id: 698405, value: metrics.firstOrderDate });
+          const firstOrderTimestamp = Math.floor(new Date(metrics.firstOrderDate).getTime() / 1000);
+          custom_fields.push({ custom_field_definition_id: 698405, value: firstOrderTimestamp });
         }
         if (metrics.lastOrderDate) {
-          custom_fields.push({ custom_field_definition_id: 698406, value: metrics.lastOrderDate });
+          const lastOrderTimestamp = Math.floor(new Date(metrics.lastOrderDate).getTime() / 1000);
+          custom_fields.push({ custom_field_definition_id: 698406, value: lastOrderTimestamp });
         }
 
         // Add new fields: Days Since Last Order and Top Products
