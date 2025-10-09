@@ -129,7 +129,7 @@ async function matchCopperToFishbowl(): Promise<{
           copperCompanyName: copper.Name || copper.name || '',
           matchType: 'account_id',
           confidence: 'high',
-          accountId: String(fishbowlAccountId)
+          accountOrderId: String(fishbowlAccountId)
         });
         matchedFishbowlIds.add(fishbowl.id);
       }
@@ -159,6 +159,7 @@ async function matchCopperToFishbowl(): Promise<{
           accountNumber: String(fishbowlAccountNumber)
         });
         matchedFishbowlIds.add(fishbowl.id);
+      }
     }
   }
   
