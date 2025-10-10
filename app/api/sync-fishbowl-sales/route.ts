@@ -259,6 +259,82 @@ export async function POST(req: NextRequest) {
 
     console.log('[Fishbowl Sync] Complete:', metricsCreated, 'metrics created');
 
+    // Update goal progress for all affected users
+    console.log('[Fishbowl Sync] Updating goal progress for affected users');
+    const affectedUsers = Object.keys(metricsByUser);
+    
+    for (const uid of affectedUsers) {
+      try {
+        const goalsSnapshot = await adminDb.collection('goals').where('userId', '==', uid).get();
+        
+        for (const goalDoc of goalsSnapshot.docs) {
+          const goal = goalDoc.data();
+          
+          // Only update sales goals
+          if (!goal.type.includes('sales')) continue;
+          
+          // Determine period boundaries
+          const now = new Date();
+          let periodStart: Date;
+          let periodEnd: Date;
+
+          switch (goal.period) {
+            case 'daily':
+              periodStart = new Date(now);
+              periodStart.setHours(0, 0, 0, 0);
+              periodEnd = new Date(now);
+              periodEnd.setHours(23, 59, 59, 999);
+              break;
+            case 'weekly':
+              periodStart = new Date(now);
+              periodStart.setDate(now.getDate() - now.getDay() + 1);
+              periodStart.setHours(0, 0, 0, 0);
+              periodEnd = new Date(periodStart);
+              periodEnd.setDate(periodStart.getDate() + 6);
+              periodEnd.setHours(23, 59, 59, 999);
+              break;
+            case 'monthly':
+              periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+              periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+              break;
+            case 'quarterly':
+              const quarter = Math.floor(now.getMonth() / 3);
+              periodStart = new Date(now.getFullYear(), quarter * 3, 1);
+              periodEnd = new Date(now.getFullYear(), quarter * 3 + 3, 0, 23, 59, 59, 999);
+              break;
+            default:
+              continue;
+          }
+
+          // Query metrics for this goal type and period
+          const metricsSnapshot = await adminDb
+            .collection('metrics')
+            .where('userId', '==', uid)
+            .where('type', '==', goal.type)
+            .where('date', '>=', periodStart)
+            .where('date', '<=', periodEnd)
+            .get();
+
+          // Sum up the metric values
+          let totalValue = 0;
+          for (const metricDoc of metricsSnapshot.docs) {
+            const metric = metricDoc.data();
+            totalValue += Number(metric.value || 0);
+          }
+
+          console.log(`[Fishbowl Sync] Goal ${goalDoc.id} (${goal.type}, ${goal.period}): ${metricsSnapshot.docs.length} metrics, total: ${totalValue}`);
+
+          // Update the goal's current value
+          await adminDb.collection('goals').doc(goalDoc.id).update({
+            current: totalValue,
+            updatedAt: new Date(),
+          });
+        }
+      } catch (e: any) {
+        console.error(`[Fishbowl Sync] Failed to update goals for user ${uid}:`, e);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: `Synced ${ordersSnapshot.docs.length} orders, created ${metricsCreated} metrics`,

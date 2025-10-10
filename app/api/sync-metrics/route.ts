@@ -582,6 +582,78 @@ export async function POST(request: NextRequest) {
       await adminDb.collection('settings').doc(userId).set({ lastSyncAt: new Date().toISOString() }, { merge: true });
     } catch {}
 
+    // Update goal progress after syncing metrics
+    console.log('[Sync Metrics] Updating goal progress for user:', userId);
+    try {
+      const goalsSnapshot = await adminDb.collection('goals').where('userId', '==', userId).get();
+      
+      for (const goalDoc of goalsSnapshot.docs) {
+        const goal = goalDoc.data();
+        
+        // Determine period boundaries
+        const now = new Date();
+        let periodStart: Date;
+        let periodEnd: Date;
+
+        switch (goal.period) {
+          case 'daily':
+            periodStart = new Date(now);
+            periodStart.setHours(0, 0, 0, 0);
+            periodEnd = new Date(now);
+            periodEnd.setHours(23, 59, 59, 999);
+            break;
+          case 'weekly':
+            periodStart = new Date(now);
+            periodStart.setDate(now.getDate() - now.getDay() + 1); // Monday
+            periodStart.setHours(0, 0, 0, 0);
+            periodEnd = new Date(periodStart);
+            periodEnd.setDate(periodStart.getDate() + 6); // Sunday
+            periodEnd.setHours(23, 59, 59, 999);
+            break;
+          case 'monthly':
+            periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            break;
+          case 'quarterly':
+            const quarter = Math.floor(now.getMonth() / 3);
+            periodStart = new Date(now.getFullYear(), quarter * 3, 1);
+            periodEnd = new Date(now.getFullYear(), quarter * 3 + 3, 0, 23, 59, 59, 999);
+            break;
+          default:
+            continue;
+        }
+
+        // Query metrics for this goal type and period
+        const metricsSnapshot = await adminDb
+          .collection('metrics')
+          .where('userId', '==', userId)
+          .where('type', '==', goal.type)
+          .where('date', '>=', periodStart)
+          .where('date', '<=', periodEnd)
+          .get();
+
+        // Sum up the metric values
+        let totalValue = 0;
+        for (const metricDoc of metricsSnapshot.docs) {
+          const metric = metricDoc.data();
+          totalValue += Number(metric.value || 0);
+        }
+
+        console.log(`[Sync Metrics] Goal ${goalDoc.id} (${goal.type}, ${goal.period}): ${metricsSnapshot.docs.length} metrics, total: ${totalValue}`);
+
+        // Update the goal's current value
+        await adminDb.collection('goals').doc(goalDoc.id).update({
+          current: totalValue,
+          updatedAt: new Date(),
+        });
+      }
+      
+      console.log(`[Sync Metrics] Updated ${goalsSnapshot.docs.length} goals`);
+    } catch (e: any) {
+      console.error('[Sync Metrics] Failed to update goal progress:', e);
+      // Don't fail the whole sync if goal update fails
+    }
+
     return NextResponse.json({ success: true, userId, period, start: dateRange.start, end: dateRange.end, metrics: results });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Sync failed' }, { status: 500 });
