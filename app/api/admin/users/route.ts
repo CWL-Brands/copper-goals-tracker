@@ -12,14 +12,21 @@ function getAdminEmails(): string[] {
 async function requireAdmin(req: NextRequest) {
   const authHeader = req.headers.get('authorization') || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-  if (!token) return null;
+  if (!token) {
+    console.log('[Admin Users] No token provided');
+    return null;
+  }
   try {
     const decoded = await adminAuth.verifyIdToken(token);
     const email = (decoded.email || '').toLowerCase();
     const admins = getAdminEmails();
+    console.log('[Admin Users] User email:', email);
+    console.log('[Admin Users] Admin emails:', admins);
     if (email && admins.includes(email)) return decoded;
+    console.log('[Admin Users] Email not in admin list');
     return null;
-  } catch {
+  } catch (e) {
+    console.error('[Admin Users] Token verification failed:', e);
     return null;
   }
 }

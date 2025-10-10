@@ -175,9 +175,10 @@ export default function CopperMetadataTab() {
       const { auth } = await import('@/lib/firebase/client');
       const user = auth.currentUser;
       if (!user) {
-        toast.error('Not authenticated');
+        toast.error('Not authenticated - please refresh and try again');
         return;
       }
+      
       const token = await user.getIdToken();
       
       const res = await fetch('/api/admin/users', {
@@ -186,7 +187,13 @@ export default function CopperMetadataTab() {
         },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed to load users');
+      
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error('Unauthorized - you must be an admin to load users');
+        }
+        throw new Error(data?.error || 'Failed to load users');
+      }
       
       // Filter to active sales users and sort by name
       const salesUsers = (data.users || [])
@@ -196,6 +203,7 @@ export default function CopperMetadataTab() {
       setCopperUsers(salesUsers);
       toast.success(`Loaded ${salesUsers.length} sales users`);
     } catch (e: any) {
+      console.error('[Load Users] Error:', e);
       toast.error(e.message || 'Failed to load users');
     }
   };
