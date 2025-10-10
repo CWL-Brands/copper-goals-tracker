@@ -32,6 +32,7 @@ export default function CopperMetadataTab() {
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<any>(null);
   const [diagUserEmail, setDiagUserEmail] = useState('');
+  const [copperUsers, setCopperUsers] = useState<any[]>([]);
 
   const fetchMetadata = async () => {
     setMetaLoading(true);
@@ -129,7 +130,18 @@ export default function CopperMetadataTab() {
         setApiUser(userData.user);
       }
 
-      toast.success(`Found ${actTypesData.activityTypes?.length || 0} activity types, ${pipelinesData.pipelines?.length || 0} pipelines`);
+      // Fetch Copper users
+      const usersRes = await fetch('/api/copper/users');
+      const usersData = await usersRes.json();
+      if (usersRes.ok) {
+        // Filter to active users only and sort by name
+        const activeUsers = (usersData.users || [])
+          .filter((u: any) => !u.inactive)
+          .sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+        setCopperUsers(activeUsers);
+      }
+
+      toast.success(`Found ${actTypesData.activityTypes?.length || 0} activity types, ${pipelinesData.pipelines?.length || 0} pipelines, ${copperUsers.length || 0} users`);
     } catch (e: any) {
       toast.error(e.message || 'Failed to discover Copper data');
     } finally {
@@ -467,17 +479,30 @@ export default function CopperMetadataTab() {
         <p className="text-sm text-gray-600 mb-4">
           Diagnose why emails aren't syncing for a specific user. Checks Copper API connection, activity type mapping, and recent email data.
         </p>
+        
+        {copperUsers.length === 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
+            💡 Click "Discover All Mappings" above to load Copper users into the dropdown
+          </div>
+        )}
+        
         <div className="flex gap-3 mb-4">
-          <input
-            type="email"
+          <select
             value={diagUserEmail}
             onChange={(e) => setDiagUserEmail(e.target.value)}
-            placeholder="user@kanvabotanicals.com"
-            className="flex-1 border rounded-md px-3 py-2"
-          />
+            className="flex-1 border rounded-md px-3 py-2 text-sm"
+            disabled={copperUsers.length === 0}
+          >
+            <option value="">Select Copper user...</option>
+            {copperUsers.map((user: any) => (
+              <option key={user.id} value={user.email}>
+                {user.name} ({user.email})
+              </option>
+            ))}
+          </select>
           <button
             onClick={diagnoseEmail}
-            disabled={diagnosing}
+            disabled={diagnosing || !diagUserEmail}
             className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-400"
           >
             {diagnosing ? 'Diagnosing...' : 'Run Diagnostic'}
