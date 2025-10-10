@@ -177,11 +177,11 @@ export async function POST(request: NextRequest) {
             },
             body: JSON.stringify({
               page_number: 1,
-              page_size: 10,
+              page_size: 200, // Get more to filter by sender
               sort_by: 'activity_date',
               sort_direction: 'desc',
               activity_types: [{ id: Number(defaults.emailActivityId), category: defaults.emailActivityCategory }],
-              user_ids: [copperId],
+              // NOTE: user_ids doesn't work for emails - it filters by assignee, not sender
               minimum_activity_date: sevenDaysAgo,
               maximum_activity_date: now,
             }),
@@ -196,25 +196,34 @@ export async function POST(request: NextRequest) {
             });
           } else {
             const copperData = await copperRes.json();
+            
+            // Filter by sender email (case-insensitive)
+            const userEmails = copperData.filter((a: any) => {
+              const senderEmail = a?.details?.sender?.email || '';
+              return senderEmail.toLowerCase() === userEmail.toLowerCase();
+            });
+            
             results.copperApiTest = {
-              emailsFound: copperData.length || 0,
+              totalEmailsInCopper: copperData.length || 0,
+              emailsSentByUser: userEmails.length || 0,
               dateRange: '7 days',
-              sampleEmails: copperData.slice(0, 3).map((a: any) => ({
+              sampleEmails: userEmails.slice(0, 3).map((a: any) => ({
                 id: a.id,
                 activity_date: a.activity_date ? new Date(a.activity_date * 1000).toISOString() : null,
                 type: a.type?.name || 'unknown',
-                details: a.details || '',
+                sender: a.details?.sender?.email || 'unknown',
+                subject: a.details?.subject || '',
               })),
             };
 
             results.checks.push({
               name: 'Copper API Test',
-              status: copperData.length > 0 ? 'pass' : 'warn',
-              message: `Found ${copperData.length} emails in Copper (last 7 days)`,
+              status: userEmails.length > 0 ? 'pass' : 'warn',
+              message: `Found ${userEmails.length} emails sent by ${userEmail} (${copperData.length} total in Copper, last 7 days)`,
             });
 
-            if (copperData.length === 0) {
-              results.recommendations.push('No emails found in Copper for this user in the last 7 days - user may not be sending emails through Copper');
+            if (userEmails.length === 0) {
+              results.recommendations.push(`No emails found sent by ${userEmail} in the last 7 days - user may not be sending emails through Copper`);
             }
           }
         }

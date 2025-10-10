@@ -295,23 +295,32 @@ export async function POST(request: NextRequest) {
       console.log(`[Sync Metrics] Email activity type: ${emailActivityId} (${emailCategory})`);
       console.log(`[Sync Metrics] Date range: ${new Date(dateRange.startUnix * 1000).toISOString()} to ${new Date(dateRange.endUnix * 1000).toISOString()}`);
       
+      // Fetch ALL emails (no user_ids filter) - we'll filter by sender email in code
       const emailData = await fetchAll('/activities/search', {
         sort_by: 'activity_date',
         sort_direction: 'desc',
         full_result: true,
         activity_types: [{ id: emailActivityId, category: emailCategory }],
-        user_ids: [ownerId], // Filter by user who performed the activity
+        // NOTE: user_ids filter doesn't work for emails - it filters by assignee, not sender
         minimum_activity_date: dateRange.startUnix,
         maximum_activity_date: dateRange.endUnix,
       });
       
-      console.log(`[Sync Metrics] Found ${emailData.length} email activities`);
+      console.log(`[Sync Metrics] Found ${emailData.length} total email activities from Copper`);
       
       if (Array.isArray(emailData)) {
-        results.emails = emailData.length || 0;
+        // Filter emails by sender email (case-insensitive)
+        const userEmails = emailData.filter((a: any) => {
+          const senderEmail = a?.details?.sender?.email || '';
+          return senderEmail.toLowerCase() === ownerEmail.toLowerCase();
+        });
+        
+        console.log(`[Sync Metrics] Filtered to ${userEmails.length} emails sent by ${ownerEmail}`);
+        
+        results.emails = userEmails.length || 0;
         if (results.emails > 0) {
           const byDay: Record<string, number> = {};
-          for (const a of emailData) {
+          for (const a of userEmails) {
             const tsSec = activitySeconds(a);
             if (!tsSec) continue;
             const d = new Date(tsSec * 1000);
