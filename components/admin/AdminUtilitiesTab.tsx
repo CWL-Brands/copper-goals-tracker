@@ -11,6 +11,7 @@ export default function AdminUtilitiesTab() {
   const [backfillMetricsLoading, setBackfillMetricsLoading] = useState(false);
   const [wipeLoading, setWipeLoading] = useState(false);
   const [wipeConfirm, setWipeConfirm] = useState('');
+  const [migrateLoading, setMigrateLoading] = useState(false);
 
   const backfillUsers = async () => {
     setBackfillLoading(true);
@@ -88,6 +89,33 @@ export default function AdminUtilitiesTab() {
       toast.error(e.message || 'Wipe failed');
     } finally {
       setWipeLoading(false);
+    }
+  };
+
+  const migrateCopperIds = async () => {
+    if (!confirm('Migrate Copper User IDs from settings/copper_users_map to user documents?')) return;
+    setMigrateLoading(true);
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      const token = await user.getIdToken();
+      
+      const res = await fetch('/api/admin/migrate-copper-ids', { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Migration failed');
+      
+      const msg = `✅ Migrated: ${data.summary.updated} updated, ${data.summary.skipped} skipped, ${data.summary.notFound} not found`;
+      toast.success(msg, { duration: 5000 });
+      console.log('Migration details:', data.details);
+    } catch (e: any) {
+      toast.error(e.message || 'Migration failed');
+    } finally {
+      setMigrateLoading(false);
     }
   };
 
@@ -247,6 +275,22 @@ export default function AdminUtilitiesTab() {
           className="px-4 py-2 rounded-lg bg-kanva-green text-white hover:bg-green-600 disabled:bg-gray-400"
         >
           {backfillLoading ? 'Backfilling...' : 'Backfill Users'}
+        </button>
+      </div>
+
+      {/* Migrate Copper IDs */}
+      <div className="border border-cyan-200 rounded-lg p-4 bg-cyan-50">
+        <h3 className="text-md font-medium text-cyan-900 mb-2">🔄 Migrate Copper User IDs</h3>
+        <p className="text-sm text-cyan-700 mb-4">
+          <strong>One-time migration:</strong> Copy Copper User IDs from <code className="bg-cyan-100 px-1 rounded">settings/copper_users_map</code> to individual user documents. 
+          This centralizes user data and improves performance. Safe to run multiple times.
+        </p>
+        <button
+          onClick={migrateCopperIds}
+          disabled={migrateLoading}
+          className="px-4 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-700 disabled:bg-gray-400"
+        >
+          {migrateLoading ? 'Migrating...' : 'Migrate Copper IDs'}
         </button>
       </div>
 

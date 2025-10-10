@@ -130,18 +130,7 @@ export default function CopperMetadataTab() {
         setApiUser(userData.user);
       }
 
-      // Fetch Copper users
-      const usersRes = await fetch('/api/copper/users');
-      const usersData = await usersRes.json();
-      if (usersRes.ok) {
-        // Filter to active users only and sort by name
-        const activeUsers = (usersData.users || [])
-          .filter((u: any) => !u.inactive)
-          .sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
-        setCopperUsers(activeUsers);
-      }
-
-      toast.success(`Found ${actTypesData.activityTypes?.length || 0} activity types, ${pipelinesData.pipelines?.length || 0} pipelines, ${copperUsers.length || 0} users`);
+      toast.success(`Found ${actTypesData.activityTypes?.length || 0} activity types, ${pipelinesData.pipelines?.length || 0} pipelines`);
     } catch (e: any) {
       toast.error(e.message || 'Failed to discover Copper data');
     } finally {
@@ -179,6 +168,36 @@ export default function CopperMetadataTab() {
     
     setDefaults({ ...defaults, ...updates });
     toast.success('Mappings applied to form');
+  };
+
+  const loadUsers = async () => {
+    try {
+      const { auth } = await import('@/lib/firebase/client');
+      const user = auth.currentUser;
+      if (!user) {
+        toast.error('Not authenticated');
+        return;
+      }
+      const token = await user.getIdToken();
+      
+      const res = await fetch('/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to load users');
+      
+      // Filter to active sales users and sort by name
+      const salesUsers = (data.users || [])
+        .filter((u: any) => u.role === 'sales' && u.isActive !== false)
+        .sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+      
+      setCopperUsers(salesUsers);
+      toast.success(`Loaded ${salesUsers.length} sales users`);
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to load users');
+    }
   };
 
   const diagnoseEmail = async () => {
@@ -481,8 +500,16 @@ export default function CopperMetadataTab() {
         </p>
         
         {copperUsers.length === 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
-            💡 Click "Discover All Mappings" above to load Copper users into the dropdown
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-blue-800">💡 Load sales users to select from dropdown</span>
+              <button
+                onClick={loadUsers}
+                className="px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700"
+              >
+                Load Users
+              </button>
+            </div>
           </div>
         )}
         
@@ -493,13 +520,22 @@ export default function CopperMetadataTab() {
             className="flex-1 border rounded-md px-3 py-2 text-sm"
             disabled={copperUsers.length === 0}
           >
-            <option value="">Select Copper user...</option>
+            <option value="">Select sales user...</option>
             {copperUsers.map((user: any) => (
               <option key={user.id} value={user.email}>
-                {user.name} ({user.email})
+                {user.name} - {user.title || user.role} ({user.email})
               </option>
             ))}
           </select>
+          {copperUsers.length > 0 && (
+            <button
+              onClick={loadUsers}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-sm hover:bg-gray-50"
+              title="Refresh user list"
+            >
+              🔄
+            </button>
+          )}
           <button
             onClick={diagnoseEmail}
             disabled={diagnosing || !diagUserEmail}

@@ -205,16 +205,33 @@ export async function POST(request: NextRequest) {
 
     // pwUserEmail already resolved above
 
-    // Map Firebase user -> Copper owner id using cached users map
-    const usersMap = await getCopperUsersMap();
+    // Map Firebase user -> Copper owner id
+    // PRIORITY: 1) User doc copperUserId, 2) Settings map, 3) Lookup by email
+    let ownerId: number | undefined;
     let ownerEmail = String(userSettings?.copperUserEmail || copperUserEmail || '').trim().toLowerCase();
-    if (!ownerEmail) {
-      try {
-        const uSnap = await adminDb.collection('users').doc(userId).get();
-        ownerEmail = String((uSnap.data()?.email || '')).toLowerCase().trim();
-      } catch {}
+    
+    try {
+      const uSnap = await adminDb.collection('users').doc(userId).get();
+      const userData = uSnap.data();
+      
+      // Priority 1: Check if user doc has copperUserId (new centralized way)
+      if (userData?.copperUserId) {
+        ownerId = Number(userData.copperUserId);
+        ownerEmail = String(userData.copperUserEmail || userData.email || '').toLowerCase().trim();
+        console.log(`[Sync Metrics] Using copperUserId from user doc: ${ownerId} (${ownerEmail})`);
+      } else {
+        // Priority 2: Fall back to settings map (old way - backward compatible)
+        if (!ownerEmail && userData?.email) {
+          ownerEmail = String(userData.email).toLowerCase().trim();
+        }
+        const usersMap = await getCopperUsersMap();
+        ownerId = ownerEmail ? usersMap[ownerEmail] : undefined;
+        console.log(`[Sync Metrics] Using copperUserId from settings map: ${ownerId} (${ownerEmail})`);
+      }
+    } catch (e) {
+      console.error('[Sync Metrics] Error looking up Copper user ID:', e);
     }
-    const ownerId: number | undefined = ownerEmail ? usersMap[ownerEmail] : undefined;
+    
     if (!ownerId) {
       results.warnings.push(`⚠️ No Copper user ID found for ${ownerEmail || 'unknown email'}`);
     }
