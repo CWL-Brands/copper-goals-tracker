@@ -290,15 +290,23 @@ export async function POST(request: NextRequest) {
         emailCategory = 'system' as any;
       }
       if (!emailCategory) throw new Error('Skip emails: email activity category unknown');
+      
+      console.log(`[Sync Metrics] Fetching emails for user ${ownerEmail} (ID: ${ownerId})`);
+      console.log(`[Sync Metrics] Email activity type: ${emailActivityId} (${emailCategory})`);
+      console.log(`[Sync Metrics] Date range: ${new Date(dateRange.startUnix * 1000).toISOString()} to ${new Date(dateRange.endUnix * 1000).toISOString()}`);
+      
       const emailData = await fetchAll('/activities/search', {
         sort_by: 'activity_date',
         sort_direction: 'desc',
         full_result: true,
         activity_types: [{ id: emailActivityId, category: emailCategory }],
-        ...(ownerId ? { user_ids: [ownerId] } : {}),
+        user_ids: [ownerId], // Filter by user who performed the activity
         minimum_activity_date: dateRange.startUnix,
         maximum_activity_date: dateRange.endUnix,
       });
+      
+      console.log(`[Sync Metrics] Found ${emailData.length} email activities`);
+      
       if (Array.isArray(emailData)) {
         results.emails = emailData.length || 0;
         if (results.emails > 0) {
@@ -311,6 +319,7 @@ export async function POST(request: NextRequest) {
             const key = d.toISOString();
             byDay[key] = (byDay[key] || 0) + 1;
           }
+          console.log(`[Sync Metrics] Email breakdown by day:`, byDay);
           for (const [isoDay, count] of Object.entries(byDay)) {
             await logMetricAdmin({
               userId,
@@ -318,12 +327,13 @@ export async function POST(request: NextRequest) {
               value: count,
               date: new Date(isoDay),
               source: 'copper',
-              metadata: { period, bucketed: true, syncedAt: new Date().toISOString() },
+              metadata: { period, bucketed: true, syncedAt: new Date().toISOString(), ownerId, ownerEmail },
             });
           }
         }
       }
     } catch (e:any) {
+      console.error(`[Sync Metrics] Email sync error:`, e);
       results.warnings.push(`⚠️ Email sync failed: ${e?.message}`);
     }
 

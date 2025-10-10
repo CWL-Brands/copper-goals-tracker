@@ -2,7 +2,7 @@
 {
   "success": true,
   "data": {
-    "fetchedAt": "2025-10-03T21:43:02.391Z",
+    "fetchedAt": "2025-10-10T16:11:23.946Z",
     "user": {
       "id": 1198774,
       "name": "Ben Wallner",
@@ -11,6 +11,10 @@
         {
           "id": 51265,
           "name": "Sales Team"
+        },
+        {
+          "id": 52412,
+          "name": "ADMIN"
         }
       ]
     },
@@ -68,27 +72,17 @@
         "options": [
           {
             "id": 1981470,
-            "name": "Cash & Carry",
+            "name": "Distributor",
             "rank": 0
           },
           {
             "id": 2063862,
-            "name": "Chain",
+            "name": "Wholesale",
             "rank": 1
           },
           {
-            "id": 2063863,
-            "name": "Independent Store",
-            "rank": 4
-          },
-          {
-            "id": 2063864,
-            "name": "Distributor",
-            "rank": 3
-          },
-          {
             "id": 2066840,
-            "name": "Chain HQ",
+            "name": "Retail",
             "rank": 2
           }
         ]
@@ -802,19 +796,6 @@
         ]
       },
       {
-        "id": 698260,
-        "name": "Account Number",
-        "data_type": "String",
-        "available_on": [
-          "opportunity",
-          "lead",
-          "company",
-          "person",
-          "task"
-        ],
-        "is_filterable": true
-      },
-      {
         "id": 698356,
         "name": "Business Model",
         "data_type": "Dropdown",
@@ -826,24 +807,19 @@
         "is_filterable": true,
         "options": [
           {
-            "id": 2065271,
-            "name": "Retail Only",
-            "rank": 0
-          },
-          {
             "id": 2065272,
             "name": "Wholesale Only",
-            "rank": 1
-          },
-          {
-            "id": 2065273,
-            "name": "Retail + Wholesale",
             "rank": 2
           },
           {
-            "id": 2065274,
-            "name": "Multi-Branch",
-            "rank": 3
+            "id": 2065273,
+            "name": "Retail Only",
+            "rank": 1
+          },
+          {
+            "id": 2107481,
+            "name": "Direct Store Delivery (DSD)",
+            "rank": 0
           }
         ]
       },
@@ -2459,6 +2435,33 @@
         "data_type": "URL",
         "available_on": [
           "opportunity"
+        ],
+        "is_filterable": true
+      },
+      {
+        "id": 713477,
+        "name": "Account ID",
+        "data_type": "String",
+        "available_on": [
+          "company"
+        ],
+        "is_filterable": true
+      },
+      {
+        "id": 713845,
+        "name": "Top Products",
+        "data_type": "Text",
+        "available_on": [
+          "company"
+        ],
+        "is_filterable": true
+      },
+      {
+        "id": 713846,
+        "name": "Days Since Last Order",
+        "data_type": "Float",
+        "available_on": [
+          "company"
         ],
         "is_filterable": true
       }

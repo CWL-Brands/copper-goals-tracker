@@ -144,6 +144,89 @@ export async function POST(request: NextRequest) {
       results.recommendations.push('Email Activity Type ID may be incorrect or emails not in Copper');
     }
 
+    // 6. TEST COPPER API - Actually query Copper for emails
+    if (defaults?.emailActivityId && defaults?.emailActivityCategory) {
+      try {
+        // Get Copper user ID for this email
+        const usersMapDoc = await adminDb.collection('settings').doc('copper_users_map').get();
+        const usersMapData = usersMapDoc.exists ? usersMapDoc.data() : {};
+        const byEmail = usersMapData?.byEmail || {};
+        const copperId = byEmail[userEmail.toLowerCase()];
+
+        if (!copperId) {
+          results.checks.push({
+            name: 'Copper User Mapping',
+            status: 'fail',
+            message: `User email ${userEmail} not found in Copper users cache`,
+          });
+          results.recommendations.push('User may not exist in Copper or cache needs refresh');
+        } else {
+          results.copperUserId = copperId;
+          
+          // Query Copper API for last 7 days of emails
+          const now = Math.floor(Date.now() / 1000);
+          const sevenDaysAgo = now - (7 * 24 * 60 * 60);
+          
+          const copperRes = await fetch('https://api.copper.com/developer_api/v1/activities/search', {
+            method: 'POST',
+            headers: {
+              'X-PW-AccessToken': process.env.COPPER_API_KEY || '',
+              'X-PW-Application': 'developer_api',
+              'X-PW-UserEmail': process.env.COPPER_USER_EMAIL || '',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              page_number: 1,
+              page_size: 10,
+              sort_by: 'activity_date',
+              sort_direction: 'desc',
+              activity_types: [{ id: Number(defaults.emailActivityId), category: defaults.emailActivityCategory }],
+              user_ids: [copperId],
+              minimum_activity_date: sevenDaysAgo,
+              maximum_activity_date: now,
+            }),
+          });
+
+          if (!copperRes.ok) {
+            const errorText = await copperRes.text();
+            results.checks.push({
+              name: 'Copper API Test',
+              status: 'fail',
+              message: `Copper API returned ${copperRes.status}: ${errorText}`,
+            });
+          } else {
+            const copperData = await copperRes.json();
+            results.copperApiTest = {
+              emailsFound: copperData.length || 0,
+              dateRange: '7 days',
+              sampleEmails: copperData.slice(0, 3).map((a: any) => ({
+                id: a.id,
+                activity_date: a.activity_date ? new Date(a.activity_date * 1000).toISOString() : null,
+                type: a.type?.name || 'unknown',
+                details: a.details || '',
+              })),
+            };
+
+            results.checks.push({
+              name: 'Copper API Test',
+              status: copperData.length > 0 ? 'pass' : 'warn',
+              message: `Found ${copperData.length} emails in Copper (last 7 days)`,
+            });
+
+            if (copperData.length === 0) {
+              results.recommendations.push('No emails found in Copper for this user in the last 7 days - user may not be sending emails through Copper');
+            }
+          }
+        }
+      } catch (apiError: any) {
+        results.checks.push({
+          name: 'Copper API Test',
+          status: 'fail',
+          message: `API test failed: ${apiError.message}`,
+        });
+      }
+    }
+
     // Summary
     const failCount = results.checks.filter((c: any) => c.status === 'fail').length;
     const warnCount = results.checks.filter((c: any) => c.status === 'warn').length;
