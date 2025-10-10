@@ -149,10 +149,16 @@ export async function POST(req: NextRequest) {
 
       const customer = customerDoc.data();
       
-      // Get salesman from customer (more reliable than order)
-      const salesman = customer?.salesPerson || order.salesman || order.salesmanId;
+      // Get salesman - try order first, then customer
+      const salesman = order.salesPerson || order.salesRep || customer?.salesPerson || order.salesman || order.salesmanId;
       if (!salesman) {
-        console.log('[Fishbowl Sync] Order', order.num, 'has no salesman (checked customer.salesPerson and order.salesman), skipping');
+        console.log('[Fishbowl Sync] Order', order.num, 'has no salesman (checked order.salesPerson, order.salesRep, customer.salesPerson), skipping');
+        continue;
+      }
+      
+      // Skip generic salespeople (SHOPIFY, Commerce)
+      if (['SHOPIFY', 'Commerce', 'commerce'].includes(salesman)) {
+        console.log('[Fishbowl Sync] Order', order.num, 'has generic salesman', salesman, ', skipping');
         continue;
       }
 

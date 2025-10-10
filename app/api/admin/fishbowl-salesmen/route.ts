@@ -35,35 +35,66 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    console.log('[Fishbowl Salesmen] Querying fishbowl_customers for salesPerson field...');
+    console.log('[Fishbowl Salesmen] Querying both customers and orders for salesPerson field...');
     
-    // Get unique salesmen from customers (more reliable than orders)
+    // Try customers first
     const customersSnapshot = await adminDb
       .collection('fishbowl_customers')
-      .limit(5000) // Get more customers
-      .get();
+      .get(); // No limit - get all
 
     console.log('[Fishbowl Salesmen] Found', customersSnapshot.docs.length, 'customers');
 
-    const salesmenSet = new Set<string>();
+    const salesmenFromCustomers = new Set<string>();
     
     for (const doc of customersSnapshot.docs) {
       const customer = doc.data();
       const salesPerson = customer.salesPerson;
       
       if (salesPerson && typeof salesPerson === 'string' && salesPerson.trim()) {
-        salesmenSet.add(salesPerson.trim());
+        // Skip generic entries
+        if (!['SHOPIFY', 'Commerce', 'commerce'].includes(salesPerson)) {
+          salesmenFromCustomers.add(salesPerson.trim());
+        }
       }
     }
 
-    const salesmen = Array.from(salesmenSet).sort();
+    console.log('[Fishbowl Salesmen] From customers:', Array.from(salesmenFromCustomers));
 
-    console.log('[Fishbowl Salesmen] Found unique salesmen:', salesmen);
+    // Also check orders (they have salesPerson field too)
+    const ordersSnapshot = await adminDb
+      .collection('fishbowl_sales_orders')
+      .limit(5000)
+      .get();
+
+    console.log('[Fishbowl Salesmen] Found', ordersSnapshot.docs.length, 'orders');
+
+    const salesmenFromOrders = new Set<string>();
+    
+    for (const doc of ordersSnapshot.docs) {
+      const order = doc.data();
+      const salesPerson = order.salesPerson || order.salesRep;
+      
+      if (salesPerson && typeof salesPerson === 'string' && salesPerson.trim()) {
+        // Skip generic entries
+        if (!['SHOPIFY', 'Commerce', 'commerce'].includes(salesPerson)) {
+          salesmenFromOrders.add(salesPerson.trim());
+        }
+      }
+    }
+
+    console.log('[Fishbowl Salesmen] From orders:', Array.from(salesmenFromOrders));
+
+    // Combine both sources
+    const allSalesmen = new Set([...salesmenFromCustomers, ...salesmenFromOrders]);
+    const salesmen = Array.from(allSalesmen).sort();
+
+    console.log('[Fishbowl Salesmen] Combined unique salesmen:', salesmen);
 
     return NextResponse.json({
       salesmen,
       count: salesmen.length,
       totalCustomers: customersSnapshot.docs.length,
+      totalOrders: ordersSnapshot.docs.length,
     });
   } catch (error: any) {
     console.error('[Fishbowl Salesmen] Error:', error);
