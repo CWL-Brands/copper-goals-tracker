@@ -35,38 +35,24 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    console.log('[Fishbowl Salesmen] Querying fishbowl_sales_orders...');
+    console.log('[Fishbowl Salesmen] Querying fishbowl_customers for salesPerson field...');
     
-    // Query all sales orders and collect unique salesmen
-    const ordersSnapshot = await adminDb
-      .collection('fishbowl_sales_orders')
-      .limit(1000) // Limit to avoid timeout
+    // Get unique salesmen from customers (more reliable than orders)
+    const customersSnapshot = await adminDb
+      .collection('fishbowl_customers')
+      .limit(5000) // Get more customers
       .get();
 
-    console.log('[Fishbowl Salesmen] Found', ordersSnapshot.docs.length, 'orders');
+    console.log('[Fishbowl Salesmen] Found', customersSnapshot.docs.length, 'customers');
 
     const salesmenSet = new Set<string>();
-    const fieldVariations: string[] = [];
     
-    for (const doc of ordersSnapshot.docs) {
-      const order = doc.data();
+    for (const doc of customersSnapshot.docs) {
+      const customer = doc.data();
+      const salesPerson = customer.salesPerson;
       
-      // Try multiple field names
-      const salesman = order.salesman || order.salesmanId || order.salesmanName || order.salesPerson;
-      
-      // Log first order to see structure
-      if (salesmenSet.size === 0) {
-        console.log('[Fishbowl Salesmen] Sample order fields:', Object.keys(order));
-        console.log('[Fishbowl Salesmen] Sample order salesman fields:', {
-          salesman: order.salesman,
-          salesmanId: order.salesmanId,
-          salesmanName: order.salesmanName,
-          salesPerson: order.salesPerson,
-        });
-      }
-      
-      if (salesman && typeof salesman === 'string' && salesman.trim()) {
-        salesmenSet.add(salesman.trim());
+      if (salesPerson && typeof salesPerson === 'string' && salesPerson.trim()) {
+        salesmenSet.add(salesPerson.trim());
       }
     }
 
@@ -77,7 +63,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       salesmen,
       count: salesmen.length,
-      totalOrders: ordersSnapshot.docs.length,
+      totalCustomers: customersSnapshot.docs.length,
     });
   } catch (error: any) {
     console.error('[Fishbowl Salesmen] Error:', error);

@@ -62,12 +62,12 @@ export default function FishbowlTab() {
         console.log('[Fishbowl Tab] Salesmen data:', salesmenData);
         setFishbowlUsers(salesmenData.salesmen || []);
         
-        if (salesmenData.totalOrders === 0) {
-          toast.error('No Fishbowl orders found. Please import Fishbowl data first.');
+        if (salesmenData.totalCustomers === 0) {
+          toast.error('No Fishbowl customers found. Please import Fishbowl data first.');
         } else if (salesmenData.count === 0) {
-          toast.error(`Found ${salesmenData.totalOrders} orders but no salesman field. Check server logs.`);
+          toast.error(`Found ${salesmenData.totalCustomers} customers but no salesPerson field. Check server logs.`);
         } else {
-          toast.success(`Loaded ${salesmenData.count} salesmen from ${salesmenData.totalOrders} orders`);
+          toast.success(`Loaded ${salesmenData.count} salesmen from ${salesmenData.totalCustomers} customers`);
         }
       } else {
         const errorData = await salesmenRes.json();

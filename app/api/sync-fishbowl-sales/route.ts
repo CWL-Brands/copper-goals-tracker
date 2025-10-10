@@ -133,10 +133,26 @@ export async function POST(req: NextRequest) {
     for (const orderDoc of ordersSnapshot.docs) {
       const order = orderDoc.data();
       
-      // Get salesman
-      const salesman = order.salesman || order.salesmanId;
+      // Get customer first (we need it for both salesman and accountType)
+      const customerId = order.customerId;
+      if (!customerId) {
+        console.log('[Fishbowl Sync] Order', order.num, 'has no customerId, skipping');
+        continue;
+      }
+
+      // Fetch customer
+      const customerDoc = await adminDb.collection('fishbowl_customers').doc(customerId).get();
+      if (!customerDoc.exists) {
+        console.log('[Fishbowl Sync] Customer', customerId, 'not found, skipping');
+        continue;
+      }
+
+      const customer = customerDoc.data();
+      
+      // Get salesman from customer (more reliable than order)
+      const salesman = customer?.salesPerson || order.salesman || order.salesmanId;
       if (!salesman) {
-        console.log('[Fishbowl Sync] Order', order.num, 'has no salesman, skipping');
+        console.log('[Fishbowl Sync] Order', order.num, 'has no salesman (checked customer.salesPerson and order.salesman), skipping');
         continue;
       }
 
@@ -152,21 +168,6 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // Get customer to determine accountType
-      const customerId = order.customerId;
-      if (!customerId) {
-        console.log('[Fishbowl Sync] Order', order.num, 'has no customerId, skipping');
-        continue;
-      }
-
-      // Fetch customer
-      const customerDoc = await adminDb.collection('fishbowl_customers').doc(customerId).get();
-      if (!customerDoc.exists) {
-        console.log('[Fishbowl Sync] Customer', customerId, 'not found, skipping');
-        continue;
-      }
-
-      const customer = customerDoc.data();
       const accountType = customer?.accountType || 'Retail';
 
       // Determine metric type based on accountType
