@@ -10,9 +10,10 @@ import { db, doc, getDoc, setDoc, serverTimestamp } from '@/lib/firebase/db';
 import GoalCard from '@/components/molecules/GoalCard';
 import GoalSetter from '@/components/molecules/GoalSetter';
 import GoalGrid from '@/components/organisms/GoalGrid';
+import DailyPaceCard from '@/components/molecules/DailyPaceCard';
 import Link from 'next/link';
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { eachDayOfInterval, subDays, format } from 'date-fns';
+import { eachDayOfInterval, subDays, format, startOfMonth, endOfMonth } from 'date-fns';
 import { 
   BarChart3, 
   Users, 
@@ -48,6 +49,7 @@ export default function DashboardPage() {
   const [email30d, setEmail30d] = useState<{ date: string; value: number }[]>([]);
   const [calls7d, setCalls7d] = useState<{ date: string; value: number }[]>([]);
   const [calls30d, setCalls30d] = useState<{ date: string; value: number }[]>([]);
+  const [monthlyProgress, setMonthlyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
   const [minutes7d, setMinutes7d] = useState<{ date: string; value: number }[]>([]);
   const [minutes30d, setMinutes30d] = useState<{ date: string; value: number }[]>([]);
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
@@ -235,6 +237,21 @@ export default function DashboardPage() {
         const tm30 = await metricService.getMetrics(uid, 'talk_time_minutes', start30, today);
         setMinutes7d(buildDailySeries(tm7, start7, today));
         setMinutes30d(buildDailySeries(tm30, start30, today));
+
+        // Load monthly progress for all goal types
+        const monthStart = startOfMonth(today);
+        const monthEnd = endOfMonth(today);
+        const progress: Record<GoalType, number> = {} as Record<GoalType, number>;
+        
+        for (const goalType of goalTypes) {
+          try {
+            const monthMetrics = await metricService.getMetrics(uid, goalType, monthStart, monthEnd);
+            progress[goalType] = monthMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
+          } catch (e) {
+            progress[goalType] = 0;
+          }
+        }
+        setMonthlyProgress(progress);
       } catch (e) {
         console.warn('Failed loading sparkline data', e);
       }
@@ -478,7 +495,30 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 4. My Active Goals */}
+      {/* 4. Daily Pace Trackers (Monthly Goals Only) */}
+      {goals.filter(g => g.period === 'monthly').length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">📊 Daily Pace Trackers</h3>
+              <p className="text-sm text-gray-600">Stay on track to hit your monthly goals</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {goals
+              .filter(g => g.period === 'monthly')
+              .map(goal => (
+                <DailyPaceCard
+                  key={goal.id}
+                  goal={goal}
+                  currentMonthProgress={monthlyProgress[goal.type] || 0}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* 5. My Active Goals */}
       <div className="bg-white rounded-xl shadow-sm p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">My Active Goals</h3>
