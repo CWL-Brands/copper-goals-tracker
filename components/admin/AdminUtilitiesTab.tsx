@@ -4,6 +4,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { Database } from 'lucide-react';
+import { auth } from '@/lib/firebase/client';
 
 export default function AdminUtilitiesTab() {
   const [backfillLoading, setBackfillLoading] = useState(false);
@@ -14,7 +15,16 @@ export default function AdminUtilitiesTab() {
   const backfillUsers = async () => {
     setBackfillLoading(true);
     try {
-      const res = await fetch('/api/admin/backfill-users', { method: 'POST' });
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      const token = await user.getIdToken();
+      
+      const res = await fetch('/api/admin/backfill-users', { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Backfill failed');
       toast.success(`Backfilled ${data.count || 0} users`);
@@ -26,13 +36,26 @@ export default function AdminUtilitiesTab() {
   };
 
   const backfillMetrics = async () => {
-    if (!confirm('This will backfill 90 days of sales metrics. Continue?')) return;
+    if (!confirm('This will backfill 90 days of sales metrics for ALL sales reps from Copper. Continue?')) return;
     setBackfillMetricsLoading(true);
     try {
-      const res = await fetch('/api/admin/backfill-sales-metrics', { method: 'POST' });
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      const token = await user.getIdToken();
+      
+      const res = await fetch('/api/admin/backfill-sales-metrics', { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Backfill failed');
-      toast.success('Sales metrics backfilled');
+      
+      const msg = `✅ Backfilled ${data.processed || 0} users: ${data.ok || 0} success, ${data.failed || 0} failed`;
+      toast.success(msg, { duration: 5000 });
+      console.log('Backfill details:', data.details);
     } catch (e: any) {
       toast.error(e.message || 'Backfill failed');
     } finally {
@@ -47,7 +70,16 @@ export default function AdminUtilitiesTab() {
     }
     setWipeLoading(true);
     try {
-      const res = await fetch('/api/admin/wipe-metrics', { method: 'POST' });
+      const user = auth.currentUser;
+      if (!user) throw new Error('Not authenticated');
+      const token = await user.getIdToken();
+      
+      const res = await fetch('/api/admin/wipe-metrics', { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Wipe failed');
       toast.success(`Deleted ${data.count || 0} metrics`);

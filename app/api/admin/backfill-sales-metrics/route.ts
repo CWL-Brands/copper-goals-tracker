@@ -52,8 +52,12 @@ export async function POST(req: NextRequest) {
 
     for (const u of salesUsers) {
       processed++;
+      const userWarnings: string[] = [];
+      let userError: string | undefined;
+      
       try {
-        const res = await fetch(`${origin}/api/sync-metrics`, {
+        // 1. Sync Copper metrics (emails, calls, leads, sales)
+        const copperRes = await fetch(`${origin}/api/sync-metrics`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -64,21 +68,49 @@ export async function POST(req: NextRequest) {
             copperUserEmail: u.email,
           }),
         });
-        const data: any = await res.json().catch(() => ({}));
-        if (!res.ok) {
+        const copperData: any = await copperRes.json().catch(() => ({}));
+        if (!copperRes.ok) {
+          userError = `Copper sync failed: ${copperData?.error || copperRes.status}`;
+        } else {
+          if (copperData?.metrics?.warnings) {
+            userWarnings.push(...copperData.metrics.warnings);
+          }
+        }
+
+        // 2. Sync JustCall metrics (phone calls, talk time)
+        try {
+          const justcallRes = await fetch(`${origin}/api/sync-justcall-metrics`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: u.id,
+              startDate: start.toISOString(),
+              endDate: end.toISOString(),
+            }),
+          });
+          const justcallData: any = await justcallRes.json().catch(() => ({}));
+          if (!justcallRes.ok) {
+            userWarnings.push(`JustCall sync failed: ${justcallData?.error || justcallRes.status}`);
+          } else if (justcallData?.warnings) {
+            userWarnings.push(...justcallData.warnings);
+          }
+        } catch (jce: any) {
+          userWarnings.push(`JustCall sync error: ${jce?.message || 'unknown'}`);
+        }
+
+        if (userError) {
           failed++;
-          details.push({ userId: u.id, email: u.email, status: res.status, error: data?.error || 'sync failed' });
+          details.push({ userId: u.id, email: u.email, status: copperRes.status, error: userError, warnings: userWarnings.length > 0 ? userWarnings : undefined });
         } else {
           ok++;
-          const warnings: string[] = data?.metrics?.warnings || [];
-          details.push({ userId: u.id, email: u.email, status: res.status, warnings });
+          details.push({ userId: u.id, email: u.email, status: 200, warnings: userWarnings.length > 0 ? userWarnings : undefined });
         }
       } catch (e: any) {
         failed++;
         details.push({ userId: u.id, email: u.email, status: 0, error: e?.message || String(e) });
       }
       // Gentle pacing to avoid rate limits
-      await new Promise(r => setTimeout(r, 600));
+      await new Promise(r => setTimeout(r, 800));
     }
 
     return NextResponse.json({ success: true, processed, ok, failed, window: { start: start.toISOString(), end: end.toISOString() }, details });
