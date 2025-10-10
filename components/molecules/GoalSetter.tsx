@@ -158,20 +158,20 @@ export default function GoalSetter({
             Target
           </label>
           <div className="relative">
+            {goalType.includes('sales') && (
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-base">
+                $
+              </span>
+            )}
             <input
               type="number"
               value={target || ''}
               onChange={(e) => setTarget(Number(e.target.value))}
               placeholder={getPlaceholder()}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kanva-green focus:border-transparent"
+              className={`w-full ${goalType.includes('sales') ? 'pl-8' : 'pl-4'} pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kanva-green focus:border-transparent text-base`}
               min="0"
               step={goalType.includes('sales') ? '100' : '1'}
             />
-            {goalType.includes('sales') && (
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
-                $
-              </span>
-            )}
           </div>
         </div>
 

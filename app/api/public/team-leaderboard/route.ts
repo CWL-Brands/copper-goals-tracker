@@ -59,6 +59,7 @@ function getDateRangeForPeriod(period: GoalPeriod): { start: Date; end: Date } {
       start.setHours(0, 0, 0, 0);
       end.setMonth(quarterStartMonth + 3, 0);
       end.setHours(23, 59, 59, 999);
+      console.log(`[Leaderboard] Quarterly range: ${start.toISOString()} to ${end.toISOString()}`);
       break;
   }
 
@@ -166,10 +167,11 @@ export async function GET(request: NextRequest) {
         console.log(`[Leaderboard] ${user.email}: Found ${metricsSnapshot.docs.length} metrics for ${period}`);
         
         // Log first few metric dates for debugging
-        if (metricsSnapshot.docs.length > 0 && period === 'daily') {
-          metricsSnapshot.docs.slice(0, 3).forEach(doc => {
+        if (metricsSnapshot.docs.length > 0) {
+          metricsSnapshot.docs.slice(0, 5).forEach(doc => {
             const m = doc.data();
-            console.log(`  - ${m.type}: ${m.value}, date: ${m.date?.toDate?.()?.toISOString() || m.date}`);
+            const metricDate = m.date?.toDate?.() || m.date;
+            console.log(`  - ${m.type}: ${m.value}, date: ${metricDate instanceof Date ? metricDate.toISOString() : metricDate}`);
           });
         }
 
