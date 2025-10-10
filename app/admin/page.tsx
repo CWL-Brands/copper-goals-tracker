@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChange } from '@/lib/firebase/client';
 import { userService } from '@/lib/firebase/services';
 import Link from 'next/link';
-import { Settings, Users, Target, Database, Phone, FileText, DollarSign } from 'lucide-react';
+import { Settings, Users, Target, Database, Phone, FileText, DollarSign, Sliders } from 'lucide-react';
 
 // Import tab components
 import TeamGoalsTab from '@/components/admin/TeamGoalsTab';
@@ -13,8 +13,9 @@ import DataSyncTab from '@/components/admin/DataSyncTab';
 import JustCallTab from '@/components/admin/JustCallTab';
 import AdminUtilitiesTab from '@/components/admin/AdminUtilitiesTab';
 import FishbowlTab from '@/components/admin/FishbowlTab';
+import SettingsTab from '@/components/admin/SettingsTab';
 
-type TabType = 'goals' | 'copper' | 'sync' | 'justcall' | 'fishbowl' | 'utilities';
+type TabType = 'goals' | 'copper' | 'sync' | 'justcall' | 'fishbowl' | 'settings' | 'utilities';
 
 export default function AdminPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -73,6 +74,7 @@ export default function AdminPage() {
     { id: 'sync' as TabType, label: 'Data Sync', icon: FileText },
     { id: 'justcall' as TabType, label: 'JustCall', icon: Phone },
     { id: 'fishbowl' as TabType, label: 'Fishbowl Sales', icon: DollarSign },
+    { id: 'settings' as TabType, label: 'Business Settings', icon: Sliders },
     { id: 'utilities' as TabType, label: 'Admin Tools', icon: Settings },
   ];
 
@@ -122,6 +124,7 @@ export default function AdminPage() {
           {activeTab === 'sync' && <DataSyncTab />}
           {activeTab === 'justcall' && <JustCallTab />}
           {activeTab === 'fishbowl' && <FishbowlTab />}
+          {activeTab === 'settings' && <SettingsTab />}
           {activeTab === 'utilities' && <AdminUtilitiesTab />}
         </div>
       </div>

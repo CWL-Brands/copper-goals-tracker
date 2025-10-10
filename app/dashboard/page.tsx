@@ -8,7 +8,6 @@ import { userService, goalService, metricService, settingsService } from '@/lib/
 import { auth, onAuthStateChange, signOut } from '@/lib/firebase/client';
 import { db, doc, getDoc, setDoc, serverTimestamp } from '@/lib/firebase/db';
 import GoalCard from '@/components/molecules/GoalCard';
-import GoalSetter from '@/components/molecules/GoalSetter';
 import GoalGrid from '@/components/organisms/GoalGrid';
 import DailyPaceCard from '@/components/molecules/DailyPaceCard';
 import Link from 'next/link';
@@ -40,8 +39,6 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<GoalPeriod>('daily');
   const [isLoading, setIsLoading] = useState(true);
-  const [showGoalSetter, setShowGoalSetter] = useState(false);
-  const [selectedGoalType, setSelectedGoalType] = useState<GoalType | null>(null);
   const [saw, setSaw] = useState<{ skills?: string; training?: string; reading?: string; habits?: string }>({});
   const goalsUnsubRef = useRef<null | (() => void)>(null);
   const metricsUnsubRef = useRef<null | (() => void)>(null);
@@ -284,16 +281,7 @@ export default function DashboardPage() {
 
   // Copper integration removed (standalone login only)
 
-  const handleAddGoal = (type: GoalType) => {
-    setSelectedGoalType(type);
-    setShowGoalSetter(true);
-  };
-
-  const handleGoalSaved = (goal: Goal) => {
-    setGoals(prev => [...prev.filter(g => g.id !== goal.id), goal]);
-    setShowGoalSetter(false);
-    setSelectedGoalType(null);
-  };
+  // Goal management handled by admin only
 
   const handleManualEntry = async (type: GoalType, value: number) => {
     if (!user) return;
@@ -433,12 +421,6 @@ export default function DashboardPage() {
         <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
           <button 
-            onClick={() => { setSelectedGoalType('email_quantity'); setShowGoalSetter(true); }}
-            className="px-4 py-2 rounded-lg bg-kanva-green text-white hover:bg-green-600"
-          >
-            Set New Goal
-          </button>
-          <button 
             onClick={handleSyncNow}
             disabled={syncing}
             className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400"
@@ -554,19 +536,13 @@ export default function DashboardPage() {
       <div className="bg-white rounded-xl shadow-sm p-5">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">My Active Goals</h3>
-          <button 
-            onClick={() => { setSelectedGoalType('email_quantity'); setShowGoalSetter(true); }}
-            className="text-sm text-kanva-green hover:underline"
-          >
-            + Add Goal
-          </button>
         </div>
         <GoalGrid
           goalTypes={goalTypes}
           goals={goals}
           selectedPeriod={selectedPeriod}
-          onAddGoal={handleAddGoal}
-          onEditGoal={handleAddGoal}
+          onAddGoal={() => {}}
+          onEditGoal={() => {}}
         />
       </div>
 
@@ -700,24 +676,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Goal Setter Modal */}
-      {showGoalSetter && selectedGoalType && user && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="max-w-md w-full">
-            <GoalSetter
-              userId={user.id}
-              goalType={selectedGoalType}
-              period={selectedPeriod}
-              existingGoal={goals.find(g => g.type === selectedGoalType)}
-              onSave={handleGoalSaved}
-              onCancel={() => {
-                setShowGoalSetter(false);
-                setSelectedGoalType(null);
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
