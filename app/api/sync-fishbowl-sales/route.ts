@@ -119,10 +119,11 @@ export async function POST(req: NextRequest) {
     console.log('[Fishbowl Sync] Date range:', start.toISOString(), 'to', end.toISOString());
 
     // Query Fishbowl sales orders
+    // Note: Using postingDate instead of dateIssued (field name from unified import)
     let ordersQuery = adminDb
       .collection('fishbowl_sales_orders')
-      .where('dateIssued', '>=', Timestamp.fromDate(start))
-      .where('dateIssued', '<=', Timestamp.fromDate(end));
+      .where('postingDate', '>=', Timestamp.fromDate(start))
+      .where('postingDate', '<=', Timestamp.fromDate(end));
 
     const ordersSnapshot = await ordersQuery.get();
     console.log('[Fishbowl Sync] Found', ordersSnapshot.docs.length, 'orders in date range');
@@ -188,16 +189,27 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // Get order value
-      const totalPrice = Number(order.totalPrice || 0);
+      // Get order value (try multiple field names)
+      const totalPrice = Number(order.revenue || order.orderValue || order.totalPrice || 0);
       if (totalPrice <= 0) {
-        console.log('[Fishbowl Sync] Order', order.num, 'has no value, skipping');
+        console.log('[Fishbowl Sync] Order', order.num, 'has no value (checked revenue, orderValue, totalPrice), skipping');
         continue;
       }
 
-      // Get order date
-      const dateIssued = order.dateIssued?.toDate?.() || new Date(order.dateIssued);
-      const dateKey = dateIssued.toISOString().split('T')[0]; // YYYY-MM-DD
+      // Get order date (try multiple field names)
+      const orderDate = order.postingDate?.toDate?.() || 
+                        (order.postingDate ? new Date(order.postingDate) : null) ||
+                        order.dateIssued?.toDate?.() || 
+                        (order.dateIssued ? new Date(order.dateIssued) : null) ||
+                        order.commissionDate?.toDate?.() ||
+                        (order.commissionDate ? new Date(order.commissionDate) : null);
+      
+      if (!orderDate) {
+        console.log('[Fishbowl Sync] Order', order.num, 'has no date, skipping');
+        continue;
+      }
+      
+      const dateKey = orderDate.toISOString().split('T')[0]; // YYYY-MM-DD
 
       // Initialize nested structure
       if (!metricsByUser[mappedUserId]) {

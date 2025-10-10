@@ -61,9 +61,9 @@ export async function GET(req: NextRequest) {
     console.log('[Fishbowl Salesmen] From customers:', Array.from(salesmenFromCustomers));
 
     // Also check orders (they have salesPerson field too)
+    // Get ALL orders (no limit) to find all salesmen
     const ordersSnapshot = await adminDb
       .collection('fishbowl_sales_orders')
-      .limit(5000)
       .get();
 
     console.log('[Fishbowl Salesmen] Found', ordersSnapshot.docs.length, 'orders');
