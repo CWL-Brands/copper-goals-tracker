@@ -179,25 +179,32 @@ export default function CopperMetadataTab() {
         return;
       }
       
+      console.log('[Load Users] Current user email:', user.email);
+      
       const token = await user.getIdToken();
+      console.log('[Load Users] Got auth token, length:', token.length);
       
       const res = await fetch('/api/admin/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
+      
+      console.log('[Load Users] Response status:', res.status);
+      
       const data = await res.json();
+      console.log('[Load Users] Response data:', data);
       
       if (!res.ok) {
         if (res.status === 401) {
-          throw new Error('Unauthorized - you must be an admin to load users');
+          throw new Error(`Unauthorized - you must be an admin. Your email: ${user.email}. Error: ${data?.error || 'Unknown'}`);
         }
         throw new Error(data?.error || 'Failed to load users');
       }
       
-      // Filter to active sales users and sort by name
+      // Filter to active sales users (including admins who are also sales reps) and sort by name
       const salesUsers = (data.users || [])
-        .filter((u: any) => u.role === 'sales' && u.isActive !== false)
+        .filter((u: any) => (u.role === 'sales' || u.role === 'admin') && u.isActive !== false && u.isCommissioned === true)
         .sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
       
       setCopperUsers(salesUsers);

@@ -41,9 +41,11 @@ export async function POST(req: NextRequest) {
     const start = body?.start ? new Date(body.start) : new Date(new Date().setDate(end.getDate() - 90));
     const origin = new URL(req.url).origin;
 
-    // Find all users with role == 'sales'
-    const usersSnap = await adminDb.collection('users').where('role', '==', 'sales').get();
-    const salesUsers = usersSnap.docs.map(d => ({ id: d.id, ...(d.data() as any) })).filter(u => !!u.email);
+    // Find all users with role == 'sales' OR commissioned admins
+    const usersSnap = await adminDb.collection('users').get();
+    const salesUsers = usersSnap.docs
+      .map(d => ({ id: d.id, ...(d.data() as any) }))
+      .filter(u => !!u.email && (u.role === 'sales' || (u.role === 'admin' && u.isCommissioned === true)));
 
     let processed = 0;
     let ok = 0;
