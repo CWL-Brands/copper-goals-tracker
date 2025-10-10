@@ -1,28 +1,37 @@
 /**
  * Pace Calculator Utility
- * Calculates daily targets based on monthly goal progress
+ * Calculates targets based on goal progress (daily, weekly, monthly)
  */
 
-import { startOfMonth, endOfMonth, differenceInDays, isToday } from 'date-fns';
+import { 
+  startOfMonth, endOfMonth, 
+  startOfWeek, endOfWeek,
+  startOfDay, endOfDay,
+  differenceInDays, 
+  differenceInHours,
+  isToday 
+} from 'date-fns';
 
 export interface PaceCalculation {
-  // Monthly goal info
-  monthlyTarget: number;
+  // Period info
+  period: 'daily' | 'weekly' | 'monthly';
+  periodTarget: number;
   currentProgress: number;
-  daysInMonth: number;
-  daysElapsed: number;
-  daysRemaining: number;
+  totalUnits: number; // days in month, days in week, hours in day
+  unitsElapsed: number;
+  unitsRemaining: number;
+  unitLabel: string; // 'day', 'hour', etc.
   
   // Pace calculations
   expectedProgress: number; // Where you should be by now
   progressDelta: number; // How far ahead/behind (positive = ahead)
-  progressPercentage: number; // % of monthly goal completed
+  progressPercentage: number; // % of goal completed
   pacePercentage: number; // % of time elapsed
   
-  // Daily targets
-  originalDailyTarget: number; // Monthly goal / days in month
-  adjustedDailyTarget: number; // Remaining goal / days remaining
-  todayTarget: number; // What you need TODAY to stay on pace
+  // Targets
+  originalUnitTarget: number; // Goal / total units
+  adjustedUnitTarget: number; // Remaining goal / units remaining
+  currentTarget: number; // What you need NOW to stay on pace
   
   // Status
   status: 'ahead' | 'on-pace' | 'behind';
@@ -30,41 +39,72 @@ export interface PaceCalculation {
 }
 
 /**
- * Calculate pace for a monthly goal
+ * Calculate pace for any goal period (daily, weekly, monthly)
  */
-export function calculateMonthlyPace(
-  monthlyTarget: number,
+export function calculatePace(
+  period: 'daily' | 'weekly' | 'monthly',
+  target: number,
   currentProgress: number,
   referenceDate: Date = new Date()
 ): PaceCalculation {
-  const monthStart = startOfMonth(referenceDate);
-  const monthEnd = endOfMonth(referenceDate);
   const now = new Date();
+  let periodStart: Date;
+  let periodEnd: Date;
+  let totalUnits: number;
+  let unitsElapsed: number;
+  let unitLabel: string;
   
-  // Calculate days
-  const daysInMonth = differenceInDays(monthEnd, monthStart) + 1;
-  const daysElapsed = differenceInDays(now, monthStart) + 1;
-  const daysRemaining = Math.max(differenceInDays(monthEnd, now), 1); // At least 1 day
+  switch (period) {
+    case 'daily':
+      periodStart = startOfDay(referenceDate);
+      periodEnd = endOfDay(referenceDate);
+      // For daily: use hours (24 hours in a day)
+      const hoursInDay = 24;
+      const currentHour = now.getHours();
+      totalUnits = hoursInDay;
+      unitsElapsed = currentHour + 1; // Include current hour
+      unitLabel = 'hour';
+      break;
+      
+    case 'weekly':
+      periodStart = startOfWeek(referenceDate, { weekStartsOn: 1 }); // Monday
+      periodEnd = endOfWeek(referenceDate, { weekStartsOn: 1 });
+      totalUnits = 7; // days in week
+      unitsElapsed = differenceInDays(now, periodStart) + 1;
+      unitLabel = 'day';
+      break;
+      
+    case 'monthly':
+    default:
+      periodStart = startOfMonth(referenceDate);
+      periodEnd = endOfMonth(referenceDate);
+      totalUnits = differenceInDays(periodEnd, periodStart) + 1;
+      unitsElapsed = differenceInDays(now, periodStart) + 1;
+      unitLabel = 'day';
+      break;
+  }
   
-  // Calculate original daily target
-  const originalDailyTarget = monthlyTarget / daysInMonth;
+  const unitsRemaining = Math.max(totalUnits - unitsElapsed, 1); // At least 1 unit
+  
+  // Calculate original unit target
+  const originalUnitTarget = target / totalUnits;
   
   // Calculate expected progress (where you should be by now)
-  const expectedProgress = originalDailyTarget * daysElapsed;
+  const expectedProgress = originalUnitTarget * unitsElapsed;
   
   // Calculate delta (positive = ahead, negative = behind)
   const progressDelta = currentProgress - expectedProgress;
   
   // Calculate percentages
-  const progressPercentage = monthlyTarget > 0 ? (currentProgress / monthlyTarget) * 100 : 0;
-  const pacePercentage = (daysElapsed / daysInMonth) * 100;
+  const progressPercentage = target > 0 ? (currentProgress / target) * 100 : 0;
+  const pacePercentage = (unitsElapsed / totalUnits) * 100;
   
-  // Calculate adjusted daily target for remaining days
-  const remainingGoal = Math.max(monthlyTarget - currentProgress, 0);
-  const adjustedDailyTarget = remainingGoal / daysRemaining;
+  // Calculate adjusted unit target for remaining time
+  const remainingGoal = Math.max(target - currentProgress, 0);
+  const adjustedUnitTarget = remainingGoal / unitsRemaining;
   
-  // Calculate today's target (what you need to hit today to stay on pace)
-  const todayTarget = Math.max(adjustedDailyTarget, 0);
+  // Calculate current target (what you need NOW to stay on pace)
+  const currentTarget = Math.max(adjustedUnitTarget, 0);
   
   // Determine status (within 5% tolerance = on-pace)
   let status: 'ahead' | 'on-pace' | 'behind';
@@ -80,30 +120,44 @@ export function calculateMonthlyPace(
   
   // Generate status message
   let statusMessage = '';
+  const deltaRounded = Math.abs(Math.round(progressDelta));
   if (status === 'ahead') {
-    statusMessage = `You're ${Math.abs(Math.round(progressDelta))} ahead of pace! 🎉`;
+    statusMessage = `You're ${deltaRounded} ahead of pace! 🎉`;
   } else if (status === 'on-pace') {
     statusMessage = `You're on pace to hit your goal! 🎯`;
   } else {
-    statusMessage = `You're ${Math.abs(Math.round(progressDelta))} behind pace`;
+    statusMessage = `You're ${deltaRounded} behind pace`;
   }
   
   return {
-    monthlyTarget,
+    period,
+    periodTarget: target,
     currentProgress,
-    daysInMonth,
-    daysElapsed,
-    daysRemaining,
+    totalUnits,
+    unitsElapsed,
+    unitsRemaining,
+    unitLabel,
     expectedProgress,
     progressDelta,
     progressPercentage,
     pacePercentage,
-    originalDailyTarget,
-    adjustedDailyTarget,
-    todayTarget,
+    originalUnitTarget,
+    adjustedUnitTarget,
+    currentTarget,
     status,
     statusMessage,
   };
+}
+
+/**
+ * Legacy function for backward compatibility
+ */
+export function calculateMonthlyPace(
+  monthlyTarget: number,
+  currentProgress: number,
+  referenceDate: Date = new Date()
+): PaceCalculation {
+  return calculatePace('monthly', monthlyTarget, currentProgress, referenceDate);
 }
 
 /**

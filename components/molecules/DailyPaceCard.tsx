@@ -3,7 +3,7 @@
 import React from 'react';
 import { Goal } from '@/types';
 import { 
-  calculateMonthlyPace, 
+  calculatePace, 
   formatMetricValue, 
   getPaceColor, 
   getPaceBgColor,
@@ -13,7 +13,7 @@ import { TrendingUp, TrendingDown, Target, Calendar } from 'lucide-react';
 
 interface DailyPaceCardProps {
   goal: Goal;
-  currentMonthProgress: number;
+  currentProgress: number;
 }
 
 const goalLabels: Record<string, string> = {
@@ -27,15 +27,16 @@ const goalLabels: Record<string, string> = {
   'new_sales_distribution': 'Distribution Sales'
 };
 
-export default function DailyPaceCard({ goal, currentMonthProgress }: DailyPaceCardProps) {
-  // Only show for monthly goals
-  if (goal.period !== 'monthly') {
-    return null;
-  }
-
-  const pace = calculateMonthlyPace(goal.target, currentMonthProgress);
+export default function DailyPaceCard({ goal, currentProgress }: DailyPaceCardProps) {
+  const pace = calculatePace(goal.period, goal.target, currentProgress);
   const isCurrency = goal.type.includes('sales');
   const label = goalLabels[goal.type] || goal.type;
+  
+  // Get period-specific labels
+  const periodLabel = goal.period === 'daily' ? 'Today' : 
+                      goal.period === 'weekly' ? 'This Week' : 
+                      'This Month';
+  const unitLabel = pace.unitLabel === 'hour' ? 'hr' : pace.unitLabel;
 
   return (
     <div className={`rounded-lg border-2 p-4 ${getPaceBgColor(pace.status)}`}>
@@ -45,7 +46,7 @@ export default function DailyPaceCard({ goal, currentMonthProgress }: DailyPaceC
           <span className="text-2xl">{getPaceIcon(pace.status)}</span>
           <div>
             <h4 className="font-semibold text-gray-900">{label}</h4>
-            <p className="text-xs text-gray-600">Daily Pace Tracker</p>
+            <p className="text-xs text-gray-600">{periodLabel} Pace</p>
           </div>
         </div>
         <div className={`text-right ${getPaceColor(pace.status)}`}>
@@ -60,7 +61,7 @@ export default function DailyPaceCard({ goal, currentMonthProgress }: DailyPaceC
       <div className="mb-3">
         <div className="flex justify-between text-xs text-gray-600 mb-1">
           <span>Progress</span>
-          <span>{formatMetricValue(currentMonthProgress, isCurrency)} / {formatMetricValue(goal.target, isCurrency)}</span>
+          <span>{formatMetricValue(currentProgress, isCurrency)} / {formatMetricValue(goal.target, isCurrency)}</span>
         </div>
         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div 
@@ -92,15 +93,16 @@ export default function DailyPaceCard({ goal, currentMonthProgress }: DailyPaceC
       {/* Key Metrics */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="bg-white/50 rounded p-2">
-          <p className="text-xs text-gray-600 mb-1">Today's Target</p>
+          <p className="text-xs text-gray-600 mb-1">Current Target</p>
           <p className="text-lg font-bold text-gray-900">
-            {formatMetricValue(pace.todayTarget, isCurrency)}
+            {formatMetricValue(pace.currentTarget, isCurrency)}
+            <span className="text-xs text-gray-500">/{unitLabel}</span>
           </p>
         </div>
         <div className="bg-white/50 rounded p-2">
-          <p className="text-xs text-gray-600 mb-1">Days Remaining</p>
+          <p className="text-xs text-gray-600 mb-1">{pace.unitLabel === 'hour' ? 'Hours Left' : `${pace.unitLabel}s Left`}</p>
           <p className="text-lg font-bold text-gray-900">
-            {pace.daysRemaining}
+            {pace.unitsRemaining}
           </p>
         </div>
       </div>
@@ -108,14 +110,14 @@ export default function DailyPaceCard({ goal, currentMonthProgress }: DailyPaceC
       {/* Detailed Info */}
       <div className="space-y-1 text-xs text-gray-700">
         <div className="flex justify-between">
-          <span>Original daily target:</span>
-          <span className="font-medium">{formatMetricValue(pace.originalDailyTarget, isCurrency)}</span>
+          <span>Original target per {unitLabel}:</span>
+          <span className="font-medium">{formatMetricValue(pace.originalUnitTarget, isCurrency)}</span>
         </div>
         {pace.status !== 'on-pace' && (
           <div className="flex justify-between">
-            <span>Adjusted daily target:</span>
+            <span>Adjusted target per {unitLabel}:</span>
             <span className={`font-medium ${getPaceColor(pace.status)}`}>
-              {formatMetricValue(pace.adjustedDailyTarget, isCurrency)}
+              {formatMetricValue(pace.adjustedUnitTarget, isCurrency)}
             </span>
           </div>
         )}
@@ -129,8 +131,8 @@ export default function DailyPaceCard({ goal, currentMonthProgress }: DailyPaceC
       {pace.status === 'behind' && (
         <div className="mt-3 pt-3 border-t border-orange-200">
           <p className="text-xs text-gray-700">
-            💪 <strong>Action needed:</strong> Hit {formatMetricValue(pace.todayTarget, isCurrency)} today 
-            to get back on track for your monthly goal!
+            💪 <strong>Action needed:</strong> Hit {formatMetricValue(pace.currentTarget, isCurrency)} per {unitLabel} 
+            to get back on track for your {goal.period} goal!
           </p>
         </div>
       )}
@@ -138,8 +140,8 @@ export default function DailyPaceCard({ goal, currentMonthProgress }: DailyPaceC
       {pace.status === 'ahead' && (
         <div className="mt-3 pt-3 border-t border-green-200">
           <p className="text-xs text-gray-700">
-            🌟 <strong>Great work!</strong> You only need {formatMetricValue(pace.adjustedDailyTarget, isCurrency)}/day 
-            for the rest of the month to hit your goal!
+            🌟 <strong>Great work!</strong> You only need {formatMetricValue(pace.adjustedUnitTarget, isCurrency)}/{unitLabel} 
+            for the rest of the {goal.period === 'daily' ? 'day' : goal.period === 'weekly' ? 'week' : 'month'} to hit your goal!
           </p>
         </div>
       )}

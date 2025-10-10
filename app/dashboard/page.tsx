@@ -13,7 +13,7 @@ import GoalGrid from '@/components/organisms/GoalGrid';
 import DailyPaceCard from '@/components/molecules/DailyPaceCard';
 import Link from 'next/link';
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { eachDayOfInterval, subDays, format, startOfMonth, endOfMonth } from 'date-fns';
+import { eachDayOfInterval, subDays, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfDay, endOfDay } from 'date-fns';
 import { 
   BarChart3, 
   Users, 
@@ -49,6 +49,8 @@ export default function DashboardPage() {
   const [email30d, setEmail30d] = useState<{ date: string; value: number }[]>([]);
   const [calls7d, setCalls7d] = useState<{ date: string; value: number }[]>([]);
   const [calls30d, setCalls30d] = useState<{ date: string; value: number }[]>([]);
+  const [dailyProgress, setDailyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
+  const [weeklyProgress, setWeeklyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
   const [monthlyProgress, setMonthlyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
   const [minutes7d, setMinutes7d] = useState<{ date: string; value: number }[]>([]);
   const [minutes30d, setMinutes30d] = useState<{ date: string; value: number }[]>([]);
@@ -238,20 +240,41 @@ export default function DashboardPage() {
         setMinutes7d(buildDailySeries(tm7, start7, today));
         setMinutes30d(buildDailySeries(tm30, start30, today));
 
-        // Load monthly progress for all goal types
+        // Load progress for all periods (daily, weekly, monthly)
+        const dayStart = startOfDay(today);
+        const dayEnd = endOfDay(today);
+        const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
         const monthStart = startOfMonth(today);
         const monthEnd = endOfMonth(today);
-        const progress: Record<GoalType, number> = {} as Record<GoalType, number>;
+        
+        const daily: Record<GoalType, number> = {} as Record<GoalType, number>;
+        const weekly: Record<GoalType, number> = {} as Record<GoalType, number>;
+        const monthly: Record<GoalType, number> = {} as Record<GoalType, number>;
         
         for (const goalType of goalTypes) {
           try {
+            // Daily progress
+            const dayMetrics = await metricService.getMetrics(uid, goalType, dayStart, dayEnd);
+            daily[goalType] = dayMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
+            
+            // Weekly progress
+            const weekMetrics = await metricService.getMetrics(uid, goalType, weekStart, weekEnd);
+            weekly[goalType] = weekMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
+            
+            // Monthly progress
             const monthMetrics = await metricService.getMetrics(uid, goalType, monthStart, monthEnd);
-            progress[goalType] = monthMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
+            monthly[goalType] = monthMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
           } catch (e) {
-            progress[goalType] = 0;
+            daily[goalType] = 0;
+            weekly[goalType] = 0;
+            monthly[goalType] = 0;
           }
         }
-        setMonthlyProgress(progress);
+        
+        setDailyProgress(daily);
+        setWeeklyProgress(weekly);
+        setMonthlyProgress(monthly);
       } catch (e) {
         console.warn('Failed loading sparkline data', e);
       }
@@ -495,25 +518,34 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 4. Daily Pace Trackers (Monthly Goals Only) */}
-      {goals.filter(g => g.period === 'monthly').length > 0 && (
+      {/* 4. Pace Trackers (For Current Period) */}
+      {goals.filter(g => g.period === selectedPeriod).length > 0 && (
         <div className="bg-white rounded-xl shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-semibold">📊 Daily Pace Trackers</h3>
-              <p className="text-sm text-gray-600">Stay on track to hit your monthly goals</p>
+              <h3 className="text-lg font-semibold">📊 Pace Trackers</h3>
+              <p className="text-sm text-gray-600">
+                {selectedPeriod === 'daily' && 'Stay on track to hit your daily goals'}
+                {selectedPeriod === 'weekly' && 'Stay on track to hit your weekly goals'}
+                {selectedPeriod === 'monthly' && 'Stay on track to hit your monthly goals'}
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {goals
-              .filter(g => g.period === 'monthly')
-              .map(goal => (
-                <DailyPaceCard
-                  key={goal.id}
-                  goal={goal}
-                  currentMonthProgress={monthlyProgress[goal.type] || 0}
-                />
-              ))}
+              .filter(g => g.period === selectedPeriod)
+              .map(goal => {
+                const progress = selectedPeriod === 'daily' ? dailyProgress[goal.type] :
+                                selectedPeriod === 'weekly' ? weeklyProgress[goal.type] :
+                                monthlyProgress[goal.type];
+                return (
+                  <DailyPaceCard
+                    key={goal.id}
+                    goal={goal}
+                    currentProgress={progress || 0}
+                  />
+                );
+              })}
           </div>
         </div>
       )}
