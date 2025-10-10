@@ -56,12 +56,23 @@ export default function FishbowlTab() {
       const salesmenRes = await fetch('/api/admin/fishbowl-salesmen', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+      
       if (salesmenRes.ok) {
         const salesmenData = await salesmenRes.json();
+        console.log('[Fishbowl Tab] Salesmen data:', salesmenData);
         setFishbowlUsers(salesmenData.salesmen || []);
+        
+        if (salesmenData.totalOrders === 0) {
+          toast.error('No Fishbowl orders found. Please import Fishbowl data first.');
+        } else if (salesmenData.count === 0) {
+          toast.error(`Found ${salesmenData.totalOrders} orders but no salesman field. Check server logs.`);
+        } else {
+          toast.success(`Loaded ${salesmenData.count} salesmen from ${salesmenData.totalOrders} orders`);
+        }
+      } else {
+        const errorData = await salesmenRes.json();
+        throw new Error(errorData?.error || 'Failed to load salesmen');
       }
-
-      toast.success('Data loaded');
     } catch (e: any) {
       console.error('[Fishbowl Tab] Error:', e);
       toast.error(e.message || 'Failed to load data');

@@ -35,27 +35,49 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    console.log('[Fishbowl Salesmen] Querying fishbowl_sales_orders...');
+    
     // Query all sales orders and collect unique salesmen
     const ordersSnapshot = await adminDb
       .collection('fishbowl_sales_orders')
       .limit(1000) // Limit to avoid timeout
       .get();
 
+    console.log('[Fishbowl Salesmen] Found', ordersSnapshot.docs.length, 'orders');
+
     const salesmenSet = new Set<string>();
+    const fieldVariations: string[] = [];
     
     for (const doc of ordersSnapshot.docs) {
       const order = doc.data();
-      const salesman = order.salesman || order.salesmanId;
-      if (salesman && typeof salesman === 'string') {
-        salesmenSet.add(salesman);
+      
+      // Try multiple field names
+      const salesman = order.salesman || order.salesmanId || order.salesmanName || order.salesPerson;
+      
+      // Log first order to see structure
+      if (salesmenSet.size === 0) {
+        console.log('[Fishbowl Salesmen] Sample order fields:', Object.keys(order));
+        console.log('[Fishbowl Salesmen] Sample order salesman fields:', {
+          salesman: order.salesman,
+          salesmanId: order.salesmanId,
+          salesmanName: order.salesmanName,
+          salesPerson: order.salesPerson,
+        });
+      }
+      
+      if (salesman && typeof salesman === 'string' && salesman.trim()) {
+        salesmenSet.add(salesman.trim());
       }
     }
 
     const salesmen = Array.from(salesmenSet).sort();
 
+    console.log('[Fishbowl Salesmen] Found unique salesmen:', salesmen);
+
     return NextResponse.json({
       salesmen,
       count: salesmen.length,
+      totalOrders: ordersSnapshot.docs.length,
     });
   } catch (error: any) {
     console.error('[Fishbowl Salesmen] Error:', error);
