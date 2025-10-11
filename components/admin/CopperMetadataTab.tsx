@@ -114,18 +114,80 @@ export default function CopperMetadataTab() {
   const discoverAll = async () => {
     setLoading(true);
     try {
+      // First, load existing defaults from Firestore
+      const defaultsRes = await fetch('/api/copper/defaults');
+      const defaultsData = await defaultsRes.json();
+      const existingDefaults = defaultsData.defaults || {};
+      
       // Fetch activity types
       const actTypesRes = await fetch('/api/copper/activity-types');
       const actTypesData = await actTypesRes.json();
       if (actTypesRes.ok) {
-        setActTypes(actTypesData.activityTypes || []);
+        const types = actTypesData.activityTypes || [];
+        setActTypes(types);
+        
+        // Auto-populate from existing Firestore defaults
+        if (existingDefaults.emailActivityId) {
+          setSelectedEmailType({ 
+            id: existingDefaults.emailActivityId, 
+            category: existingDefaults.emailActivityCategory || 'system' 
+          });
+        }
+        
+        if (existingDefaults.phoneCallActivityId) {
+          setSelectedCallType({ 
+            id: existingDefaults.phoneCallActivityId, 
+            category: existingDefaults.phoneCallActivityCategory || 'user' 
+          });
+        }
+        
+        if (existingDefaults.smsActivityId) {
+          setSelectedSmsType({ 
+            id: existingDefaults.smsActivityId, 
+            category: existingDefaults.smsActivityCategory || 'user' 
+          });
+        }
       }
 
       // Fetch pipelines
       const pipelinesRes = await fetch('/api/copper/pipelines');
       const pipelinesData = await pipelinesRes.json();
       if (pipelinesRes.ok) {
-        setPipelines(pipelinesData.pipelines || []);
+        const pipes = pipelinesData.pipelines || [];
+        setPipelines(pipes);
+        
+        // Auto-populate pipeline from Firestore
+        if (existingDefaults.SALES_PIPELINE_ID) {
+          setSelectedPipeline(existingDefaults.SALES_PIPELINE_ID);
+          
+          // Find the pipeline and populate stages
+          const selectedPipe = pipes.find((p: any) => String(p.id) === String(existingDefaults.SALES_PIPELINE_ID));
+          if (selectedPipe?.stages && existingDefaults.STAGE_MAPPING) {
+            try {
+              const stageMap = typeof existingDefaults.STAGE_MAPPING === 'string' 
+                ? JSON.parse(existingDefaults.STAGE_MAPPING) 
+                : existingDefaults.STAGE_MAPPING;
+              
+              // Reverse the mapping (from {stageName: metricType} to {metricType: stageName})
+              const reversedMap: any = {};
+              Object.entries(stageMap).forEach(([stageName, metricType]) => {
+                reversedMap[metricType as string] = stageName;
+              });
+              
+              setSelectedStages(reversedMap);
+            } catch (e) {
+              console.error('Failed to parse stage mapping:', e);
+            }
+          }
+        }
+        
+        // Auto-populate won stage
+        if (existingDefaults.CLOSED_WON_STAGES) {
+          const wonStage = Array.isArray(existingDefaults.CLOSED_WON_STAGES) 
+            ? existingDefaults.CLOSED_WON_STAGES[0] 
+            : existingDefaults.CLOSED_WON_STAGES;
+          setSelectedWonStage(wonStage);
+        }
       }
 
       // Validate API user
@@ -135,7 +197,7 @@ export default function CopperMetadataTab() {
         setApiUser(userData.user);
       }
 
-      toast.success(`Found ${actTypesData.activityTypes?.length || 0} activity types, ${pipelinesData.pipelines?.length || 0} pipelines`);
+      toast.success(`Found ${actTypesData.activityTypes?.length || 0} activity types, ${pipelinesData.pipelines?.length || 0} pipelines. Existing mappings loaded.`);
     } catch (e: any) {
       toast.error(e.message || 'Failed to discover Copper data');
     } finally {
