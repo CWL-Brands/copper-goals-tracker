@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChange } from '@/lib/firebase/client';
 import toast from 'react-hot-toast';
+import { Target, Phone, Mail, MessageSquare, Users, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 
 export default function TeamGoalsTab() {
   const [uid, setUid] = useState<string | null>(null);
@@ -82,151 +83,166 @@ export default function TeamGoalsTab() {
     }
   };
 
+  const periodIcons: Record<string, any> = {
+    daily: <Calendar className="w-5 h-5" />,
+    weekly: <TrendingUp className="w-5 h-5" />,
+    monthly: <Target className="w-5 h-5" />,
+    quarterly: <Target className="w-5 h-5" />
+  };
+
+  const periodColors: Record<string, string> = {
+    daily: 'from-blue-500 to-blue-600',
+    weekly: 'from-purple-500 to-purple-600',
+    monthly: 'from-green-500 to-green-600',
+    quarterly: 'from-orange-500 to-orange-600'
+  };
+
+  const goalFields = [
+    { key: 'phone_call_quantity', label: 'Phone Calls', icon: <Phone className="w-4 h-4" />, color: 'text-blue-600' },
+    { key: 'email_quantity', label: 'Emails', icon: <Mail className="w-4 h-4" />, color: 'text-purple-600' },
+    { key: 'sms_quantity', label: 'Text Messages', icon: <MessageSquare className="w-4 h-4" />, color: 'text-pink-600' },
+    { key: 'lead_progression_a', label: 'Fact Finding (A)', icon: <Users className="w-4 h-4" />, color: 'text-amber-600' },
+    { key: 'lead_progression_b', label: 'Contact Stage (B)', icon: <Users className="w-4 h-4" />, color: 'text-amber-600' },
+    { key: 'lead_progression_c', label: 'Closing Stage (C)', icon: <Users className="w-4 h-4" />, color: 'text-amber-600' },
+    { key: 'new_sales_wholesale', label: 'Wholesale Sales', icon: <DollarSign className="w-4 h-4" />, color: 'text-green-600', isCurrency: true },
+    { key: 'new_sales_distribution', label: 'Distribution Sales', icon: <DollarSign className="w-4 h-4" />, color: 'text-green-600', isCurrency: true },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold mb-2">Team Goals</h2>
-        <p className="text-sm text-gray-600">Set organization-wide targets. Users will still have individual goals.</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-kanva-green to-green-600 rounded-2xl p-8 text-white shadow-lg">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+            <Target className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Team Goals</h2>
+            <p className="text-green-50 text-sm">Organization-wide targets for all team members</p>
+          </div>
+        </div>
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mt-4">
+          <p className="text-sm text-green-50">
+            💡 <strong>Tip:</strong> These goals apply to all users. Individual team members can still set their own personal goals.
+          </p>
+        </div>
       </div>
 
+      {/* Period Cards */}
       {['daily', 'weekly', 'monthly', 'quarterly'].map((period) => (
-        <div key={period} className="border-t pt-6">
-          <h3 className="text-md font-medium mb-4 capitalize">{period}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Phone Calls</label>
-              <input
-                type="number"
-                value={teamGoals[period].phone_call_quantity}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], phone_call_quantity: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
+        <div key={period} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+          {/* Period Header */}
+          <div className={`bg-gradient-to-r ${periodColors[period]} p-6 text-white`}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                {periodIcons[period]}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold capitalize">{period} Goals</h3>
+                <p className="text-sm text-white/80">Set targets for the {period} period</p>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Emails</label>
-              <input
-                type="number"
-                value={teamGoals[period].email_quantity}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], email_quantity: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Text Messages</label>
-              <input
-                type="number"
-                value={teamGoals[period].sms_quantity}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], sms_quantity: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Fact Finding (A)</label>
-              <input
-                type="number"
-                value={teamGoals[period].lead_progression_a}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], lead_progression_a: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Contact Stage (B)</label>
-              <input
-                type="number"
-                value={teamGoals[period].lead_progression_b}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], lead_progression_b: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Closing Stage (C)</label>
-              <input
-                type="number"
-                value={teamGoals[period].lead_progression_c}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], lead_progression_c: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Wholesale Sales ($)</label>
-              <input
-                type="number"
-                value={teamGoals[period].new_sales_wholesale}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], new_sales_wholesale: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm text-gray-700 mb-1">Distribution Sales ($)</label>
-              <input
-                type="number"
-                value={teamGoals[period].new_sales_distribution}
-                onChange={(e) => setTeamGoals({
-                  ...teamGoals,
-                  [period]: { ...teamGoals[period], new_sales_distribution: Number(e.target.value) }
-                })}
-                className="w-full border rounded-md px-3 py-2"
-              />
+          </div>
+
+          {/* Goals Grid */}
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {goalFields.map((field) => (
+                <div key={field.key} className={`${field.isCurrency ? 'md:col-span-2 lg:col-span-1' : ''}`}>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    <span className={field.color}>{field.icon}</span>
+                    {field.label}
+                  </label>
+                  <div className="relative">
+                    {field.isCurrency && (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                    )}
+                    <input
+                      type="number"
+                      value={teamGoals[period][field.key]}
+                      onChange={(e) => setTeamGoals({
+                        ...teamGoals,
+                        [period]: { ...teamGoals[period], [field.key]: Number(e.target.value) }
+                      })}
+                      className={`w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-kanva-green focus:ring-2 focus:ring-kanva-green/20 transition-all ${field.isCurrency ? 'pl-8' : ''}`}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       ))}
 
-      <div className="flex items-center gap-3 pt-4 border-t">
-        <button
-          onClick={() => setShowPwd(true)}
-          disabled={loading}
-          className="px-4 py-2 rounded-lg bg-kanva-green text-white hover:bg-green-600 disabled:bg-gray-400"
-        >
-          {loading ? 'Saving...' : 'Save Team Goals'}
-        </button>
+      {/* Save Button */}
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="font-semibold text-gray-900">Ready to save?</h4>
+            <p className="text-sm text-gray-600 mt-1">Changes will apply to all team members immediately</p>
+          </div>
+          <button
+            onClick={() => setShowPwd(true)}
+            disabled={loading}
+            className="px-8 py-4 rounded-xl bg-gradient-to-r from-kanva-green to-green-600 text-white font-semibold hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Target className="w-5 h-5" />
+                Save Team Goals
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Password Modal */}
       {showPwd && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">Confirm Changes</h3>
-            <p className="text-sm text-gray-600 mb-4">Enter your password to save team goals:</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-kanva-green to-green-600 flex items-center justify-center">
+                <Target className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Confirm Changes</h3>
+                <p className="text-sm text-gray-500">Secure your team goals</p>
+              </div>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <p className="text-sm text-amber-800">
+                🔒 Enter your password to save these team goals. This action will update targets for all team members.
+              </p>
+            </div>
+            
             <input
               type="password"
               value={pwdInput}
               onChange={(e) => setPwdInput(e.target.value)}
-              className="w-full border rounded-md px-3 py-2 mb-4"
-              placeholder="Password"
+              onKeyDown={(e) => e.key === 'Enter' && saveTeamGoals()}
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 mb-6 focus:border-kanva-green focus:ring-2 focus:ring-kanva-green/20 transition-all"
+              placeholder="Enter your password"
               autoFocus
             />
+            
             <div className="flex gap-3">
               <button
                 onClick={saveTeamGoals}
-                className="flex-1 px-4 py-2 rounded-lg bg-kanva-green text-white hover:bg-green-600"
+                disabled={!pwdInput}
+                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-kanva-green to-green-600 text-white font-semibold hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                Confirm
+                Confirm & Save
               </button>
               <button
                 onClick={() => { setShowPwd(false); setPwdInput(''); }}
-                className="flex-1 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+                className="flex-1 px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-all duration-200"
               >
                 Cancel
               </button>
