@@ -235,6 +235,7 @@ export default function TeamDashboardPage() {
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Sales</th>
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Calls</th>
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Emails</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Texts</th>
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Leads</th>
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Score</th>
                     </tr>
@@ -301,6 +302,15 @@ export default function TeamDashboardPage() {
                             </div>
                           </td>
                           <td className="py-4 px-4 text-right">
+                            <div className="font-semibold text-gray-900">{member.sms || 0}</div>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                              <div 
+                                className="bg-pink-500 h-1.5 rounded-full" 
+                                style={{ width: `${Math.min(((member.sms || 0) / 50) * 100, 100)}%` }}
+                              />
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-right">
                             <div className="font-semibold text-gray-900">{member.leadProgression}</div>
                             <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                               <div 
@@ -338,6 +348,10 @@ export default function TeamDashboardPage() {
               <div className="p-4 rounded-lg border">
                 <p className="text-sm text-gray-500">Total Emails</p>
                 <p className="text-2xl font-bold">{metrics.email_quantity}</p>
+              </div>
+              <div className="p-4 rounded-lg border">
+                <p className="text-sm text-gray-500">Total Texts</p>
+                <p className="text-2xl font-bold">{metrics.sms_quantity}</p>
               </div>
               <div className="p-4 rounded-lg border">
                 <p className="text-sm text-gray-500">Total Leads</p>

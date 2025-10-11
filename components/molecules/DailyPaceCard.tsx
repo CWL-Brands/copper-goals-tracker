@@ -9,6 +9,7 @@ import {
   getPaceBgColor,
   getPaceIcon 
 } from '@/lib/utils/paceCalculator';
+import { getGoalTypeLabel } from '@/lib/utils/goalLabels';
 import { TrendingUp, TrendingDown, Target, Calendar } from 'lucide-react';
 
 interface DailyPaceCardProps {
@@ -16,21 +17,10 @@ interface DailyPaceCardProps {
   currentProgress: number;
 }
 
-const goalLabels: Record<string, string> = {
-  'phone_call_quantity': 'Calls',
-  'talk_time_minutes': 'Talk Time',
-  'email_quantity': 'Emails',
-  'lead_progression_a': 'Leads (Fact Finding)',
-  'lead_progression_b': 'Leads (Contact)',
-  'lead_progression_c': 'Leads (Closing)',
-  'new_sales_wholesale': 'Wholesale Sales',
-  'new_sales_distribution': 'Distribution Sales'
-};
-
 export default function DailyPaceCard({ goal, currentProgress }: DailyPaceCardProps) {
   const pace = calculatePace(goal.period, goal.target, currentProgress);
   const isCurrency = goal.type.includes('sales');
-  const label = goalLabels[goal.type] || goal.type;
+  const label = getGoalTypeLabel(goal.type);
   
   // Get period-specific labels
   const periodLabel = goal.period === 'daily' ? 'Today' : 
