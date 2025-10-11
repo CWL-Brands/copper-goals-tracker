@@ -69,12 +69,15 @@ export default function TeamGoalsTab() {
     try {
       const res = await fetch('/api/admin/team-goals', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamGoals, password: pwdInput }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-pass': pwdInput
+        },
+        body: JSON.stringify({ teamGoals }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Failed to save team goals');
-      toast.success('Team goals saved');
+      toast.success('Team goals saved successfully! 🎯');
       setPwdInput('');
     } catch (e: any) {
       toast.error(e.message || 'Failed to save team goals');
