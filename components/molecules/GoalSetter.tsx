@@ -20,6 +20,7 @@ const goalLabels: Record<GoalType, string> = {
   'phone_call_quantity': 'Phone Calls',
   'talk_time_minutes': 'Talk Time (minutes)',
   'email_quantity': 'Emails',
+  'sms_quantity': 'Text Messages',
   'lead_progression_a': 'Leads - Fact Finding',
   'lead_progression_b': 'Leads - Contact Stage',
   'lead_progression_c': 'Leads - Closing Stage',
