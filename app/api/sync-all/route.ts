@@ -129,14 +129,19 @@ export async function POST(req: NextRequest) {
     // ========================================
     console.log('[Sync All] Step 3/3: Syncing Fishbowl...');
     try {
+      // Get fresh token for internal request
+      const freshToken = await adminAuth.createCustomToken(userId);
+      const idToken = await adminAuth.verifyIdToken(token); // Use original token
+      
       const fishbowlRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/sync-fishbowl-sales`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`, // Pass auth token
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          start: startDate.toISOString(),
-          end: endDate.toISOString(),
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
         }),
       });
 
