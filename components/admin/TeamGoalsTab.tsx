@@ -13,6 +13,7 @@ export default function TeamGoalsTab() {
     daily: {
       phone_call_quantity: 125,
       email_quantity: 50,
+      sms_quantity: 50,
       lead_progression_a: 15,
       lead_progression_b: 10,
       lead_progression_c: 5,
@@ -22,6 +23,7 @@ export default function TeamGoalsTab() {
     weekly: {
       phone_call_quantity: 625,
       email_quantity: 250,
+      sms_quantity: 250,
       lead_progression_a: 75,
       lead_progression_b: 50,
       lead_progression_c: 25,
@@ -31,6 +33,7 @@ export default function TeamGoalsTab() {
     monthly: {
       phone_call_quantity: 2500,
       email_quantity: 1000,
+      sms_quantity: 1000,
       lead_progression_a: 300,
       lead_progression_b: 200,
       lead_progression_c: 100,
@@ -40,6 +43,7 @@ export default function TeamGoalsTab() {
     quarterly: {
       phone_call_quantity: 7500,
       email_quantity: 3000,
+      sms_quantity: 3000,
       lead_progression_a: 900,
       lead_progression_b: 600,
       lead_progression_c: 300,
@@ -109,6 +113,18 @@ export default function TeamGoalsTab() {
                 onChange={(e) => setTeamGoals({
                   ...teamGoals,
                   [period]: { ...teamGoals[period], email_quantity: Number(e.target.value) }
+                })}
+                className="w-full border rounded-md px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-700 mb-1">Text Messages</label>
+              <input
+                type="number"
+                value={teamGoals[period].sms_quantity}
+                onChange={(e) => setTeamGoals({
+                  ...teamGoals,
+                  [period]: { ...teamGoals[period], sms_quantity: Number(e.target.value) }
                 })}
                 className="w-full border rounded-md px-3 py-2"
               />
