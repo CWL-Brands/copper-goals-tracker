@@ -88,36 +88,31 @@ export async function POST(req: NextRequest) {
     // ========================================
     console.log('[Sync All] Step 2/3: Syncing JustCall...');
     try {
-      // Get user's JustCall agent ID
-      const userDoc = await adminDb.collection('users').doc(userId).get();
-      const userData = userDoc.data();
-      const justcallAgentId = userData?.justcallAgentId;
+      const justcallRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/sync-justcall-metrics`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        }),
+      });
 
-      if (justcallAgentId) {
-        const justcallRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/sync-justcall-metrics`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            agentId: justcallAgentId,
-            start: startDate.toISOString(),
-            end: endDate.toISOString(),
-          }),
-        });
-
-        if (justcallRes.ok) {
-          results.justcall = await justcallRes.json();
-          console.log('[Sync All] ✅ JustCall sync complete');
+      if (justcallRes.ok) {
+        results.justcall = await justcallRes.json();
+        console.log('[Sync All] ✅ JustCall sync complete');
+      } else {
+        const error = await justcallRes.text();
+        // Don't treat as error if user not found in JustCall
+        if (error.includes('not found') || error.includes('No email')) {
+          console.log('[Sync All] ⚠️  User not found in JustCall, skipping');
+          results.justcall = { skipped: true, reason: 'User not found in JustCall' };
         } else {
-          const error = await justcallRes.text();
           results.errors.push(`JustCall sync failed: ${error}`);
           console.error('[Sync All] ❌ JustCall sync failed:', error);
         }
-      } else {
-        console.log('[Sync All] ⚠️  No JustCall agent ID configured, skipping');
-        results.justcall = { skipped: true, reason: 'No agent ID configured' };
       }
     } catch (e: any) {
       results.errors.push(`JustCall sync error: ${e.message}`);
