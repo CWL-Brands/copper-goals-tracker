@@ -13,6 +13,8 @@ export default function CopperMetadataTab() {
     emailActivityCategory: '',
     phoneCallActivityId: '',
     phoneCallActivityCategory: '',
+    smsActivityId: '2160513',
+    smsActivityCategory: 'user',
     SALES_PIPELINE_ID: '',
     CLOSED_WON_STAGES: '',
     STAGE_MAPPING: '{"Fact Finding":"lead_progression_a","Contact Stage":"lead_progression_b","Closing Stage":"lead_progression_c"}',
@@ -22,6 +24,7 @@ export default function CopperMetadataTab() {
   const [apiUser, setApiUser] = useState<any>(null);
   const [selectedEmailType, setSelectedEmailType] = useState<{id:string, category:string}>({ id: '', category: 'system' });
   const [selectedCallType, setSelectedCallType] = useState<{id:string, category:string}>({ id: '', category: 'user' });
+  const [selectedSmsType, setSelectedSmsType] = useState<{id:string, category:string}>({ id: '2160513', category: 'user' });
   const [selectedPipeline, setSelectedPipeline] = useState<string>('');
   const [selectedStages, setSelectedStages] = useState<{[key: string]: string}>({
     lead_progression_a: '',
@@ -62,6 +65,8 @@ export default function CopperMetadataTab() {
         emailActivityCategory: d.emailActivityCategory || '',
         phoneCallActivityId: d.phoneCallActivityId || '',
         phoneCallActivityCategory: d.phoneCallActivityCategory || '',
+        smsActivityId: d.smsActivityId || '2160513',
+        smsActivityCategory: d.smsActivityCategory || 'user',
         SALES_PIPELINE_ID: d.SALES_PIPELINE_ID || '',
         CLOSED_WON_STAGES: Array.isArray(d.CLOSED_WON_STAGES) ? d.CLOSED_WON_STAGES.join(', ') : (d.CLOSED_WON_STAGES || ''),
         STAGE_MAPPING: d.STAGE_MAPPING ? JSON.stringify(d.STAGE_MAPPING) : defaults.STAGE_MAPPING,
@@ -147,6 +152,10 @@ export default function CopperMetadataTab() {
     if (selectedCallType.id) {
       updates.phoneCallActivityId = selectedCallType.id;
       updates.phoneCallActivityCategory = selectedCallType.category;
+    }
+    if (selectedSmsType.id) {
+      updates.smsActivityId = selectedSmsType.id;
+      updates.smsActivityCategory = selectedSmsType.category;
     }
     if (selectedPipeline) {
       updates.SALES_PIPELINE_ID = selectedPipeline;
@@ -306,6 +315,17 @@ export default function CopperMetadataTab() {
             />
           </div>
           <div>
+            <label className="block text-sm text-gray-700 mb-1">SMS Activity Type ID</label>
+            <input
+              type="text"
+              value={defaults.smsActivityId || '2160513'}
+              onChange={(e) => setDefaults({ ...defaults, smsActivityId: e.target.value })}
+              className="w-full border rounded-md px-3 py-2"
+              placeholder="2160513"
+            />
+            <p className="text-xs text-gray-500 mt-1">Default: 2160513 (SMS activity type)</p>
+          </div>
+          <div>
             <label className="block text-sm text-gray-700 mb-1">Sales Pipeline ID</label>
             <input
               type="text"
@@ -411,6 +431,24 @@ export default function CopperMetadataTab() {
                   className="w-full border rounded-md px-3 py-2"
                 >
                   <option value="">Select call type...</option>
+                  {actTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name} (ID: {type.id}, {type.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">SMS Activity Type</label>
+                <select
+                  value={selectedSmsType.id}
+                  onChange={(e) => {
+                    const type = actTypes.find(t => t.id === e.target.value);
+                    setSelectedSmsType({ id: e.target.value, category: type?.category || 'user' });
+                  }}
+                  className="w-full border rounded-md px-3 py-2"
+                >
+                  <option value="">Select SMS type...</option>
                   {actTypes.map((type) => (
                     <option key={type.id} value={type.id}>
                       {type.name} (ID: {type.id}, {type.category})
