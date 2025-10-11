@@ -52,7 +52,6 @@ export default function DashboardPage() {
   const [minutes7d, setMinutes7d] = useState<{ date: string; value: number }[]>([]);
   const [minutes30d, setMinutes30d] = useState<{ date: string; value: number }[]>([]);
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
 
   // Initialize data
   useEffect(() => {
@@ -168,51 +167,8 @@ export default function DashboardPage() {
     }
   };
 
-  // Trigger master sync (Copper + JustCall + Fishbowl) for the past 30 days
-  const handleSyncNow = async () => {
-    if (!user?.id) return;
-    try {
-      setSyncing(true);
-      const end = new Date();
-      const start = new Date(); start.setDate(end.getDate() - 30);
-      
-      // Get auth token
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-      
-      // Call master sync endpoint
-      const res = await fetch('/api/sync-all', {
-        method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify({
-          start: start.toISOString(),
-          end: end.toISOString(),
-        }),
-      });
-      
-      const data = await res.json().catch(()=>({}));
-      if (!res.ok) throw new Error(data?.error || 'Sync failed');
-      
-      // Show success with details
-      const summary = data.summary || {};
-      const errors = data.results?.errors || [];
-      
-      if (errors.length > 0) {
-        toast.error(`Sync completed with ${errors.length} error(s)`);
-      } else {
-        toast.success(`Synced all sources! Updated ${summary.goalsUpdated || 0} goals`);
-      }
-      
-      await loadDashboardData(user.id);
-    } catch (e:any) {
-      toast.error(e?.message || 'Sync failed');
-    } finally {
-      setSyncing(false);
-    }
-  };
+  // Auto-sync runs every 10 minutes in the background
+  // No manual sync needed - data is always fresh!
 
   // Load series for sparklines (7d and 30d) for emails and talk time
   useEffect(() => {
@@ -438,16 +394,9 @@ export default function DashboardPage() {
       <div className="bg-white rounded-xl shadow-sm p-5">
         <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
-          <button 
-            onClick={handleSyncNow}
-            disabled={syncing}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {syncing ? 'Syncing...' : 'Sync Now (30d)'}
-          </button>
           <Link 
             href="/team-dashboard"
-            className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200"
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
           >
             View Team Dashboard
           </Link>
@@ -458,6 +407,7 @@ export default function DashboardPage() {
             Sign Out
           </button>
         </div>
+        <p className="text-xs text-gray-500 mt-2">💡 Data syncs automatically every 10 minutes</p>
       </div>
 
       {/* 3. At a Glance (Compact) */}

@@ -7,16 +7,17 @@ export const maxDuration = 300; // 5 minutes for long syncs
 
 /**
  * POST /api/sync-all
- * Master sync orchestrator - syncs all data sources in one call
+ * Master sync orchestrator - syncs personal metrics (Copper + JustCall)
  * 
  * This endpoint:
  * 1. Syncs Copper (emails, calls, leads, pipeline)
  * 2. Syncs JustCall (calls, talk time)
- * 3. Syncs Fishbowl (sales orders)
- * 4. Updates all goals once at the end
+ * 3. Updates all goals once at the end
+ * 
+ * Note: Fishbowl sync is separate (admin-only, manual 3-step process)
  * 
  * Benefits:
- * - ONE button for users
+ * - Automated background sync
  * - Guaranteed order of operations
  * - Single goal update (efficient)
  * - Unified error handling
@@ -47,7 +48,6 @@ export async function POST(req: NextRequest) {
     const results = {
       copper: null as any,
       justcall: null as any,
-      fishbowl: null as any,
       goalsUpdated: 0,
       errors: [] as string[],
     };
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     // ========================================
     // 1. SYNC COPPER (Emails, Calls, Leads)
     // ========================================
-    console.log('[Sync All] Step 1/3: Syncing Copper...');
+    console.log('[Sync All] Step 1/2: Syncing Copper...');
     try {
       const copperRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/sync-metrics`, {
         method: 'POST',
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     // ========================================
     // 2. SYNC JUSTCALL (Calls, Talk Time)
     // ========================================
-    console.log('[Sync All] Step 2/3: Syncing JustCall...');
+    console.log('[Sync All] Step 2/2: Syncing JustCall...');
     try {
       const justcallRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/sync-justcall-metrics`, {
         method: 'POST',
@@ -120,37 +120,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ========================================
-    // 3. SYNC FISHBOWL (Sales Orders)
-    // ========================================
-    console.log('[Sync All] Step 3/3: Syncing Fishbowl...');
-    try {
-      const fishbowlRes = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/api/sync-fishbowl-sales`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`, // Pass original auth token
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-        }),
-      });
-
-      if (fishbowlRes.ok) {
-        results.fishbowl = await fishbowlRes.json();
-        console.log('[Sync All] ✅ Fishbowl sync complete');
-      } else {
-        const error = await fishbowlRes.text();
-        results.errors.push(`Fishbowl sync failed: ${error}`);
-        console.error('[Sync All] ❌ Fishbowl sync failed:', error);
-      }
-    } catch (e: any) {
-      results.errors.push(`Fishbowl sync error: ${e.message}`);
-      console.error('[Sync All] ❌ Fishbowl sync error:', e);
-    }
-
-    // ========================================
-    // 4. UPDATE GOALS (Single Update)
+    // 3. UPDATE GOALS (Single Update)
     // ========================================
     console.log('[Sync All] Updating goals...');
     try {
@@ -241,7 +211,6 @@ export async function POST(req: NextRequest) {
       summary: {
         copperSuccess: !!results.copper,
         justcallSuccess: !!results.justcall,
-        fishbowlSuccess: !!results.fishbowl,
         goalsUpdated: results.goalsUpdated,
         errors: results.errors.length,
       },
