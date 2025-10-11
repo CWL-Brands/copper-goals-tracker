@@ -33,6 +33,7 @@ interface TeamMember {
   totalSales: number;
   phoneCalls: number;
   emails: number;
+  sms: number;
   leadProgression: number;
   overallScore: number;
   rank: number;
