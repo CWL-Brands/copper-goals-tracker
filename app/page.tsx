@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { onAuthStateChange, auth, signOut } from '@/lib/firebase/client';
 import { userService, goalService, metricService, settingsService } from '@/lib/firebase/services';
 import { Goal, GoalPeriod, GoalType, Metric, User } from '@/types';
+import { eachDayOfInterval, endOfMonth, format, startOfMonth, subDays } from 'date-fns';
 // Copper SSO removed: standalone login only
 import GoalGrid from '@/components/organisms/GoalGrid';
 import GoalSetter from '@/components/molecules/GoalSetter';
