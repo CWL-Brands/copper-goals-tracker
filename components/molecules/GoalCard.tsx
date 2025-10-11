@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Goal, GoalType, GoalPeriod } from '@/types';
-import { TrendingUp, TrendingDown, Target, Clock, Mail, Users, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Clock, Mail, MessageSquare, Users, DollarSign } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
 interface GoalCardProps {
@@ -15,6 +15,7 @@ const goalIcons: Record<GoalType, React.ReactNode> = {
   'phone_call_quantity': <Clock className="w-5 h-5" />,
   'talk_time_minutes': <Clock className="w-5 h-5" />,
   'email_quantity': <Mail className="w-5 h-5" />,
+  'sms_quantity': <MessageSquare className="w-5 h-5" />,
   'lead_progression_a': <Users className="w-5 h-5" />,
   'lead_progression_b': <Users className="w-5 h-5" />,
   'lead_progression_c': <Users className="w-5 h-5" />,
@@ -26,6 +27,7 @@ const goalLabels: Record<GoalType, string> = {
   'phone_call_quantity': 'Phone Calls',
   'talk_time_minutes': 'Talk Time (min)',
   'email_quantity': 'Emails Sent',
+  'sms_quantity': 'Text Messages',
   'lead_progression_a': 'Fact Finding',
   'lead_progression_b': 'Contact Stage',
   'lead_progression_c': 'Closing Stage',
