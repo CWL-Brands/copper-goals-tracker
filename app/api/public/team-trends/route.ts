@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       days.push(new Date(d).toISOString().slice(0,10));
     }
-    const types = ['phone_call_quantity','talk_time_minutes','email_quantity','lead_progression_a','lead_progression_b','lead_progression_c','new_sales_wholesale','new_sales_distribution'];
+    const types = ['phone_call_quantity','talk_time_minutes','email_quantity','sms_quantity','lead_progression_a','lead_progression_b','lead_progression_c','new_sales_wholesale','new_sales_distribution'];
     const series: Record<string, { date: string; value: number }[]> = {} as any;
     types.forEach((t) => {
       series[t] = days.map((day) => {

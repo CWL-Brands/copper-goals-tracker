@@ -26,6 +26,7 @@ import toast from 'react-hot-toast';
 const goalTypes: GoalType[] = [
   'phone_call_quantity',
   'email_quantity',
+  'sms_quantity',
   'lead_progression_a',
   'lead_progression_b', 
   'lead_progression_c',

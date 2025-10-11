@@ -6,17 +6,17 @@ import { useState, useEffect } from 'react';
 import { User, Goal, GoalType, GoalPeriod } from '@/types';
 import { auth, onAuthStateChange } from '@/lib/firebase/client';
 import { userService, goalService } from '@/lib/firebase/services';
-import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 const goalTypes: GoalType[] = [
   'phone_call_quantity',
   'email_quantity',
+  'sms_quantity',
   'lead_progression_a',
   'lead_progression_b',
   'lead_progression_c',
   'new_sales_wholesale',
-  'new_sales_distribution',
+  'new_sales_distribution'
 ];
 
 const periodLabels: Record<GoalPeriod, string> = {

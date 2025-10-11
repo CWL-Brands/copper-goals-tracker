@@ -10,6 +10,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
 const goalTypes: GoalType[] = [
   'phone_call_quantity',
   'email_quantity',
+  'sms_quantity',
   'lead_progression_a',
   'lead_progression_b',
   'lead_progression_c',
@@ -47,6 +48,7 @@ export default function TeamDashboardPage() {
     phone_call_quantity: 0,
     talk_time_minutes: 0,
     email_quantity: 0,
+    sms_quantity: 0,
     lead_progression_a: 0,
     lead_progression_b: 0,
     lead_progression_c: 0,
@@ -84,6 +86,7 @@ export default function TeamDashboardPage() {
           phone_call_quantity: Number(totals['phone_call_quantity'] || 0),
           talk_time_minutes: Number(totals['talk_time_minutes'] || 0),
           email_quantity: Number(totals['email_quantity'] || 0),
+          sms_quantity: Number(totals['sms_quantity'] || 0),
           lead_progression_a: Number(totals['lead_progression_a'] || 0),
           lead_progression_b: Number(totals['lead_progression_b'] || 0),
           lead_progression_c: Number(totals['lead_progression_c'] || 0),

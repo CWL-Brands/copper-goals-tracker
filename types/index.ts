@@ -28,7 +28,8 @@ export interface User {
   export type GoalType = 
     | 'phone_call_quantity' // Count of phone calls
     | 'talk_time_minutes'   // Minutes of calls (not typically a goal, but tracked)
-    | 'email_quantity'      // Count
+    | 'email_quantity'      // Count of emails sent
+    | 'sms_quantity'        // Count of SMS messages sent
     | 'lead_progression_a'  // Fact Finding Stage
     | 'lead_progression_b'  // Contact Stage
     | 'lead_progression_c'  // Closing Stage
@@ -44,7 +45,7 @@ export interface User {
     type: GoalType;
     value: number;
     date: Date;
-    source: 'manual' | 'copper' | 'justcall';
+    source: 'manual' | 'copper' | 'justcall' | 'fishbowl';
     metadata?: Record<string, any>;
     createdAt: Date;
   }

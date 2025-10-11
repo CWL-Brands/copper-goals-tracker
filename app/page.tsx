@@ -10,17 +10,17 @@ import { Goal, GoalPeriod, GoalType, Metric, User } from '@/types';
 import GoalGrid from '@/components/organisms/GoalGrid';
 import GoalSetter from '@/components/molecules/GoalSetter';
 import toast from 'react-hot-toast';
-import { eachDayOfInterval, endOfMonth, format, startOfMonth, subDays } from 'date-fns';
 import Link from 'next/link';
 
 const goalTypes: GoalType[] = [
   'phone_call_quantity',
   'email_quantity',
+  'sms_quantity',
   'lead_progression_a',
   'lead_progression_b',
   'lead_progression_c',
   'new_sales_wholesale',
-  'new_sales_distribution',
+  'new_sales_distribution'
 ];
 
 export default function HomePage() {

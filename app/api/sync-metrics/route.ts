@@ -138,6 +138,7 @@ export async function POST(request: NextRequest) {
       emails: 0,
       calls: 0,
       talkTime: 0,
+      sms: 0,
       stages: {} as Record<string, number>,
       sales: { wholesale: 0, distribution: 0, total: 0 },
       warnings: [] as string[],
@@ -421,7 +422,96 @@ export async function POST(request: NextRequest) {
       results.warnings.push(e?.message || 'Call sync failed');
     }
 
-    // 3) Pipeline stages and sales
+    // 3) SMS Messages (count SENT messages within SMS conversations)
+    try {
+      if (!ownerId) throw new Error(`Skip SMS: no Copper owner mapped for ${ownerEmail || 'unknown'}`);
+      
+      const SMS_ACTIVITY_ID = 2160513; // SMS activity type in Copper
+      const smsCategory = 'user';
+      
+      console.log(`[Sync Metrics] Fetching SMS activities for user ${ownerEmail} (ID: ${ownerId})`);
+      
+      const smsData = await fetchAll('/activities/search', {
+        sort_by: 'activity_date',
+        sort_direction: 'desc',
+        full_result: true,
+        activity_types: [{ id: SMS_ACTIVITY_ID, category: smsCategory }],
+        ...(ownerId ? { user_ids: [ownerId] } : {}),
+        minimum_activity_date: dateRange.startUnix,
+        maximum_activity_date: dateRange.endUnix,
+      });
+      
+      if (Array.isArray(smsData)) {
+        console.log(`[Sync Metrics] Found ${smsData.length} SMS conversation activities`);
+        
+        const byDay: Record<string, number> = {};
+        let totalSentMessages = 0;
+        
+        for (const smsActivity of smsData) {
+          const tsSec = activitySeconds(smsActivity);
+          if (!tsSec) continue;
+          
+          // Parse the SMS conversation details to count SENT messages
+          // SMS activities contain a conversation thread in the details field
+          const details = smsActivity.details || {};
+          const detailsText = typeof details === 'string' ? details : JSON.stringify(details);
+          
+          // Count outgoing/sent messages in the conversation
+          // JustCall logs SMS in Copper with markers like "(Outgoing)" or "SMS: E"
+          // We need to parse the conversation to count sent messages
+          let sentCount = 0;
+          
+          // Method 1: Count "(Outgoing)" markers
+          const outgoingMatches = detailsText.match(/\(Outgoing\)/gi);
+          if (outgoingMatches) {
+            sentCount = outgoingMatches.length;
+          } else {
+            // Method 2: Count "SMS: E" markers (E = Egress/Sent)
+            const smsEMatches = detailsText.match(/SMS:\s*E/gi);
+            if (smsEMatches) {
+              sentCount = smsEMatches.length;
+            } else {
+              // Fallback: Count the activity as 1 sent message if we can't parse
+              sentCount = 1;
+            }
+          }
+          
+          const d = new Date(tsSec * 1000);
+          d.setHours(0, 0, 0, 0);
+          const key = d.toISOString();
+          byDay[key] = (byDay[key] || 0) + sentCount;
+          totalSentMessages += sentCount;
+        }
+        
+        console.log(`[Sync Metrics] Total sent SMS messages: ${totalSentMessages} across ${smsData.length} conversations`);
+        console.log(`[Sync Metrics] SMS breakdown by day:`, byDay);
+        
+        results.sms = totalSentMessages;
+        
+        for (const [isoDay, count] of Object.entries(byDay)) {
+          await logMetricAdmin({
+            userId,
+            type: 'sms_quantity' as any,
+            value: count,
+            date: new Date(isoDay),
+            source: 'copper',
+            metadata: { 
+              conversations: smsData.length,
+              period, 
+              bucketed: true, 
+              syncedAt: new Date().toISOString(),
+              ownerId,
+              ownerEmail
+            },
+          });
+        }
+      }
+    } catch (e:any) {
+      console.error(`[Sync Metrics] SMS sync error:`, e);
+      results.warnings.push(`⚠️ SMS sync failed: ${e?.message}`);
+    }
+
+    // 4) Pipeline stages and sales
     try {
       if (!ownerId) throw new Error(`Skip pipeline: no Copper owner mapped for ${ownerEmail || 'unknown'}`);
       const baseBody: any = {
