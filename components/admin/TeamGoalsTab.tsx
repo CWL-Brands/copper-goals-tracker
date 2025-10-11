@@ -91,39 +91,39 @@ export default function TeamGoalsTab() {
   };
 
   const periodColors: Record<string, string> = {
-    daily: 'from-blue-500 to-blue-600',
-    weekly: 'from-purple-500 to-purple-600',
-    monthly: 'from-green-500 to-green-600',
-    quarterly: 'from-orange-500 to-orange-600'
+    daily: 'from-[#97D700] to-[#82B800]',      // Kanva Lime Green
+    weekly: 'from-[#17351A] to-[#0D1F0E]',     // Dark Fir
+    monthly: 'from-[#93D500] to-[#7AB800]',    // Kanva Green
+    quarterly: 'from-[#F59F2D] to-[#E08A1A]'   // Drippy Tangerine
   };
 
   const goalFields = [
-    { key: 'phone_call_quantity', label: 'Phone Calls', icon: <Phone className="w-4 h-4" />, color: 'text-blue-600' },
-    { key: 'email_quantity', label: 'Emails', icon: <Mail className="w-4 h-4" />, color: 'text-purple-600' },
-    { key: 'sms_quantity', label: 'Text Messages', icon: <MessageSquare className="w-4 h-4" />, color: 'text-pink-600' },
-    { key: 'lead_progression_a', label: 'Fact Finding (A)', icon: <Users className="w-4 h-4" />, color: 'text-amber-600' },
-    { key: 'lead_progression_b', label: 'Contact Stage (B)', icon: <Users className="w-4 h-4" />, color: 'text-amber-600' },
-    { key: 'lead_progression_c', label: 'Closing Stage (C)', icon: <Users className="w-4 h-4" />, color: 'text-amber-600' },
-    { key: 'new_sales_wholesale', label: 'Wholesale Sales', icon: <DollarSign className="w-4 h-4" />, color: 'text-green-600', isCurrency: true },
-    { key: 'new_sales_distribution', label: 'Distribution Sales', icon: <DollarSign className="w-4 h-4" />, color: 'text-green-600', isCurrency: true },
+    { key: 'phone_call_quantity', label: 'Phone Calls', icon: <Phone className="w-4 h-4" />, color: 'text-[#93D500]' },
+    { key: 'email_quantity', label: 'Emails', icon: <Mail className="w-4 h-4" />, color: 'text-[#97D700]' },
+    { key: 'sms_quantity', label: 'Text Messages', icon: <MessageSquare className="w-4 h-4" />, color: 'text-[#F59F2D]' },
+    { key: 'lead_progression_a', label: 'Fact Finding (A)', icon: <Users className="w-4 h-4" />, color: 'text-[#17351A]' },
+    { key: 'lead_progression_b', label: 'Contact Stage (B)', icon: <Users className="w-4 h-4" />, color: 'text-[#17351A]' },
+    { key: 'lead_progression_c', label: 'Closing Stage (C)', icon: <Users className="w-4 h-4" />, color: 'text-[#17351A]' },
+    { key: 'new_sales_wholesale', label: 'Wholesale Sales', icon: <DollarSign className="w-4 h-4" />, color: 'text-[#93D500]', isCurrency: true },
+    { key: 'new_sales_distribution', label: 'Distribution Sales', icon: <DollarSign className="w-4 h-4" />, color: 'text-[#93D500]', isCurrency: true },
   ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-kanva-green to-green-600 rounded-2xl p-8 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-[#17351A] to-[#0D1F0E] rounded-2xl p-8 text-white shadow-lg">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-            <Target className="w-6 h-6" />
+          <div className="w-12 h-12 bg-[#93D500] rounded-xl flex items-center justify-center shadow-lg">
+            <Target className="w-6 h-6 text-[#17351A]" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Team Goals</h2>
-            <p className="text-green-50 text-sm">Organization-wide targets for all team members</p>
+            <h2 className="text-2xl font-bold text-white">Team Goals</h2>
+            <p className="text-gray-300 text-sm">Organization-wide targets for all team members</p>
           </div>
         </div>
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mt-4">
-          <p className="text-sm text-green-50">
-            💡 <strong>Tip:</strong> These goals apply to all users. Individual team members can still set their own personal goals.
+        <div className="bg-[#93D500]/10 border border-[#93D500]/20 rounded-lg p-4 mt-4">
+          <p className="text-sm text-gray-200">
+            💡 <strong className="text-white">Tip:</strong> These goals apply to all users. Individual team members can still set their own personal goals.
           </p>
         </div>
       </div>
@@ -164,8 +164,10 @@ export default function TeamGoalsTab() {
                         ...teamGoals,
                         [period]: { ...teamGoals[period], [field.key]: Number(e.target.value) }
                       })}
-                      className={`w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-kanva-green focus:ring-2 focus:ring-kanva-green/20 transition-all ${field.isCurrency ? 'pl-8' : ''}`}
-                      placeholder="0"
+                      onFocus={(e) => e.target.select()}
+                      className={`w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-[#93D500] focus:ring-2 focus:ring-[#93D500]/20 transition-all ${field.isCurrency ? 'pl-8' : ''}`}
+                      placeholder="Enter value"
+                      min="0"
                     />
                   </div>
                 </div>
@@ -185,11 +187,11 @@ export default function TeamGoalsTab() {
           <button
             onClick={() => setShowPwd(true)}
             disabled={loading}
-            className="px-8 py-4 rounded-xl bg-gradient-to-r from-kanva-green to-green-600 text-white font-semibold hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+            className="px-8 py-4 rounded-xl bg-gradient-to-r from-[#93D500] to-[#7AB800] text-[#17351A] font-bold hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
           >
             {loading ? (
               <>
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[#17351A]/30 border-t-[#17351A] rounded-full animate-spin" />
                 Saving...
               </>
             ) : (
@@ -207,8 +209,8 @@ export default function TeamGoalsTab() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform transition-all">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-kanva-green to-green-600 flex items-center justify-center">
-                <Target className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-[#93D500] to-[#7AB800] flex items-center justify-center shadow-lg">
+                <Target className="w-6 h-6 text-[#17351A]" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Confirm Changes</h3>
@@ -216,8 +218,8 @@ export default function TeamGoalsTab() {
               </div>
             </div>
             
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-amber-800">
+            <div className="bg-[#F59F2D]/10 border border-[#F59F2D]/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-[#17351A]">
                 🔒 Enter your password to save these team goals. This action will update targets for all team members.
               </p>
             </div>
@@ -227,7 +229,7 @@ export default function TeamGoalsTab() {
               value={pwdInput}
               onChange={(e) => setPwdInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && saveTeamGoals()}
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 mb-6 focus:border-kanva-green focus:ring-2 focus:ring-kanva-green/20 transition-all"
+              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 mb-6 focus:border-[#93D500] focus:ring-2 focus:ring-[#93D500]/20 transition-all"
               placeholder="Enter your password"
               autoFocus
             />
@@ -236,7 +238,7 @@ export default function TeamGoalsTab() {
               <button
                 onClick={saveTeamGoals}
                 disabled={!pwdInput}
-                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-kanva-green to-green-600 text-white font-semibold hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-[#93D500] to-[#7AB800] text-[#17351A] font-bold hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 Confirm & Save
               </button>
