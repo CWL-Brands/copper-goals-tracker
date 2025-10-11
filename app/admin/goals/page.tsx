@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { User, Goal, GoalType, GoalPeriod } from '@/types';
 import { auth, onAuthStateChange } from '@/lib/firebase/client';
 import { userService, goalService } from '@/lib/firebase/services';
+import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 const goalTypes: GoalType[] = [
