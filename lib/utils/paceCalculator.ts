@@ -14,7 +14,7 @@ import {
 
 export interface PaceCalculation {
   // Period info
-  period: 'daily' | 'weekly' | 'monthly';
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly';
   periodTarget: number;
   currentProgress: number;
   totalUnits: number; // days in month, days in week, hours in day
@@ -39,10 +39,10 @@ export interface PaceCalculation {
 }
 
 /**
- * Calculate pace for any goal period (daily, weekly, monthly)
+ * Calculate pace for any goal period (daily, weekly, monthly, quarterly)
  */
 export function calculatePace(
-  period: 'daily' | 'weekly' | 'monthly',
+  period: 'daily' | 'weekly' | 'monthly' | 'quarterly',
   target: number,
   currentProgress: number,
   referenceDate: Date = new Date()
@@ -74,9 +74,19 @@ export function calculatePace(
       break;
       
     case 'monthly':
-    default:
       periodStart = startOfMonth(referenceDate);
       periodEnd = endOfMonth(referenceDate);
+      totalUnits = differenceInDays(periodEnd, periodStart) + 1;
+      unitsElapsed = differenceInDays(now, periodStart) + 1;
+      unitLabel = 'day';
+      break;
+      
+    case 'quarterly':
+    default:
+      // Calculate quarter start/end
+      const quarter = Math.floor(referenceDate.getMonth() / 3);
+      periodStart = new Date(referenceDate.getFullYear(), quarter * 3, 1);
+      periodEnd = new Date(referenceDate.getFullYear(), quarter * 3 + 3, 0);
       totalUnits = differenceInDays(periodEnd, periodStart) + 1;
       unitsElapsed = differenceInDays(now, periodStart) + 1;
       unitLabel = 'day';
