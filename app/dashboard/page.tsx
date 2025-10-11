@@ -168,26 +168,44 @@ export default function DashboardPage() {
     }
   };
 
-  // Trigger a per-user sync for the past 30 days
+  // Trigger master sync (Copper + JustCall + Fishbowl) for the past 30 days
   const handleSyncNow = async () => {
     if (!user?.id) return;
     try {
       setSyncing(true);
       const end = new Date();
       const start = new Date(); start.setDate(end.getDate() - 30);
-      const res = await fetch('/api/sync-metrics', {
+      
+      // Get auth token
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error('Not authenticated');
+      
+      // Call master sync endpoint
+      const res = await fetch('/api/sync-all', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({
-          userId: user.id,
-          period: 'custom',
           start: start.toISOString(),
           end: end.toISOString(),
         }),
       });
+      
       const data = await res.json().catch(()=>({}));
       if (!res.ok) throw new Error(data?.error || 'Sync failed');
-      toast.success('Sync complete');
+      
+      // Show success with details
+      const summary = data.summary || {};
+      const errors = data.results?.errors || [];
+      
+      if (errors.length > 0) {
+        toast.error(`Sync completed with ${errors.length} error(s)`);
+      } else {
+        toast.success(`Synced all sources! Updated ${summary.goalsUpdated || 0} goals`);
+      }
+      
       await loadDashboardData(user.id);
     } catch (e:any) {
       toast.error(e?.message || 'Sync failed');
@@ -543,6 +561,7 @@ export default function DashboardPage() {
           selectedPeriod={selectedPeriod}
           onAddGoal={() => {}}
           onEditGoal={() => {}}
+          hideActions={true}
         />
       </div>
 

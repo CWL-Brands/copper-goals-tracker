@@ -11,9 +11,10 @@ interface GoalGridProps {
   selectedPeriod: GoalPeriod;
   onAddGoal: (type: GoalType) => void;
   onEditGoal: (type: GoalType) => void;
+  hideActions?: boolean; // Hide edit/add buttons
 }
 
-export default function GoalGrid({ goalTypes, goals, selectedPeriod, onAddGoal, onEditGoal }: GoalGridProps) {
+export default function GoalGrid({ goalTypes, goals, selectedPeriod, onAddGoal, onEditGoal, hideActions = false }: GoalGridProps) {
   const toTitle = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 
   return (
@@ -21,7 +22,7 @@ export default function GoalGrid({ goalTypes, goals, selectedPeriod, onAddGoal, 
       {goalTypes.map((type) => {
         const goal = goals.find((g) => g.type === type);
         if (goal) {
-          return <GoalCard key={type} goal={goal} onEdit={() => onEditGoal(type)} />;
+          return <GoalCard key={type} goal={goal} onEdit={hideActions ? undefined : () => onEditGoal(type)} />;
         }
         return (
           <button

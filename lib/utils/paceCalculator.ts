@@ -58,12 +58,11 @@ export function calculatePace(
     case 'daily':
       periodStart = startOfDay(referenceDate);
       periodEnd = endOfDay(referenceDate);
-      // For daily: use hours (24 hours in a day)
-      const hoursInDay = 24;
-      const currentHour = now.getHours();
-      totalUnits = hoursInDay;
-      unitsElapsed = currentHour + 1; // Include current hour
-      unitLabel = 'hour';
+      // For daily: treat as 1 day (show daily target, not hourly)
+      // This makes more sense for sales reps tracking daily goals
+      totalUnits = 1;
+      unitsElapsed = isToday(referenceDate) ? 0.5 : 1; // 50% through today, or 100% if past
+      unitLabel = 'day';
       break;
       
     case 'weekly':

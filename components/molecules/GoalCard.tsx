@@ -3,6 +3,7 @@
 import React from 'react';
 import { Goal, GoalType, GoalPeriod } from '@/types';
 import { TrendingUp, TrendingDown, Target, Clock, Mail, Users, DollarSign } from 'lucide-react';
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
 interface GoalCardProps {
   goal: Goal;
@@ -45,11 +46,34 @@ const formatValue = (value: number, type: GoalType): string => {
   return value.toString();
 };
 
+// Calculate current period dates dynamically
+const getCurrentPeriodDates = (period: GoalPeriod): { start: Date; end: Date } => {
+  const now = new Date();
+  switch (period) {
+    case 'daily':
+      return { start: startOfDay(now), end: endOfDay(now) };
+    case 'weekly':
+      return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
+    case 'monthly':
+      return { start: startOfMonth(now), end: endOfMonth(now) };
+    case 'quarterly':
+      const quarter = Math.floor(now.getMonth() / 3);
+      const qStart = new Date(now.getFullYear(), quarter * 3, 1);
+      const qEnd = new Date(now.getFullYear(), quarter * 3 + 3, 0);
+      return { start: qStart, end: qEnd };
+    default:
+      return { start: now, end: now };
+  }
+};
+
 export default function GoalCard({ goal, onEdit, compact = false }: GoalCardProps) {
   const percentage = goal.target > 0 ? (goal.current / goal.target) * 100 : 0;
   const isAhead = percentage >= 100;
   const isOnTrack = percentage >= 80 && percentage < 100;
   const isBehind = percentage < 80;
+  
+  // Calculate current period dates (not stored dates)
+  const { start: periodStart, end: periodEnd } = getCurrentPeriodDates(goal.period);
 
   const progressColor = isAhead 
     ? 'bg-green-500' 
@@ -170,8 +194,8 @@ export default function GoalCard({ goal, onEdit, compact = false }: GoalCardProp
       {/* Time remaining */}
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="flex justify-between text-xs text-gray-500">
-          <span>Started: {new Date(goal.startDate).toLocaleDateString()}</span>
-          <span>Ends: {new Date(goal.endDate).toLocaleDateString()}</span>
+          <span>Started: {periodStart.toLocaleDateString()}</span>
+          <span>Ends: {periodEnd.toLocaleDateString()}</span>
         </div>
       </div>
     </div>
