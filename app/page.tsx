@@ -210,7 +210,23 @@ export default function HomePage() {
                 <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1 rounded-md text-sm ${period===p?'bg-white text-kanva-green shadow-sm':'text-gray-600'}`}>{p[0].toUpperCase()+p.slice(1)}</button>
               ))}
             </div>
-            <button onClick={async()=>{ try { await signOut(); } catch {} finally { window.location.reload(); } }} className="px-3 py-1.5 rounded-md text-xs bg-gray-100 hover:bg-gray-200">Sign Out</button>
+            <button 
+              onClick={async()=>{ 
+                try { 
+                  await signOut(); 
+                  toast.success('Successfully signed out!', { duration: 2000 });
+                  setTimeout(() => {
+                    window.location.href = '/dashboard'; // Redirect to login page
+                  }, 500);
+                } catch (error) {
+                  toast.error('Failed to sign out');
+                  console.error('Sign out error:', error);
+                } 
+              }} 
+              className="px-3 py-1.5 rounded-md text-xs bg-gray-100 hover:bg-gray-200 transition-colors"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
