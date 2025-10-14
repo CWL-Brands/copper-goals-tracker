@@ -26,7 +26,7 @@ const goalTypes: GoalType[] = [
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
-  const [period, setPeriod] = useState<GoalPeriod>('daily');
+  const [period, setPeriod] = useState<GoalPeriod>('weekly');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
   // Public team overview state
@@ -66,7 +66,7 @@ export default function HomePage() {
             perDay[k] = true;
             
             // Calculate completion for this goal type on this day
-            const goal = g.find(goal => goal.type === t && goal.period === 'daily');
+            const goal = g.find(goal => goal.type === t && goal.period === 'weekly');
             if (goal && goal.target > 0) {
               const completion = Math.min((m.value / goal.target) * 100, 100);
               if (!colorData[k]) {
@@ -206,7 +206,7 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-              {(['daily','weekly','monthly'] as GoalPeriod[]).map((p) => (
+              {(['weekly','monthly','quarterly'] as GoalPeriod[]).map((p) => (
                 <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1 rounded-md text-sm ${period===p?'bg-white text-kanva-green shadow-sm':'text-gray-600'}`}>{p[0].toUpperCase()+p.slice(1)}</button>
               ))}
             </div>

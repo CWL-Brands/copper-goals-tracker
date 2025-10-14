@@ -36,7 +36,7 @@ export interface User {
     | 'new_sales_wholesale' // Dollar amount
     | 'new_sales_distribution'; // Dollar amount
   
-  export type GoalPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly';
+  export type GoalPeriod = 'weekly' | 'monthly' | 'quarterly';
   
   // Metric Types
   export interface Metric {

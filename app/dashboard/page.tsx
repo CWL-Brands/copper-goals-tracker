@@ -38,7 +38,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
-  const [selectedPeriod, setSelectedPeriod] = useState<GoalPeriod>('daily');
+  const [selectedPeriod, setSelectedPeriod] = useState<GoalPeriod>('weekly');
   const [isLoading, setIsLoading] = useState(true);
   const [saw, setSaw] = useState<{ skills?: string; training?: string; reading?: string; habits?: string }>({});
   const goalsUnsubRef = useRef<null | (() => void)>(null);
@@ -47,9 +47,9 @@ export default function DashboardPage() {
   const [email30d, setEmail30d] = useState<{ date: string; value: number }[]>([]);
   const [calls7d, setCalls7d] = useState<{ date: string; value: number }[]>([]);
   const [calls30d, setCalls30d] = useState<{ date: string; value: number }[]>([]);
-  const [dailyProgress, setDailyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
   const [weeklyProgress, setWeeklyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
   const [monthlyProgress, setMonthlyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
+  const [quarterlyProgress, setQuarterlyProgress] = useState<Record<GoalType, number>>({} as Record<GoalType, number>);
   const [minutes7d, setMinutes7d] = useState<{ date: string; value: number }[]>([]);
   const [minutes30d, setMinutes30d] = useState<{ date: string; value: number }[]>([]);
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
@@ -212,24 +212,23 @@ export default function DashboardPage() {
         setMinutes7d(buildDailySeries(tm7, start7, today));
         setMinutes30d(buildDailySeries(tm30, start30, today));
 
-        // Load progress for all periods (daily, weekly, monthly)
-        const dayStart = startOfDay(today);
-        const dayEnd = endOfDay(today);
+        // Load progress for all periods (weekly, monthly, quarterly)
         const weekStart = startOfWeek(today, { weekStartsOn: 1 });
         const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
         const monthStart = startOfMonth(today);
         const monthEnd = endOfMonth(today);
         
-        const daily: Record<GoalType, number> = {} as Record<GoalType, number>;
+        // Calculate quarter start/end
+        const quarter = Math.floor(today.getMonth() / 3);
+        const quarterStart = new Date(today.getFullYear(), quarter * 3, 1);
+        const quarterEnd = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+        
         const weekly: Record<GoalType, number> = {} as Record<GoalType, number>;
         const monthly: Record<GoalType, number> = {} as Record<GoalType, number>;
+        const quarterly: Record<GoalType, number> = {} as Record<GoalType, number>;
         
         for (const goalType of goalTypes) {
           try {
-            // Daily progress
-            const dayMetrics = await metricService.getMetrics(uid, goalType, dayStart, dayEnd);
-            daily[goalType] = dayMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
-            
             // Weekly progress
             const weekMetrics = await metricService.getMetrics(uid, goalType, weekStart, weekEnd);
             weekly[goalType] = weekMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
@@ -237,16 +236,20 @@ export default function DashboardPage() {
             // Monthly progress
             const monthMetrics = await metricService.getMetrics(uid, goalType, monthStart, monthEnd);
             monthly[goalType] = monthMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
+            
+            // Quarterly progress
+            const quarterMetrics = await metricService.getMetrics(uid, goalType, quarterStart, quarterEnd);
+            quarterly[goalType] = quarterMetrics.reduce((sum, m) => sum + (m.value || 0), 0);
           } catch (e) {
-            daily[goalType] = 0;
             weekly[goalType] = 0;
             monthly[goalType] = 0;
+            quarterly[goalType] = 0;
           }
         }
         
-        setDailyProgress(daily);
         setWeeklyProgress(weekly);
         setMonthlyProgress(monthly);
+        setQuarterlyProgress(quarterly);
       } catch (e) {
         console.warn('Failed loading sparkline data', e);
       }
@@ -361,7 +364,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             {/* Period Toggle */}
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-              {(['daily','weekly','monthly'] as GoalPeriod[]).map((p) => (
+              {(['weekly','monthly','quarterly'] as GoalPeriod[]).map((p) => (
                 <button 
                   key={p} 
                   onClick={() => setSelectedPeriod(p)}
@@ -476,9 +479,9 @@ export default function DashboardPage() {
             <div>
               <h3 className="text-lg font-semibold">📊 Pace Trackers</h3>
               <p className="text-sm text-gray-600">
-                {selectedPeriod === 'daily' && 'Stay on track to hit your daily goals'}
                 {selectedPeriod === 'weekly' && 'Stay on track to hit your weekly goals'}
                 {selectedPeriod === 'monthly' && 'Stay on track to hit your monthly goals'}
+                {selectedPeriod === 'quarterly' && 'Stay on track to hit your quarterly goals'}
               </p>
             </div>
           </div>
@@ -486,9 +489,9 @@ export default function DashboardPage() {
             {goals
               .filter(g => g.period === selectedPeriod)
               .map(goal => {
-                const progress = selectedPeriod === 'daily' ? dailyProgress[goal.type] :
-                                selectedPeriod === 'weekly' ? weeklyProgress[goal.type] :
-                                monthlyProgress[goal.type];
+                const progress = selectedPeriod === 'weekly' ? weeklyProgress[goal.type] :
+                                selectedPeriod === 'monthly' ? monthlyProgress[goal.type] :
+                                quarterlyProgress[goal.type];
                 return (
                   <DailyPaceCard
                     key={goal.id}
