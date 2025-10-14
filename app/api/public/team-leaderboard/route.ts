@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
-import { GoalPeriod, GoalType } from '@/types';
+import { GoalPeriod, GoalType, User } from '@/types';
+import { isSalesUser } from '@/lib/utils/userFilters';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -28,16 +29,6 @@ function getDateRangeForPeriod(period: GoalPeriod): { start: Date; end: Date } {
   const end = new Date();
 
   switch (period) {
-    case 'daily':
-      // Query for metrics stored at noon UTC for the current day
-      // Metrics are stored at noon to avoid timezone issues
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const day = now.getDate();
-      start.setTime(Date.UTC(year, month, day, 0, 0, 0, 0));
-      end.setTime(Date.UTC(year, month, day, 23, 59, 59, 999));
-      console.log(`[Leaderboard] Daily range: ${start.toISOString()} to ${end.toISOString()}`);
-      break;
     case 'weekly':
       const dayOfWeek = now.getDay();
       const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 0
@@ -97,22 +88,27 @@ function calculateOverallScore(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const period = (searchParams.get('period') || 'daily') as GoalPeriod;
+    const period = (searchParams.get('period') || 'weekly') as GoalPeriod;
 
     // Get date range for period
     const { start, end } = getDateRangeForPeriod(period);
 
-    // Fetch all users
+    // Fetch all users and filter to sales users only (exclude executives)
     const usersSnapshot = await adminDb.collection('users').get();
-    const users = usersSnapshot.docs.map(doc => {
+    const allUsers = usersSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
         id: doc.id,
         name: data.name || '',
         email: data.email || '',
         photoUrl: data.photoUrl || undefined,
-      };
+        title: data.title || undefined,
+        role: data.role || 'sales',
+      } as User & { id: string };
     });
+    
+    // Filter to only include sales users (exclude executives, directors, VPs)
+    const users = allUsers.filter(isSalesUser);
 
     if (users.length === 0) {
       return NextResponse.json({
@@ -123,7 +119,7 @@ export async function GET(request: NextRequest) {
     }
 
     // DEBUG: Log all metrics for first user to see dates
-    if (period === 'daily' && users.length > 0) {
+    if (period === 'weekly' && users.length > 0) {
       const firstUser = users[0];
       const allMetricsSnap = await adminDb
         .collection('metrics')

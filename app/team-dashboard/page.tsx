@@ -19,7 +19,6 @@ const goalTypes: GoalType[] = [
 ];
 
 const periodLabels: Record<GoalPeriod, string> = {
-  daily: 'Daily',
   weekly: 'Weekly',
   monthly: 'Monthly',
   quarterly: 'Quarterly',
@@ -41,7 +40,7 @@ interface TeamMember {
 }
 
 export default function TeamDashboardPage() {
-  const [period, setPeriod] = useState<GoalPeriod>('daily');
+  const [period, setPeriod] = useState<GoalPeriod>('weekly');
   const [teamGoals, setTeamGoals] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -121,19 +120,19 @@ export default function TeamDashboardPage() {
   // Helpers to compute pace
   const getElapsedFraction = (p: GoalPeriod) => {
     const now = new Date();
-    if (p === 'daily') {
-      const start = new Date(now); start.setHours(0,0,0,0);
-      const total = 24 * 60 * 60 * 1000;
-      return Math.min(0.999, Math.max(0.001, (now.getTime() - start.getTime()) / total));
-    }
     if (p === 'weekly') {
       const start = new Date(now); start.setDate(now.getDate() - 6); start.setHours(0,0,0,0);
       const total = 7 * 24 * 60 * 60 * 1000;
       return Math.min(0.999, Math.max(0.001, (now.getTime() - start.getTime()) / total));
     }
-    // monthly ~ last 30 days window
-    const start = new Date(now); start.setDate(now.getDate() - 29); start.setHours(0,0,0,0);
-    const total = 30 * 24 * 60 * 60 * 1000;
+    if (p === 'monthly') {
+      const start = new Date(now); start.setDate(now.getDate() - 29); start.setHours(0,0,0,0);
+      const total = 30 * 24 * 60 * 60 * 1000;
+      return Math.min(0.999, Math.max(0.001, (now.getTime() - start.getTime()) / total));
+    }
+    // quarterly ~ last 90 days window
+    const start = new Date(now); start.setDate(now.getDate() - 89); start.setHours(0,0,0,0);
+    const total = 90 * 24 * 60 * 60 * 1000;
     return Math.min(0.999, Math.max(0.001, (now.getTime() - start.getTime()) / total));
   };
 

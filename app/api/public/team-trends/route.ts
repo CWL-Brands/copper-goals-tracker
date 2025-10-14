@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase/admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { User } from '@/types';
+import { isSalesUser } from '@/lib/utils/userFilters';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,16 +24,39 @@ export async function GET(req: NextRequest) {
 
     const { start, end } = getRange(period);
 
+    // Get sales users only (exclude executives)
+    const usersSnapshot = await adminDb.collection('users').get();
+    const salesUserIds = usersSnapshot.docs
+      .map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          role: data.role || 'sales',
+          email: data.email || '',
+          name: data.name || '',
+        } as User & { id: string };
+      })
+      .filter(isSalesUser)
+      .map(u => u.id);
+
     const snap = await adminDb
       .collection('metrics')
       .where('date', '>=', Timestamp.fromDate(start))
       .where('date', '<=', Timestamp.fromDate(end))
       .get();
 
-    // Bucket by day and type
+    // Bucket by day and type (only for sales users)
     const byDay: Record<string, Record<string, number>> = {};
     snap.docs.forEach((d) => {
       const m: any = d.data();
+      const userId = String(m.userId);
+      
+      // Only include metrics from sales users
+      if (!salesUserIds.includes(userId)) {
+        return;
+      }
+      
       const day = (m.date?.toDate?.() as Date || new Date(m.date)).toISOString().slice(0,10);
       const t = String(m.type);
       const v = Number(m.value) || 0;

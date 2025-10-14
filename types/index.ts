@@ -4,12 +4,20 @@ export interface User {
     email: string;
     name: string;
     role: 'sales' | 'manager' | 'admin';
+    title?: UserTitle; // Job title for filtering and display
     copperId?: string;
     photoUrl?: string;
     passwordChanged?: boolean;
     createdAt: Date;
     updatedAt: Date;
   }
+
+  export type UserTitle = 
+    | 'Sales Representative'
+    | 'Sales Manager'
+    | 'Director'
+    | 'Vice President'
+    | 'Executive';
   
   // Goal Types
   export interface Goal {
