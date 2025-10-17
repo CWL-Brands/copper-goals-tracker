@@ -65,17 +65,13 @@ node_modules/
 # dotenv environment variables file
 .env
 
+# Next.js build output
+.next/
+out/
+
 # dataconnect generated files
 .dataconnect
 .env.local
-
-# Add common ignores if missing
-next/
-out/
-node_modules/
-firebase/
-.env.local
-.env.*
 
 # Ignore large data files
 docs/copper-data/*.csv
