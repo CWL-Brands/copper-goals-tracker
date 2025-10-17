@@ -19,6 +19,7 @@ const goalTypes: GoalType[] = [
 ];
 
 const periodLabels: Record<GoalPeriod, string> = {
+  daily: 'Daily',
   weekly: 'Weekly',
   monthly: 'Monthly',
   quarterly: 'Quarterly',
