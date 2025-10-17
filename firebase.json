@@ -3,7 +3,9 @@
     {
       "site": "kanvaportal-goals",
       "source": ".",
-      "frameworksBackend": {},
+      "frameworksBackend": {
+        "region": "us-central1"
+      },
       "headers": [
         {
           "source": "**",
