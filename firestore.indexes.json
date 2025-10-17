@@ -24,6 +24,120 @@
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "date", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "metrics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "metrics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "products",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isBestSeller", "order": "DESCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "fishbowl_sales_orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "customerId", "order": "ASCENDING" },
+        { "fieldPath": "postingDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "fishbowl_sales_orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "customerId", "order": "ASCENDING" },
+        { "fieldPath": "postingDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "fishbowl_soitems",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "salesPerson", "order": "ASCENDING" },
+        { "fieldPath": "commissionDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "fishbowl_soitems",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "customerId", "order": "ASCENDING" },
+        { "fieldPath": "commissionDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "commission_entries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "quarterId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "commission_entries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "quarterId", "order": "ASCENDING" },
+        { "fieldPath": "repId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "commission_entries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "repId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "monthly_commission_summary",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "salesPerson", "order": "ASCENDING" },
+        { "fieldPath": "month", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "monthly_commissions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "commissionMonth", "order": "ASCENDING" },
+        { "fieldPath": "repName", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [
